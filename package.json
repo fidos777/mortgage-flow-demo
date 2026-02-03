@@ -10,7 +10,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "i18n:check": "npx tsx scripts/check-i18n.ts",
-    "demo:health": "bash scripts/demo-health.sh"
+    "demo:health": "bash scripts/demo-health.sh",
+    "demo:prep": "p=$(lsof -ti tcp:3000 2>/dev/null) && [ -n \"$p\" ] && kill -9 $p || true; npm run build",
+    "demo:start": "npm run start",
+    "demo:full": "npm run demo:prep && npm run demo:start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",

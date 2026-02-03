@@ -10,7 +10,7 @@ paths=(
   "/buyer/dsr-check"
   "/buyer/journey"
   "/agent"
-  "/agent/case/DEMO-001"
+  "/agent/case/C001"
 )
 
 echo "Demo Health Check @ ${BASE_URL}"

@@ -10,18 +10,51 @@ Built with PRD v3.4 compliance — demonstrating the constitutional governance m
 # Install dependencies
 npm install
 
-# Start development server
-npm run dev
+# Health check (verify 7 routes)
+npm run demo:health
 
-# Open browser
-open http://localhost:3000
+# Production demo (kill port + build + start)
+npm run demo:full
 ```
+
+### Demo Day Ritual
+
+```bash
+cd mortgage-flow-demo
+npm run demo:health   # ✓ confirm 7 routes OK
+npm run demo:full     # ✓ kill port + build + start
+# Demo Act 1–3, finale: /agent/case/C001
+```
+
+### Routes Checked by demo:health
+
+| Route | Description |
+|-------|-------------|
+| `/developer` | Pipeline Dashboard |
+| `/developer/proof` | Proof Logs (Judicial Layer) |
+| `/buyer/prescan` | Pre-Application Readiness Scan |
+| `/buyer/dsr-check` | DSR Calculator |
+| `/buyer/journey` | LPPSA Application Journey |
+| `/agent` | Agent Control Panel |
+| `/agent/case/C001` | Case Detail (Demo Case) |
+
+### ⚠️ Disclaimer (Wajib sebut masa demo)
+
+> Qontrek bukan LPPSA/bank, bukan kelulusan. Ini **readiness signal** + **dokumen** + **audit trail** sahaja. Status rasmi tetap di portal rasmi.
 
 ## 🚀 Deploy to Vercel
 
 ```bash
 # One-click deploy
 npx vercel --prod
+```
+
+### Production Smoke Test
+
+After deploy, verify all routes:
+
+```bash
+BASE_URL="https://your-vercel-domain.vercel.app" npm run demo:health
 ```
 
 ---
