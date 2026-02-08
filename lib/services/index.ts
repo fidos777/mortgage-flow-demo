@@ -173,6 +173,34 @@ export { getFeatureFlagsService, isFeatureEnabled, isDemoMode, isOtpRequired, is
 export type { FeatureFlagKey, FlagPreset } from './feature-flags';
 
 // =============================================================================
+// Consent Service (Sprint 0 S0.1-S0.3)
+// =============================================================================
+
+export { getConsentService, canBuyerProceed, checkBuyerConsent } from './consent-service';
+export { ConsentService } from './consent-service';
+
+// =============================================================================
+// Auth Ledger Service (Sprint 0 S0.4)
+// =============================================================================
+
+export { getAuthLedgerService, isAccountLocked, logLogin, logLogout } from './auth-ledger';
+export { AuthLedgerService } from './auth-ledger';
+
+// =============================================================================
+// Notification Service (Sprint 0 S0.5)
+// =============================================================================
+
+export { getNotificationService, sendNotification, wouldBeBlocked, sendBreachNotification } from './notification-service';
+export { NotificationService } from './notification-service';
+
+// =============================================================================
+// Breach & Retention Service (Sprint 0 S0.6)
+// =============================================================================
+
+export { getBreachService, createBreachIncident, checkBreachDeadlines, executeRetentionPurges } from './breach-service';
+export { BreachService } from './breach-service';
+
+// =============================================================================
 // React Hooks (for convenience)
 // =============================================================================
 

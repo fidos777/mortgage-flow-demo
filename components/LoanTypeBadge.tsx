@@ -108,7 +108,7 @@ export function LoanTypeSelector({
               className={`
                 flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-all
                 ${isSelected
-                  ? `${colors.border} ${colors.bg} ring-2 ring-offset-1 ring-blue-500`
+                  ? `${colors.border} ${colors.bg} ring-2 ring-offset-1 ring-snang-teal-500`
                   : 'border-gray-200 hover:border-gray-300 bg-white'
                 }
               `}
@@ -123,7 +123,7 @@ export function LoanTypeSelector({
                 </div>
               </div>
               {isSelected && (
-                <span className="text-blue-600">✓</span>
+                <span className="text-snang-teal-600">✓</span>
               )}
             </button>
           );

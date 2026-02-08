@@ -1,0 +1,511 @@
+/**
+ * Mobile UX Styles
+ * UX.2-UX.4: Touch targets, form inputs, navigation | PRD v3.6.3
+ *
+ * CSS utilities for ensuring mobile-first responsive design.
+ * Target: iPhone SE (375px) minimum width support.
+ */
+
+/* =============================================================================
+   BASE MOBILE SETTINGS
+   ============================================================================= */
+
+/* Prevent horizontal overflow */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Ensure proper viewport behavior */
+@viewport {
+  width: device-width;
+  zoom: 1.0;
+}
+
+/* =============================================================================
+   UX.2: TOUCH TARGET SIZES
+   Minimum 44x44px touch targets per Apple HIG
+   ============================================================================= */
+
+/* Base touch target class */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Button touch targets */
+button,
+[role="button"],
+.btn,
+a.btn {
+  min-height: 44px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Icon button touch targets */
+.btn-icon,
+button[aria-label]:not([aria-label=""]) {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
+}
+
+/* Link touch targets - add padding for easier tapping */
+a:not(.btn) {
+  padding: 4px 0;
+  margin: -4px 0;
+}
+
+/* Checkbox and radio touch targets */
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* Checkbox/radio wrapper for larger tap area */
+.checkbox-wrapper,
+.radio-wrapper {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+/* Spacing between touch targets */
+.touch-target + .touch-target,
+button + button,
+a.btn + a.btn {
+  margin-left: 8px;
+}
+
+/* =============================================================================
+   UX.3: FORM INPUT ACCESSIBILITY
+   ============================================================================= */
+
+/* Input field heights */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  min-height: 48px;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  background-color: #fff;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+/* Error states */
+input.error,
+input[aria-invalid="true"],
+textarea.error,
+select.error {
+  border-color: #ef4444;
+}
+
+input.error:focus,
+textarea.error:focus,
+select.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Select dropdown arrow */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 44px;
+}
+
+/* Form labels */
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+/* Required field indicator */
+label.required::after {
+  content: " *";
+  color: #ef4444;
+}
+
+/* Form help text */
+.form-help {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* Form error message */
+.form-error {
+  font-size: 13px;
+  color: #ef4444;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Form group spacing */
+.form-group {
+  margin-bottom: 20px;
+}
+
+/* Keyboard scroll adjustment */
+.keyboard-open .form-container {
+  padding-bottom: 300px;
+}
+
+/* =============================================================================
+   UX.4: MOBILE NAVIGATION
+   ============================================================================= */
+
+/* Bottom navigation bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 100;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 8px;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 11px;
+  transition: color 0.2s;
+}
+
+.bottom-nav-item.active {
+  color: #14b8a6;
+}
+
+.bottom-nav-item svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+}
+
+/* Page content padding when bottom nav is present */
+.has-bottom-nav {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0));
+}
+
+/* Header navigation */
+.mobile-header {
+  position: sticky;
+  top: 0;
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 100;
+}
+
+.mobile-header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  flex: 1;
+  text-align: center;
+}
+
+.mobile-header-back,
+.mobile-header-action {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =============================================================================
+   UX.5: MODAL RESPONSIVENESS
+   ============================================================================= */
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .modal-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+}
+
+/* Modal content */
+.modal-content {
+  background: #fff;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 24px 24px 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@media (min-width: 640px) {
+  .modal-content {
+    max-width: 500px;
+    border-radius: 24px;
+    max-height: 85vh;
+  }
+}
+
+/* Modal header */
+.modal-header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+/* Modal drag handle (mobile) */
+.modal-drag-handle {
+  width: 40px;
+  height: 4px;
+  background: #cbd5e1;
+  border-radius: 2px;
+  margin: 8px auto 0;
+}
+
+@media (min-width: 640px) {
+  .modal-drag-handle {
+    display: none;
+  }
+}
+
+/* Modal body */
+.modal-body {
+  padding: 20px;
+}
+
+/* Modal footer */
+.modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+}
+
+.modal-footer button {
+  flex: 1;
+}
+
+/* =============================================================================
+   UX.6: TYPOGRAPHY MOBILE SCALING
+   ============================================================================= */
+
+/* Body text - minimum 16px for readability */
+body {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #334155;
+}
+
+/* Headings scale */
+h1, .h1 {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+h2, .h2 {
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+h3, .h3 {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+h4, .h4 {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* Small text */
+.text-sm {
+  font-size: 14px;
+}
+
+.text-xs {
+  font-size: 12px;
+}
+
+/* Desktop scaling */
+@media (min-width: 768px) {
+  h1, .h1 { font-size: 32px; }
+  h2, .h2 { font-size: 24px; }
+  h3, .h3 { font-size: 20px; }
+}
+
+/* =============================================================================
+   RESPONSIVE UTILITIES
+   ============================================================================= */
+
+/* Hide on mobile */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 768px) {
+  .hide-desktop {
+    display: none;
+  }
+}
+
+/* Mobile-only flex */
+.flex-mobile {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .flex-mobile {
+    display: block;
+  }
+}
+
+/* Stack on mobile */
+.stack-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .stack-mobile {
+    flex-direction: row;
+  }
+}
+
+/* Full width on mobile */
+.full-mobile {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .full-mobile {
+    width: auto;
+  }
+}
+
+/* =============================================================================
+   SAFE AREA HANDLING (iPhone notch/home indicator)
+   ============================================================================= */
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left, 0);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+/* =============================================================================
+   LOADING STATES
+   ============================================================================= */
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Loading spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #14b8a6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

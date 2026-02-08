@@ -120,8 +120,8 @@ export function InvitationModal({ isOpen, onClose, projectName, projectLocation 
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-              <LinkIcon className="w-5 h-5 text-orange-600" />
+            <div className="w-10 h-10 bg-snang-teal-100 rounded-xl flex items-center justify-center">
+              <LinkIcon className="w-5 h-5 text-snang-teal-600" />
             </div>
             <div>
               <h2 className="font-bold text-slate-800">
@@ -160,7 +160,7 @@ export function InvitationModal({ isOpen, onClose, projectName, projectLocation 
             {!logo ? (
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-300 hover:bg-orange-50 transition-all"
+                className="w-full border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-snang-teal-300 hover:bg-snang-teal-50 transition-all"
               >
                 <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                 <p className="text-sm text-slate-600">
@@ -200,7 +200,7 @@ export function InvitationModal({ isOpen, onClose, projectName, projectLocation 
               value={developerName}
               onChange={(e) => setDeveloperName(e.target.value)}
               placeholder={lang === 'bm' ? 'Contoh: ABC Development Sdn Bhd' : 'e.g., ABC Development Sdn Bhd'}
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-orange-500 focus:outline-none"
+              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-snang-teal-500 focus:outline-none"
             />
           </div>
 
@@ -222,7 +222,7 @@ export function InvitationModal({ isOpen, onClose, projectName, projectLocation 
               disabled={!developerName.trim()}
               className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
                 developerName.trim()
-                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl'
+                  ? 'bg-gradient-to-r from-snang-teal-600 to-snang-teal-700 text-white shadow-lg shadow-snang-teal-500/30 hover:shadow-xl'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               }`}
             >

@@ -1,3 +1,10 @@
+/* === BM-1: SNANG.MY FONT IMPORTS ===
+   DM Sans: Logo only (weight 600)
+   Plus Jakarta Sans: Headings (weights 500-800)
+   Inter: Body text + UI (weights 400-700)
+*/
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +12,13 @@
 :root {
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', monospace;
+  /* BM-1: Snang.my CSS Custom Properties */
+  --snang-primary: #0D9488;
+  --snang-accent: #F59E0B;
+  --snang-dark: #042F2E;
+  --snang-font-logo: 'DM Sans', sans-serif;
+  --snang-font-display: 'Plus Jakarta Sans', sans-serif;
+  --snang-font-body: 'Inter', sans-serif;
 }
 
 /* Scrollbar styling */
@@ -66,7 +80,7 @@
   animation: scale-in 0.2s ease-out;
 }
 
-/* Qontrek brand gradient */
+/* Qontrek brand gradient (legacy) */
 .qontrek-gradient {
   @apply bg-gradient-to-r from-slate-800 to-slate-900;
 }
@@ -75,17 +89,30 @@
   @apply bg-gradient-to-r from-orange-500 to-orange-600;
 }
 
-/* Role-specific accent colors */
+/* BM-1: Snang.my brand gradients */
+.snang-gradient {
+  @apply bg-gradient-to-r from-snang-teal-600 to-snang-teal-700;
+}
+
+.snang-accent {
+  @apply bg-gradient-to-r from-snang-amber-500 to-snang-amber-600;
+}
+
+.snang-dark-gradient {
+  @apply bg-gradient-to-r from-snang-teal-700 to-snang-teal-900;
+}
+
+/* Role-specific accent colors (BM-1: Updated to teal-based) */
 .role-buyer {
-  --accent: 59 130 246; /* blue-500 */
+  --accent: 13 148 136; /* snang-teal-600 */
 }
 
 .role-agent {
-  --accent: 249 115 22; /* orange-500 */
+  --accent: 13 148 136; /* snang-teal-600 */
 }
 
 .role-developer {
-  --accent: 100 116 139; /* slate-500 */
+  --accent: 17 94 89; /* snang-teal-700 */
 }
 
 /* Mobile-first responsive utilities */
@@ -118,12 +145,13 @@
 }
 
 /* Improved focus states for accessibility */
+/* BM-1: Changed from orange to snang-teal */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  @apply outline-none ring-2 ring-orange-500 ring-offset-2;
+  @apply outline-none ring-2 ring-snang-teal-500 ring-offset-2;
 }
 
 /* Card hover effects */

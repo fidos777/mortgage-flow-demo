@@ -162,7 +162,7 @@ export function QuerySignalsPanel({ caseData }: QuerySignalsPanelProps) {
     switch (severity) {
       case 'HIGH': return <XCircle className="w-5 h-5 text-red-500" />;
       case 'MEDIUM': return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-      case 'LOW': return <Info className="w-5 h-5 text-blue-500" />;
+      case 'LOW': return <Info className="w-5 h-5 text-snang-teal-600" />;
     }
   };
 
@@ -181,7 +181,7 @@ export function QuerySignalsPanel({ caseData }: QuerySignalsPanelProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-orange-500" />
+            <AlertTriangle className="w-5 h-5 text-snang-teal-600" />
             Isyarat Pertanyaan LPPSA
           </h3>
           <p className="text-sm text-slate-500">
@@ -265,10 +265,10 @@ export function QuerySignalsPanel({ caseData }: QuerySignalsPanelProps) {
             <p className="text-xs text-yellow-500">Sederhana</p>
           </div>
           <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-bold text-snang-teal-600">
               {querySignals.filter(s => s.severity === 'LOW').length}
             </p>
-            <p className="text-xs text-blue-500">Rendah</p>
+            <p className="text-xs text-snang-teal-600">Rendah</p>
           </div>
         </div>
       )}
@@ -278,7 +278,7 @@ export function QuerySignalsPanel({ caseData }: QuerySignalsPanelProps) {
         <button
           onClick={handleGenerateReport}
           disabled={isGenerating}
-          className="w-full bg-orange-500 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-orange-600 transition-colors disabled:opacity-50"
+          className="w-full bg-snang-teal-600 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-snang-teal-700 transition-colors disabled:opacity-50"
         >
           {isGenerating ? (
             <>

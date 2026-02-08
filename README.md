@@ -49,12 +49,92 @@ npm run demo:full     # ✓ kill port + build + start
 npx vercel --prod
 ```
 
+### Cloud Demo Ritual (Vercel)
+
+```bash
+# 1. Verify deployment is accessible
+BASE_URL="https://mortgage-flow-demo.vercel.app" npm run demo:health
+
+# Expected: All 7 routes return HTTP 200 OK
+# If 401/403: See Troubleshooting below
+```
+
 ### Production Smoke Test
 
 After deploy, verify all routes:
 
 ```bash
 BASE_URL="https://your-vercel-domain.vercel.app" npm run demo:health
+```
+
+**Expected output:** All routes return `HTTP/1.1 200 OK`
+
+---
+
+## 🔧 Troubleshooting
+
+### HTTP 403 Forbidden (blocked-by-allowlist)
+
+**Symptom:** `curl` returns `403 Forbidden` with `X-Proxy-Error: blocked-by-allowlist`
+
+**Cause:** Vercel Firewall or IP Allowlist is blocking external access.
+
+**Fix (Recommended: Option C - Production Deploy Public):**
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard) → Select project
+2. **Settings** → **Deployment Protection**
+3. Set "Vercel Authentication" to **Off** for Production
+4. Or use **Settings** → **Security** → **Firewall** → Disable IP restrictions
+
+**Alternative: Shareable Link (Option B):**
+
+1. Go to project → **Deployments** → Select deployment
+2. Click **"..."** → **"Create Shareable Link"**
+3. Share the generated URL (valid for limited time)
+
+### HTTP 401 Unauthorized (Vercel SSO)
+
+**Symptom:** `curl` returns `401` with `_vercel_sso_nonce` cookie
+
+**Cause:** Vercel Preview Deployment Protection is enabled.
+
+**Fix:**
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard) → Select project
+2. **Settings** → **Deployment Protection**
+3. Toggle **"Vercel Authentication"** to **Off**
+4. Re-deploy or wait for cache to clear
+
+### EADDRINUSE :3000 (Port Already in Use)
+
+**Symptom:** `npm run start` fails with `EADDRINUSE`
+
+**Fix:**
+
+```bash
+# macOS/Linux
+lsof -ti tcp:3000 | xargs kill -9
+
+# Or use the built-in script
+npm run demo:prep
+```
+
+### Vercel CLI Permission Error (EACCES)
+
+**Symptom:** `npm install -g vercel` fails with permission error
+
+**Fix (Option 1 - Use npx):**
+```bash
+npx vercel --prod
+```
+
+**Fix (Option 2 - Fix npm prefix):**
+```bash
+mkdir -p ~/.npm-global
+npm config set prefix '~/.npm-global'
+echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.zshrc
+source ~/.zshrc
+npm install -g vercel
 ```
 
 ---

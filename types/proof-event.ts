@@ -23,7 +23,20 @@ export type ProofEventType =
   | 'MISMATCH_DETECTED'
   | 'CONFIDENCE_SCORED'
   | 'PHASE_TRANSITIONED'
-  | 'QUERY_SIGNALS_DETECTED';
+  | 'QUERY_SIGNALS_DETECTED'
+  // SF.1: Developer Authorization events (CR-010B)
+  | 'DEVELOPER_AUTHORIZED'
+  | 'DEVELOPER_AUTH_UPDATED'
+  | 'DEVELOPER_AUTH_EXPIRED'
+  | 'DEVELOPER_AUTH_REVOKED'
+  | 'UNAUTHORIZED_ACCESS_ATTEMPT'
+  // SF.4: QR Entry events
+  | 'QR_LINK_GENERATED'
+  | 'QR_LINK_SCANNED'
+  | 'QR_LINK_VALIDATED'
+  | 'QR_LINK_EXPIRED'
+  | 'QR_LINK_INVALID'
+  | 'QR_ENTRY_COMPLETED';
 
 export interface ProofEvent {
   id: string;
@@ -62,6 +75,19 @@ export const EVENT_CATEGORIES: Record<ProofEventType, ProofEventCategory> = {
   CONFIDENCE_SCORED: 'DERIVED',
   PHASE_TRANSITIONED: 'DERIVED',
   QUERY_SIGNALS_DETECTED: 'DERIVED',
+  // SF.1: Developer Authorization events
+  DEVELOPER_AUTHORIZED: 'DECLARE',
+  DEVELOPER_AUTH_UPDATED: 'DECLARE',
+  DEVELOPER_AUTH_EXPIRED: 'DERIVED',
+  DEVELOPER_AUTH_REVOKED: 'DECLARE',
+  UNAUTHORIZED_ACCESS_ATTEMPT: 'FACT',
+  // SF.4: QR Entry events
+  QR_LINK_GENERATED: 'FACT',
+  QR_LINK_SCANNED: 'FACT',
+  QR_LINK_VALIDATED: 'DERIVED',
+  QR_LINK_EXPIRED: 'DERIVED',
+  QR_LINK_INVALID: 'DERIVED',
+  QR_ENTRY_COMPLETED: 'FACT',
 };
 
 // Human-readable event descriptions
@@ -80,4 +106,17 @@ export const EVENT_DESCRIPTIONS: Record<ProofEventType, string> = {
   CONFIDENCE_SCORED: 'Keyakinan dinilai',
   PHASE_TRANSITIONED: 'Fasa bertukar',
   QUERY_SIGNALS_DETECTED: 'Isyarat pertanyaan dikesan',
+  // SF.1: Developer Authorization events
+  DEVELOPER_AUTHORIZED: 'Kebenaran PDPA pemaju ditandatangani',
+  DEVELOPER_AUTH_UPDATED: 'Kebenaran PDPA pemaju dikemaskini',
+  DEVELOPER_AUTH_EXPIRED: 'Kebenaran PDPA pemaju tamat tempoh',
+  DEVELOPER_AUTH_REVOKED: 'Kebenaran PDPA pemaju dibatalkan',
+  UNAUTHORIZED_ACCESS_ATTEMPT: 'Cubaan akses tanpa kebenaran',
+  // SF.4: QR Entry events
+  QR_LINK_GENERATED: 'Pautan QR dijana',
+  QR_LINK_SCANNED: 'Kod QR diimbas',
+  QR_LINK_VALIDATED: 'Pautan QR disahkan',
+  QR_LINK_EXPIRED: 'Pautan QR tamat tempoh',
+  QR_LINK_INVALID: 'Pautan QR tidak sah',
+  QR_ENTRY_COMPLETED: 'Kemasukan QR selesai',
 };

@@ -18,7 +18,7 @@ export function LanguageToggle({ variant = 'default', className = '' }: Language
           onClick={() => setLang('bm')}
           className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
             lang === 'bm'
-              ? 'bg-orange-500 text-white'
+              ? 'bg-snang-teal-600 text-white'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -28,7 +28,7 @@ export function LanguageToggle({ variant = 'default', className = '' }: Language
           onClick={() => setLang('en')}
           className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
             lang === 'en'
-              ? 'bg-orange-500 text-white'
+              ? 'bg-snang-teal-600 text-white'
               : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -44,9 +44,9 @@ export function LanguageToggle({ variant = 'default', className = '' }: Language
         onClick={() => setLang(lang === 'bm' ? 'en' : 'bm')}
         className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-slate-700/50 text-slate-300 hover:text-white transition-colors ${className}`}
       >
-        <span className={lang === 'bm' ? 'text-orange-400' : 'text-slate-500'}>BM</span>
+        <span className={lang === 'bm' ? 'text-snang-teal-500' : 'text-slate-500'}>BM</span>
         <span className="text-slate-600">/</span>
-        <span className={lang === 'en' ? 'text-orange-400' : 'text-slate-500'}>EN</span>
+        <span className={lang === 'en' ? 'text-snang-teal-500' : 'text-slate-500'}>EN</span>
       </button>
     );
   }
@@ -58,7 +58,7 @@ export function LanguageToggle({ variant = 'default', className = '' }: Language
         onClick={() => setLang('bm')}
         className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
           lang === 'bm'
-            ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+            ? 'bg-snang-teal-600/20 text-snang-teal-500 border border-snang-teal-500/30'
             : 'text-slate-500 hover:text-slate-300'
         }`}
       >
@@ -69,7 +69,7 @@ export function LanguageToggle({ variant = 'default', className = '' }: Language
         onClick={() => setLang('en')}
         className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
           lang === 'en'
-            ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+            ? 'bg-snang-teal-600/20 text-snang-teal-500 border border-snang-teal-500/30'
             : 'text-slate-500 hover:text-slate-300'
         }`}
       >

@@ -12,7 +12,11 @@ export type FeatureFlagKey =
   | 'DOC_STRICT_MODE'     // Strict document validation (reject incomplete)
   | 'TELEMETRY_ENABLED'   // Send telemetry to backend
   | 'LINK_EXPIRY_ENABLED' // Enforce invite link expiration
-  | 'PROOF_STRICT_MODE';  // Strict proof event validation
+  | 'PROOF_STRICT_MODE'   // Strict proof event validation
+  // Sprint 0: PDPA Compliance Flags (CR-010)
+  | 'PDPA_GATE_ENABLED'   // Enable Step 0 PDPA consent gate
+  | 'PDPA_STRICT_MODE'    // Block all operations without consent (prod)
+  | 'PDPA_BREACH_SCAFFOLD'; // Enable breach incident logging (Phase 2 prep)
 
 /**
  * Feature Flag Configuration
@@ -66,6 +70,25 @@ const DEFAULT_FLAGS: Record<FeatureFlagKey, FeatureFlag> = {
     description: 'Strict proof event validation - require all metadata',
     defaultValue: false,
   },
+  // Sprint 0: PDPA Compliance Flags (CR-010)
+  PDPA_GATE_ENABLED: {
+    key: 'PDPA_GATE_ENABLED',
+    enabled: true,
+    description: 'Enable Step 0 PDPA consent gate before data collection',
+    defaultValue: true,
+  },
+  PDPA_STRICT_MODE: {
+    key: 'PDPA_STRICT_MODE',
+    enabled: false,
+    description: 'Block all operations without PDPA_BASIC consent (production)',
+    defaultValue: false,
+  },
+  PDPA_BREACH_SCAFFOLD: {
+    key: 'PDPA_BREACH_SCAFFOLD',
+    enabled: true,
+    description: 'Enable breach incident logging scaffold (Phase 2 prep)',
+    defaultValue: true,
+  },
 };
 
 /**
@@ -79,6 +102,10 @@ export const FLAG_PRESETS = {
     TELEMETRY_ENABLED: true,
     LINK_EXPIRY_ENABLED: false,
     PROOF_STRICT_MODE: false,
+    // PDPA: Relaxed for demos (gate disabled)
+    PDPA_GATE_ENABLED: false,
+    PDPA_STRICT_MODE: false,
+    PDPA_BREACH_SCAFFOLD: false,
   },
   pilot: {
     DEMO_MODE: false,
@@ -87,6 +114,10 @@ export const FLAG_PRESETS = {
     TELEMETRY_ENABLED: true,
     LINK_EXPIRY_ENABLED: true,
     PROOF_STRICT_MODE: true,
+    // PDPA: Enabled but not strict
+    PDPA_GATE_ENABLED: true,
+    PDPA_STRICT_MODE: false,
+    PDPA_BREACH_SCAFFOLD: true,
   },
   production: {
     DEMO_MODE: false,
@@ -95,6 +126,10 @@ export const FLAG_PRESETS = {
     TELEMETRY_ENABLED: true,
     LINK_EXPIRY_ENABLED: true,
     PROOF_STRICT_MODE: true,
+    // PDPA: Full enforcement
+    PDPA_GATE_ENABLED: true,
+    PDPA_STRICT_MODE: true,
+    PDPA_BREACH_SCAFFOLD: true,
   },
 } as const;
 
@@ -244,6 +279,38 @@ export function isOtpRequired(): boolean {
  */
 export function isDocStrictMode(): boolean {
   return isFeatureEnabled('DOC_STRICT_MODE');
+}
+
+/**
+ * Check if PDPA consent gate is enabled
+ */
+export function isPdpaGateEnabled(): boolean {
+  return isFeatureEnabled('PDPA_GATE_ENABLED');
+}
+
+/**
+ * Check if PDPA strict mode is enabled
+ */
+export function isPdpaStrictMode(): boolean {
+  return isFeatureEnabled('PDPA_STRICT_MODE');
+}
+
+// =============================================================================
+// Feature Flags Type Alias (for service imports)
+// =============================================================================
+
+/**
+ * Type alias for direct flag access
+ * Usage: const flags = getFeatureFlags();
+ *        if (flags.PDPA_GATE_ENABLED) { ... }
+ */
+export type FeatureFlags = Record<FeatureFlagKey, boolean>;
+
+/**
+ * Get all feature flags as a simple object
+ */
+export function getFeatureFlags(): FeatureFlags {
+  return getFeatureFlagsService().getAllFlags();
 }
 
 // =============================================================================

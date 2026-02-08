@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snang.my Demo Walkthrough | Global Fiz Resources Sdn Bhd</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #042F2E; /* snang-teal-900 */
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Main container */
+        .slideshow-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 24px;
+            background: linear-gradient(180deg, rgba(4,47,46,0.95) 0%, rgba(4,47,46,0) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .logo .teal { color: #0D9488; }
+        .logo .amber { color: #F59E0B; }
+
+        .partner-name {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        /* Slide area */
+        .slide-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px 140px;
+            position: relative;
+        }
+
+        /* Title slide */
+        .title-slide {
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .title-slide h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+
+        .title-slide h2 {
+            font-size: 24px;
+            font-weight: 400;
+            color: #cbd5e1;
+            margin-bottom: 32px;
+        }
+
+        .title-slide .meta {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 48px;
+        }
+
+        .title-slide .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #0D9488;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #0D9488 0%, #115E59 100%);
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(13, 148, 136, 0.4);
+        }
+
+        /* Section header slide */
+        .section-slide {
+            text-align: center;
+            max-width: 700px;
+        }
+
+        .section-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+
+        .section-slide h2 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .section-slide .subtitle {
+            font-size: 18px;
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+
+        .section-slide .description {
+            font-size: 16px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        /* BM-6: Section colors — teal shades instead of random colors */
+        .section-developer h2 { color: #0D9488; } /* teal-600 — first in flow */
+        .section-buyer h2 { color: #14B8A6; }     /* teal-500 */
+        .section-agent h2 { color: #F59E0B; }     /* amber-500 — agent is operational */
+
+        /* Screenshot slide */
+        .screenshot-slide {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screenshot-slide img {
+            max-width: 90%;
+            max-height: calc(100% - 100px);
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        /* Narration bar */
+        .narration-bar {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 900px;
+            background: rgba(17, 94, 89, 0.95); /* teal-700 */
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 20px 28px;
+            border: 1px solid rgba(13, 148, 136, 0.2);
+        }
+
+        .narration-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        .narration-label {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(13, 148, 136, 0.2);
+            color: #0D9488;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 24px;
+            background: linear-gradient(0deg, rgba(4,47,46,0.98) 0%, rgba(4,47,46,0.8) 100%);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .play-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #0D9488;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .play-btn:hover {
+            background: #115E59;
+            transform: scale(1.05);
+        }
+
+        .progress-container {
+            flex: 1;
+            height: 6px;
+            background: #115E59;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0D9488 0%, #14B8A6 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .section-marker {
+            position: absolute;
+            width: 3px;
+            height: 12px;
+            background: #F59E0B;
+            top: -3px;
+            border-radius: 2px;
+        }
+
+        .time-display {
+            font-size: 14px;
+            color: #94a3b8;
+            min-width: 100px;
+            text-align: right;
+        }
+
+        .slide-counter {
+            font-size: 14px;
+            color: #64748b;
+            min-width: 80px;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #115E59;
+            border: 1px solid #0D9488;
+            color: #94a3b8;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: #0D9488;
+            color: #fff;
+        }
+
+        .speed-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #115E59;
+            border: 1px solid #0D9488;
+            color: #94a3b8;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .speed-btn:hover, .speed-btn.active {
+            background: #0D9488;
+            border-color: #0D9488;
+            color: #fff;
+        }
+
+        /* Section indicator */
+        .section-indicator {
+            position: absolute;
+            top: 70px;
+            left: 24px;
+            padding: 8px 16px;
+            background: rgba(17, 94, 89, 0.9);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 50;
+        }
+
+        .section-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* BM-6: Section dots match header colors */
+        .section-dot.developer { background: #0D9488; }
+        .section-dot.buyer { background: #14B8A6; }
+        .section-dot.agent { background: #F59E0B; }
+
+        /* End slide */
+        .end-slide {
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .end-slide h2 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: #0D9488;
+            margin-bottom: 16px;
+        }
+
+        .end-slide p {
+            font-size: 18px;
+            color: #94a3b8;
+            margin-bottom: 32px;
+        }
+
+        .end-slide .tagline {
+            font-size: 24px;
+            font-style: italic;
+            color: #cbd5e1;
+            margin-top: 24px;
+        }
+
+        .restart-btn {
+            background: transparent;
+            color: #0D9488;
+            border: 2px solid #0D9488;
+            padding: 12px 36px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            background: #0D9488;
+            color: white;
+        }
+
+        /* Hidden */
+        .hidden { display: none !important; }
+
+        /* Keyboard shortcuts tooltip */
+        .shortcuts-tooltip {
+            position: absolute;
+            bottom: 80px;
+            right: 24px;
+            background: rgba(17, 94, 89, 0.95);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #94a3b8;
+            z-index: 50;
+        }
+
+        .shortcuts-tooltip kbd {
+            background: #042F2E;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 4px;
+        }
+
+        /* Flow indicator */
+        .flow-indicator {
+            position: absolute;
+            top: 70px;
+            right: 24px;
+            padding: 6px 14px;
+            background: rgba(17, 94, 89, 0.9);
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #5EEAD4;
+            z-index: 50;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <span class="teal">Snang</span><span class="amber">.</span><span class="teal">my</span>
+            </div>
+            <div class="partner-name">Global Fiz Resources Sdn Bhd</div>
+        </div>
+
+        <!-- Section indicator -->
+        <div class="section-indicator hidden" id="sectionIndicator">
+            <span class="section-dot" id="sectionDot"></span>
+            <span id="sectionName">Pemaju</span>
+        </div>
+
+        <!-- Flow indicator -->
+        <div class="flow-indicator hidden" id="flowIndicator">
+            ① Pemaju → ② Pembeli → ③ Ejen
+        </div>
+
+        <!-- Slide area -->
+        <div class="slide-area" id="slideArea">
+            <!-- Content injected by JS -->
+        </div>
+
+        <!-- Narration bar -->
+        <div class="narration-bar hidden" id="narrationBar">
+            <div class="narration-label" id="narrationLabel">Langkah 1</div>
+            <div class="narration-text" id="narrationText"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls" id="controls">
+            <button class="play-btn" id="playBtn" title="Play/Pause (Space)">▶</button>
+            <button class="nav-btn" id="prevBtn" title="Previous (←)">◀</button>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+                <div class="progress-markers" id="progressMarkers"></div>
+            </div>
+            <button class="nav-btn" id="nextBtn" title="Next (→)">▶</button>
+            <div class="time-display" id="timeDisplay">0:00 / 15:00</div>
+            <div class="slide-counter" id="slideCounter">1 / 36</div>
+            <button class="speed-btn active" data-speed="1">1x</button>
+            <button class="speed-btn" data-speed="1.5">1.5x</button>
+            <button class="speed-btn" data-speed="2">2x</button>
+        </div>
+
+        <!-- Keyboard shortcuts -->
+        <div class="shortcuts-tooltip">
+            <kbd>Space</kbd> Play/Pause &nbsp; <kbd>←</kbd><kbd>→</kbd> Navigate
+        </div>
+    </div>
+
+    <script>
+        // BM-6: Slides reordered — Developer → Buyer → Agent (demo flow order)
+        const slides = [
+            // Title slide
+            {
+                type: 'title',
+                duration: 8000
+            },
+
+            // ═══════════════════════════════════════════
+            // SECTION 1: DEVELOPER (Pemaju)
+            // Rationale: Developer creates project first → generates invitation links
+            // ═══════════════════════════════════════════
+            {
+                type: 'section',
+                section: 'developer',
+                icon: '🏗️',
+                title: 'Bahagian 1: Dashboard Pemaju',
+                subtitle: 'Developer Pipeline & Analytics',
+                description: 'Screenshots menunjukkan dashboard pemaju dengan metrik agregat, lifecycle pautan, dan proof events.',
+                duration: 5000
+            },
+            // Developer screenshots
+            { type: 'screenshot', section: 'developer', folder: 'ss v3 (pemaju)', file: 'screencapture-mortgage-flow-demo-vercel-app-developer-2026-02-01-09_19_03.png', label: 'Langkah 1', narration: 'Dashboard Pemaju dengan data agregat sahaja - tiada data individu pembeli. Ini adalah pandangan pertama dalam aliran demo.', duration: 5000 },
+            { type: 'screenshot', section: 'developer', folder: 'ss v3 (pemaju)', file: 'screencapture-mortgage-flow-demo-vercel-app-developer-2026-02-01-09_19_31.png', label: 'Langkah 2', narration: 'Metrik keseluruhan: total pembeli, conversion rates, funnel stages.', duration: 4000 },
+            { type: 'screenshot', section: 'developer', folder: 'ss v3 (pemaju)', file: 'screencapture-mortgage-flow-demo-vercel-app-developer-2026-02-01-09_19_49.png', label: 'Langkah 3', narration: 'Analytics view untuk planning dan forecasting.', duration: 4000 },
+            { type: 'screenshot', section: 'developer', folder: 'ss v3 (pemaju)', file: 'screencapture-mortgage-flow-demo-vercel-app-developer-2026-02-01-09_20_10.png', label: 'Langkah 4', narration: 'Generate link invitation untuk pembeli baru dengan lifecycle tracking. Link ini menjadi entry point untuk Bahagian 2.', duration: 4000 },
+            { type: 'screenshot', section: 'developer', folder: 'ss v3 (pemaju)', file: 'screencapture-mortgage-flow-demo-vercel-app-developer-2026-02-01-09_24_50.png', label: 'Langkah 5', narration: 'Link lifecycle: CREATED → OPENED → CONSENT_GIVEN → EXPIRED/REVOKED.', duration: 5000 },
+            { type: 'screenshot', section: 'developer', folder: 'ss v3 (pemaju)', file: 'screencapture-mortgage-flow-demo-vercel-app-developer-2026-02-01-09_25_02.png', label: 'Langkah 6', narration: 'Cuba akses kes individu... ACCESS DENIED. PRD 9.2 compliance — pemaju tidak boleh lihat data buyer individu.', duration: 5000 },
+            { type: 'screenshot', section: 'developer', folder: 'ss v3 (pemaju)', file: 'screencapture-mortgage-flow-demo-vercel-app-developer-2026-02-01-09_25_18.png', label: 'Langkah 7', narration: 'Proof events log untuk audit trail — hanya metadata, bukan content. Privacy by design.', duration: 5000 },
+            { type: 'screenshot', section: 'developer', folder: 'ss v3 (pemaju)', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_25_59.png', label: 'Langkah 8', narration: 'Demonstrasi akses ditolak — pemaju hanya nampak agregat, bukan individu.', duration: 5000 },
+
+            // ═══════════════════════════════════════════
+            // SECTION 2: BUYER (Pembeli)
+            // Rationale: Buyer receives link from developer → PDPA consent → PreScan
+            // ═══════════════════════════════════════════
+            {
+                type: 'section',
+                section: 'buyer',
+                icon: '👤',
+                title: 'Bahagian 2: Perjalanan Pembeli',
+                subtitle: 'PDPA Consent → PreScan → DSR Flow',
+                description: 'Screenshots menunjukkan aliran lengkap pembeli — dari persetujuan PDPA hingga keputusan DSR.',
+                duration: 5000
+            },
+            // Buyer screenshots
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-2026-02-01-09_08_35.png', label: 'Langkah 1', narration: 'Dashboard pembeli. Pembeli akses melalui link unik dari pemaju (Bahagian 1). Tiada login diperlukan.', duration: 6000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_09_03.png', label: 'Langkah 2', narration: 'Skrin persetujuan PDPA — Gate Consent wajib sebelum mula. Setiap consent direkod sebagai proof event untuk audit trail. Ini adalah S0.2 compliance.', duration: 6000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_09_32.png', label: 'Langkah 3', narration: 'PreScan Langkah 1: Maklumat peribadi asas pembeli.', duration: 4000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_09_47.png', label: 'Langkah 4', narration: 'PreScan Langkah 2: Status pekerjaan kerajaan dengan validasi real-time.', duration: 4000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_10_07.png', label: 'Langkah 5', narration: 'PreScan Langkah 3: Maklumat pendapatan untuk pengiraan DSR.', duration: 4000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_10_35.png', label: 'Langkah 6', narration: 'PreScan Langkah 4: Komitmen sedia ada — pinjaman kereta, kad kredit, dll.', duration: 4000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_10_56.png', label: 'Langkah 7', narration: 'PreScan Langkah 5: Maklumat hartanah yang ingin dibeli.', duration: 4000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_11_15.png', label: 'Langkah 8', narration: 'PreScan Langkah 6: Jumlah pinjaman yang dipohon.', duration: 4000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_11_44.png', label: 'Langkah 9', narration: 'PreScan Langkah 7: Ringkasan semua maklumat untuk review sebelum submit.', duration: 4000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_11_59.png', label: 'Langkah 10', narration: 'Pengiraan DSR bermula selepas submit...', duration: 3000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_12_30.png', label: 'Langkah 11', narration: 'Keputusan DSR: SIHAT (hijau) bermaksud komitmen di bawah 40%.', duration: 5000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_12_49.png', label: 'Langkah 12', narration: 'Detail pengiraan DSR dengan breakdown pendapatan vs komitmen.', duration: 5000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_13_05.png', label: 'Langkah 13', narration: 'Status READY TO CONTINUE — pembeli boleh teruskan ke langkah seterusnya.', duration: 5000 },
+            { type: 'screenshot', section: 'buyer', folder: 'ss v1', file: 'screencapture-mortgage-flow-demo-vercel-app-buyer-prescan-2026-02-01-09_13_23.png', label: 'Langkah 14', narration: 'Senarai tindakan seterusnya yang perlu diambil oleh pembeli. Kes ini kini visible kepada ejen (Bahagian 3).', duration: 5000 },
+
+            // ═══════════════════════════════════════════
+            // SECTION 3: AGENT (Ejen)
+            // Rationale: Agent manages cases submitted by buyers
+            // ═══════════════════════════════════════════
+            {
+                type: 'section',
+                section: 'agent',
+                icon: '💼',
+                title: 'Bahagian 3: Panel Kawalan Ejen',
+                subtitle: 'Agent Control Panel & Case Management',
+                description: 'Screenshots menunjukkan dashboard ejen, pengurusan kes, dan Portal Kit walkthrough.',
+                duration: 5000
+            },
+            // Agent screenshots
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_15_00.png', label: 'Langkah 1', narration: 'Dashboard Ejen dengan senarai semua kes yang ditugaskan. Kes dari Bahagian 2 kini muncul di sini.', duration: 5000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_16_25.png', label: 'Langkah 2', narration: 'Filter kes mengikut status: READY, NEED DOC, KJ OVERDUE.', duration: 4000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_16_39.png', label: 'Langkah 3', narration: 'Setiap kad menunjukkan maklumat ringkas. Perhatikan: Ejen hanya nampak JULAT pendapatan, bukan gaji sebenar.', duration: 5000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_16_50.png', label: 'Langkah 4', narration: 'Detail kes dengan senarai dokumen yang telah diupload.', duration: 4000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_17_03.png', label: 'Langkah 5', narration: 'Timeline aktiviti dan confidence score untuk setiap field.', duration: 4000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-case-C001-2026-02-01-09_17_30.png', label: 'Langkah 6', narration: 'Portal Submission Kit — feature utama untuk ejen memproses kes.', duration: 5000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_17_17.png', label: 'Langkah 7', narration: 'Step 1: Readiness Check — validasi semua dokumen lengkap.', duration: 4000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_18_12.png', label: 'Langkah 8', narration: 'Step 2: Draft Preview dengan watermark DRAFT untuk semakan.', duration: 4000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_18_30.png', label: 'Langkah 9', narration: 'Step 3: Copy-Next Panel — ejen copy field ke portal LPPSA rasmi.', duration: 5000 },
+            { type: 'screenshot', section: 'agent', folder: 'ss v2 (agent)', file: 'screencapture-mortgage-flow-demo-vercel-app-agent-2026-02-01-09_18_44.png', label: 'Langkah 10', narration: 'Step 4: TAC Attestation dengan timer 180 saat. Ejen declare manual submission. AI bantu, bukan ganti.', duration: 5000 },
+
+            // End slide
+            {
+                type: 'end',
+                duration: 10000
+            }
+        ];
+
+        // State
+        let currentSlide = 0;
+        let isPlaying = false;
+        let playbackSpeed = 1;
+        let slideTimer = null;
+        let elapsedTime = 0;
+
+        // Calculate total duration
+        const totalDuration = slides.reduce((sum, s) => sum + s.duration, 0);
+
+        // DOM elements
+        const slideArea = document.getElementById('slideArea');
+        const playBtn = document.getElementById('playBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressMarkers = document.getElementById('progressMarkers');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const slideCounter = document.getElementById('slideCounter');
+        const narrationBar = document.getElementById('narrationBar');
+        const narrationLabel = document.getElementById('narrationLabel');
+        const narrationText = document.getElementById('narrationText');
+        const sectionIndicator = document.getElementById('sectionIndicator');
+        const sectionDot = document.getElementById('sectionDot');
+        const sectionName = document.getElementById('sectionName');
+        const flowIndicator = document.getElementById('flowIndicator');
+        const speedBtns = document.querySelectorAll('.speed-btn');
+
+        // Initialize section markers
+        function initMarkers() {
+            let cumulative = 0;
+            slides.forEach((slide, i) => {
+                if (slide.type === 'section') {
+                    const marker = document.createElement('div');
+                    marker.className = 'section-marker';
+                    marker.style.left = `${(cumulative / totalDuration) * 100}%`;
+                    progressMarkers.appendChild(marker);
+                }
+                cumulative += slide.duration;
+            });
+        }
+
+        // Format time
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Get elapsed time up to slide
+        function getElapsedToSlide(index) {
+            return slides.slice(0, index).reduce((sum, s) => sum + s.duration, 0);
+        }
+
+        // BM-6: Section name mapping (demo flow order)
+        function getSectionLabel(section) {
+            switch(section) {
+                case 'developer': return '① Pemaju';
+                case 'buyer': return '② Pembeli';
+                case 'agent': return '③ Ejen';
+                default: return section;
+            }
+        }
+
+        // Render slide
+        function renderSlide() {
+            const slide = slides[currentSlide];
+            slideArea.innerHTML = '';
+
+            if (slide.type === 'title') {
+                slideArea.innerHTML = `
+                    <div class="title-slide">
+                        <h1>SNANG.MY DEMO</h1>
+                        <h2>Platform Kesediaan Pinjaman LPPSA</h2>
+                        <div class="meta">PRD v3.6.1 | Global Fiz Resources Sdn Bhd | Februari 2026</div>
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-value">32</div>
+                                <div class="stat-label">Screenshots</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Bahagian</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">15</div>
+                                <div class="stat-label">Minit</div>
+                            </div>
+                        </div>
+                        <button class="start-btn" onclick="startPresentation()">Mula Walkthrough ▶</button>
+                    </div>
+                `;
+                narrationBar.classList.add('hidden');
+                sectionIndicator.classList.add('hidden');
+                flowIndicator.classList.add('hidden');
+            } else if (slide.type === 'section') {
+                slideArea.innerHTML = `
+                    <div class="section-slide section-${slide.section}">
+                        <div class="section-icon">${slide.icon}</div>
+                        <h2>${slide.title}</h2>
+                        <div class="subtitle">${slide.subtitle}</div>
+                        <div class="description">${slide.description}</div>
+                    </div>
+                `;
+                narrationBar.classList.add('hidden');
+                sectionIndicator.classList.add('hidden');
+                flowIndicator.classList.remove('hidden');
+            } else if (slide.type === 'screenshot') {
+                const imgPath = encodeURIComponent(slide.folder) + '/' + encodeURIComponent(slide.file);
+                slideArea.innerHTML = `
+                    <div class="screenshot-slide">
+                        <img src="${imgPath}" alt="${slide.label}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22><rect fill=%22%23115E59%22 width=%22800%22 height=%22600%22/><text fill=%22%2394a3b8%22 x=%22400%22 y=%22300%22 text-anchor=%22middle%22>Screenshot tidak ditemui</text></svg>'">
+                    </div>
+                `;
+                narrationBar.classList.remove('hidden');
+                narrationLabel.textContent = slide.label;
+                narrationText.textContent = slide.narration;
+
+                sectionIndicator.classList.remove('hidden');
+                flowIndicator.classList.remove('hidden');
+                sectionDot.className = 'section-dot ' + slide.section;
+                sectionName.textContent = getSectionLabel(slide.section);
+            } else if (slide.type === 'end') {
+                slideArea.innerHTML = `
+                    <div class="end-slide">
+                        <h2>Terima Kasih</h2>
+                        <p>Demo walkthrough telah selesai.</p>
+                        <button class="restart-btn" onclick="restartPresentation()">Mula Semula ↺</button>
+                        <div class="tagline">"AI bantu, bukan ganti"</div>
+                    </div>
+                `;
+                narrationBar.classList.add('hidden');
+                sectionIndicator.classList.add('hidden');
+                flowIndicator.classList.add('hidden');
+                isPlaying = false;
+                playBtn.textContent = '▶';
+            }
+
+            updateUI();
+        }
+
+        // Update UI
+        function updateUI() {
+            elapsedTime = getElapsedToSlide(currentSlide);
+            const progress = (elapsedTime / totalDuration) * 100;
+            progressBar.style.width = `${progress}%`;
+            timeDisplay.textContent = `${formatTime(elapsedTime)} / ${formatTime(totalDuration)}`;
+            slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
+        }
+
+        // Playback controls
+        function togglePlay() { isPlaying ? pause() : play(); }
+
+        function play() {
+            if (currentSlide >= slides.length - 1) { currentSlide = 0; renderSlide(); }
+            isPlaying = true;
+            playBtn.textContent = '⏸';
+            scheduleNext();
+        }
+
+        function pause() {
+            isPlaying = false;
+            playBtn.textContent = '▶';
+            if (slideTimer) { clearTimeout(slideTimer); slideTimer = null; }
+        }
+
+        function scheduleNext() {
+            if (!isPlaying) return;
+            const duration = slides[currentSlide].duration / playbackSpeed;
+            slideTimer = setTimeout(() => {
+                if (currentSlide < slides.length - 1) { currentSlide++; renderSlide(); scheduleNext(); }
+                else { pause(); }
+            }, duration);
+        }
+
+        function goToSlide(index) {
+            if (index >= 0 && index < slides.length) {
+                currentSlide = index;
+                renderSlide();
+                if (isPlaying) { if (slideTimer) clearTimeout(slideTimer); scheduleNext(); }
+            }
+        }
+
+        function prevSlide() { goToSlide(currentSlide - 1); }
+        function nextSlide() { goToSlide(currentSlide + 1); }
+        function startPresentation() { currentSlide = 1; renderSlide(); play(); }
+        function restartPresentation() { currentSlide = 0; renderSlide(); }
+
+        function setSpeed(speed) {
+            playbackSpeed = speed;
+            speedBtns.forEach(btn => { btn.classList.toggle('active', parseFloat(btn.dataset.speed) === speed); });
+            if (isPlaying) { if (slideTimer) clearTimeout(slideTimer); scheduleNext(); }
+        }
+
+        // Event listeners
+        playBtn.addEventListener('click', togglePlay);
+        prevBtn.addEventListener('click', prevSlide);
+        nextBtn.addEventListener('click', nextSlide);
+
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const clickPos = (e.clientX - rect.left) / rect.width;
+            const targetTime = clickPos * totalDuration;
+            let cumulative = 0;
+            for (let i = 0; i < slides.length; i++) {
+                if (cumulative + slides[i].duration >= targetTime) { goToSlide(i); break; }
+                cumulative += slides[i].duration;
+            }
+        });
+
+        speedBtns.forEach(btn => { btn.addEventListener('click', () => setSpeed(parseFloat(btn.dataset.speed))); });
+
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'Space': e.preventDefault(); togglePlay(); break;
+                case 'ArrowLeft': prevSlide(); break;
+                case 'ArrowRight': nextSlide(); break;
+                case 'Home': goToSlide(0); break;
+                case 'End': goToSlide(slides.length - 1); break;
+            }
+        });
+
+        // Initialize
+        initMarkers();
+        renderSlide();
+    </script>
+</body>
+</html>

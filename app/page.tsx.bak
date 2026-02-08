@@ -1,0 +1,181 @@
+// app/page.tsx
+'use client';
+
+import Link from 'next/link';
+import { User, Briefcase, Building2, Shield, Zap, FileText, Users } from 'lucide-react';
+
+export default function HomePage() {
+  const roles = [
+    {
+      id: 'buyer',
+      title: 'Pembeli',
+      subtitle: 'Buyer Journey',
+      description: 'Imbasan kesediaan, muat naik dokumen, dan jejak status permohonan LPPSA anda.',
+      icon: User,
+      color: 'from-snang-teal-600 to-snang-teal-700',
+      shadowColor: 'shadow-snang-teal-500/30',
+      features: ['Pre-scan kesediaan', 'Muat naik dokumen', 'Pilih slot TAC', 'Jejak timeline'],
+      href: '/buyer',
+    },
+    {
+      id: 'agent',
+      title: 'Ejen',
+      subtitle: 'Control Panel',
+      description: 'Urus kes-kes permohonan, pantau status dokumen, dan koordinasi TAC dengan pembeli.',
+      icon: Briefcase,
+      color: 'from-snang-teal-600 to-snang-teal-700',
+      shadowColor: 'shadow-snang-teal-500/30',
+      features: ['Dashboard kes', 'Jejak dokumen', 'Jadual TAC', 'Batch reminder'],
+      href: '/agent',
+    },
+    {
+      id: 'developer',
+      title: 'Pemaju',
+      subtitle: 'Pipeline Dashboard',
+      description: 'Pantau prestasi projek dengan data agregat dan analitik penukaran.',
+      icon: Building2,
+      color: 'from-slate-600 to-slate-700',
+      shadowColor: 'shadow-slate-500/30',
+      features: ['Ringkasan projek', 'Kiraan status', 'Kadar penukaran', 'Log aktiviti'],
+      href: '/developer',
+    },
+  ];
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Hero Section */}
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center gap-2 bg-snang-teal-100 text-snang-teal-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <Zap className="w-4 h-4" />
+          Three Powers Demo
+        </div>
+        <h1 className="text-4xl font-bold text-slate-800 mb-4">
+          Mortgage Flow Engine
+        </h1>
+        <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-6">
+          Platform koordinasi aliran kerja LPPSA dengan model Three Powers — 
+          <span className="font-semibold text-slate-700"> KuasaTurbo</span> (Executive), 
+          <span className="font-semibold text-slate-700"> Orchestrator</span> (Legislative), 
+          <span className="font-semibold text-slate-700"> Qontrek</span> (Judicial).
+        </p>
+        
+        {/* PRD v3.4 Badge */}
+        <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-sm">
+          <FileText className="w-4 h-4" />
+          <span>PRD v3.6.1 aligned</span>
+        </div>
+      </div>
+
+      {/* Role Cards */}
+      <div className="grid md:grid-cols-3 gap-6 mb-12">
+        {roles.map((role) => {
+          const Icon = role.icon;
+          return (
+            <Link
+              key={role.id}
+              href={role.href}
+              className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            >
+              {/* Card Header */}
+              <div className={`bg-gradient-to-r ${role.color} p-6 ${role.shadowColor}`}>
+                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Icon className="w-7 h-7 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-1">{role.title}</h2>
+                <p className="text-white/80 text-sm font-mono">{role.subtitle}</p>
+              </div>
+              
+              {/* Card Body */}
+              <div className="p-6">
+                <p className="text-slate-600 text-sm mb-4">{role.description}</p>
+                
+                <ul className="space-y-2">
+                  {role.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-slate-700">
+                      <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${role.color}`} />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                
+                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-sm text-slate-500">Klik untuk mula</span>
+                  <span className="text-slate-400 group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Architecture Diagram */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
+        <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <Shield className="w-5 h-5 text-snang-teal-600" />
+          Three Powers Architecture
+        </h3>
+        
+        <div className="grid md:grid-cols-3 gap-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="font-semibold text-blue-800 mb-2">🔧 KuasaTurbo</div>
+            <p className="text-sm text-blue-700 mb-2">Executive Layer</p>
+            <ul className="text-xs text-snang-teal-600 space-y-1">
+              <li>• OCR Extraction</li>
+              <li>• Readiness Scoring</li>
+              <li>• Payload Assembly</li>
+              <li>• Stateless, 7-day TTL</li>
+            </ul>
+          </div>
+          
+          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+            <div className="font-semibold text-purple-800 mb-2">📜 Orchestrator</div>
+            <p className="text-sm text-purple-700 mb-2">Legislative Layer</p>
+            <ul className="text-xs text-purple-600 space-y-1">
+              <li>• Workflow State Machine</li>
+              <li>• Permission Enforcement</li>
+              <li>• Case Lifecycle</li>
+              <li>• Stateful, Internal Only</li>
+            </ul>
+          </div>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="font-semibold text-amber-800 mb-2">⚖️ Qontrek</div>
+            <p className="text-sm text-amber-700 mb-2">Judicial Layer</p>
+            <ul className="text-xs text-amber-600 space-y-1">
+              <li>• Proof Events</li>
+              <li>• Audit Trail</li>
+              <li>• Immutable Records</li>
+              <li>• Authority: NEVER claimed</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Key Doctrine */}
+      <div className="bg-slate-800 rounded-2xl p-8 text-white">
+        <h3 className="font-bold mb-4 flex items-center gap-2">
+          <Users className="w-5 h-5 text-snang-teal-500" />
+          Locked Doctrine (PRD v3.6.1)
+        </h3>
+        <div className="grid md:grid-cols-2 gap-4 text-sm">
+          <div className="bg-slate-700/50 rounded-lg p-3">
+            <p className="text-snang-teal-500 font-mono text-xs mb-1">Authority Doctrine</p>
+            <p className="text-slate-300">"AI prepares data. Buyer authorizes. Agent coordinates. Institution decides."</p>
+          </div>
+          <div className="bg-slate-700/50 rounded-lg p-3">
+            <p className="text-snang-teal-500 font-mono text-xs mb-1">Evidence Doctrine</p>
+            <p className="text-slate-300">"Screenshot is signal, not evidence. Signals allowed early, evidence required later."</p>
+          </div>
+          <div className="bg-slate-700/50 rounded-lg p-3">
+            <p className="text-snang-teal-500 font-mono text-xs mb-1">Validation Doctrine</p>
+            <p className="text-slate-300">"System flags uncertainty, not correctness. All decisions remain human-driven."</p>
+          </div>
+          <div className="bg-slate-700/50 rounded-lg p-3">
+            <p className="text-snang-teal-500 font-mono text-xs mb-1">Non-Authority Doctrine</p>
+            <p className="text-slate-300">"No event generated by the system constitutes approval, rejection, or submission."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

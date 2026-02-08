@@ -37,6 +37,19 @@ const FLAG_LABELS: Record<FeatureFlagKey, { label: string; description: string }
     label: 'Mod Bukti Ketat',
     description: 'Semua metadata diperlukan untuk log bukti',
   },
+  // Sprint 0: PDPA Compliance Flags
+  PDPA_GATE_ENABLED: {
+    label: 'Gerbang PDPA',
+    description: 'Aktifkan gerbang persetujuan PDPA sebelum pengumpulan data',
+  },
+  PDPA_STRICT_MODE: {
+    label: 'Mod PDPA Ketat',
+    description: 'Sekat semua operasi tanpa persetujuan PDPA_BASIC',
+  },
+  PDPA_BREACH_SCAFFOLD: {
+    label: 'Scaffold Pelanggaran',
+    description: 'Aktifkan log insiden pelanggaran (persediaan Fasa 2)',
+  },
 };
 
 const PRESET_LABELS: Record<FlagPreset, { label: string; description: string }> = {
@@ -118,7 +131,7 @@ export function FeatureFlagsPanel() {
               onClick={() => handlePresetChange(preset)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 currentPreset === preset
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-snang-teal-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
@@ -184,7 +197,7 @@ export function FeatureFlagsPanel() {
             ) : flags.OTP_ENFORCED ? (
               <span className="text-green-600">🔒 Mod Pengeluaran</span>
             ) : (
-              <span className="text-blue-600">🧪 Mod Pilot</span>
+              <span className="text-snang-teal-600">🧪 Mod Pilot</span>
             )}
           </div>
           <button
@@ -192,7 +205,7 @@ export function FeatureFlagsPanel() {
               const json = JSON.stringify(flags, null, 2);
               navigator.clipboard.writeText(json);
             }}
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-snang-teal-600 hover:text-snang-teal-700"
           >
             📋 Salin JSON
           </button>
