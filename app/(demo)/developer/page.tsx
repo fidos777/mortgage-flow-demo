@@ -7,7 +7,7 @@ import Link from 'next/link';
 import {
   Building2, Users, TrendingUp, FileText, Clock, CheckCircle,
   AlertTriangle, PieChart, BarChart3, Download, Plus, Link as LinkIcon,
-  Shield, Lock, Info, Eye, ArrowUpRight, RefreshCw
+  Shield, Lock, Info, Eye, ArrowUpRight, RefreshCw, QrCode
 } from 'lucide-react';
 import { AuthorityDisclaimer, PermissionGate, PermissionWarning } from '@/components/permission-gate';
 import { useCaseStore } from '@/lib/store/case-store';
@@ -67,6 +67,13 @@ export default function DeveloperDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/developer/properties"
+              className="bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-cyan-700 transition-colors"
+            >
+              <QrCode className="w-4 h-4" />
+              {lang === 'bm' ? 'Konsol Hartanah' : 'Property Console'}
+            </Link>
             <button className="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-200 transition-colors">
               <Download className="w-4 h-4" />
               Export CSV
