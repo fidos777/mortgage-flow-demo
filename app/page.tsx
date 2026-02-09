@@ -32,11 +32,11 @@ import { FinalCTASection } from './sections/final-cta'
 import { Footer } from './sections/footer'
 
 export const metadata: Metadata = {
-  title: 'Snang.my — Semak Kelayakan Rumah, Tanpa Leceh',
-  description: 'Platform kesediaan pinjaman LPPSA untuk pembeli rumah, pemaju, dan ejen hartanah Malaysia.',
+  title: 'Snang.my — Satu Platform. Tiga Peranan. Sifar Leceh.',
+  description: 'Platform kesediaan pinjaman LPPSA untuk pemaju, pembeli, dan ejen hartanah Malaysia. Pantau pipeline, semak kelayakan, proses submission — semuanya dalam satu tempat.',
   openGraph: {
-    title: 'Snang.my — Semak Kelayakan Rumah, Tanpa Leceh',
-    description: 'Platform kesediaan pinjaman LPPSA untuk pembeli rumah, pemaju, dan ejen hartanah Malaysia.',
+    title: 'Snang.my — Satu Platform. Tiga Peranan. Sifar Leceh.',
+    description: 'Platform kesediaan pinjaman LPPSA untuk pemaju, pembeli, dan ejen hartanah Malaysia. Pantau pipeline, semak kelayakan, proses submission — semuanya dalam satu tempat.',
     url: 'https://snang.my',
     siteName: 'Snang.my',
     locale: 'ms_MY',

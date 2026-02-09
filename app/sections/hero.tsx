@@ -1,242 +1,191 @@
 // app/sections/hero.tsx
-// Hero Section with Langkah Tiga pattern
-// Integrates: AnimatedContainer, PrivacyNoteCTA, TouchButton
+// Hero Section V3 - 3-Market Focus
+// Replaces buyer-only messaging with equal focus on Pemaju, Pembeli, Ejen
 
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { Play, Users, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { AnimatedContainer } from '@/components/ui/animated-container'
-import { PrivacyNoteCTA } from '@/components/trust'
-import { TouchButton } from '@/components/mobile'
-import { useAnimationCapability } from '@/lib/hooks/use-animation'
-import { Play, ArrowRight } from 'lucide-react'
 
-// ==========================================
-// Langkah Tiga Pattern (Animated SVG)
-// ==========================================
-
-function LangkahTiga() {
-  const animationTier = useAnimationCapability()
-  const shouldAnimate = animationTier === 'full'
-
-  return (
-    <svg 
-      viewBox="0 0 800 120" 
-      className="w-full max-w-3xl mx-auto"
-      aria-label="Aliran tiga langkah: Pemaju, Pembeli, Ejen"
-    >
-      <defs>
-        <linearGradient id="senang-flow" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#1e40af" />
-          <stop offset="50%" stopColor="#0891b2" />
-          <stop offset="100%" stopColor="#0d9488" />
-        </linearGradient>
-        
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-          <feMerge>
-            <feMergeNode in="coloredBlur"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-
-        {shouldAnimate && (
-          <style>
-            {`
-              @keyframes flowPath {
-                0% { stroke-dashoffset: 600; }
-                100% { stroke-dashoffset: 0; }
-              }
-              @keyframes nodePulse {
-                0%, 100% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.1); opacity: 0.8; }
-              }
-              .flow-path { animation: flowPath 2s ease-in-out forwards; }
-              .node-1 { animation: nodePulse 2s ease-in-out infinite; animation-delay: 0s; }
-              .node-2 { animation: nodePulse 2s ease-in-out infinite; animation-delay: 0.5s; }
-              .node-3 { animation: nodePulse 2s ease-in-out infinite; animation-delay: 1s; }
-            `}
-          </style>
-        )}
-      </defs>
-
-      {/* Background path */}
-      <path 
-        d="M100,50 Q250,15 400,50 T700,50" 
-        stroke="#e5e7eb" 
-        strokeWidth="4" 
-        fill="none"
-        strokeLinecap="round"
-      />
-
-      {/* Animated flowing path */}
-      <path 
-        d="M100,50 Q250,15 400,50 T700,50" 
-        stroke="url(#senang-flow)" 
-        strokeWidth="4" 
-        fill="none"
-        strokeLinecap="round"
-        strokeDasharray="600"
-        strokeDashoffset={shouldAnimate ? "600" : "0"}
-        className={shouldAnimate ? 'flow-path' : ''}
-        filter="url(#glow)"
-      />
-
-      {/* Node 1: Pemaju */}
-      <g className={shouldAnimate ? 'node-1' : ''} style={{ transformOrigin: '100px 50px' }}>
-        <circle cx="100" cy="50" r="22" fill="#1e40af" filter="url(#glow)" />
-        <circle cx="100" cy="50" r="16" fill="white" />
-        <text x="100" y="55" textAnchor="middle" fill="#1e40af" fontSize="14" fontWeight="600">1</text>
-      </g>
-      <text x="100" y="95" textAnchor="middle" fill="#1e40af" fontSize="13" fontWeight="500" fontFamily="Poppins, sans-serif">
-        Pemaju
-      </text>
-
-      {/* Node 2: Pembeli */}
-      <g className={shouldAnimate ? 'node-2' : ''} style={{ transformOrigin: '400px 50px' }}>
-        <circle cx="400" cy="50" r="22" fill="#0891b2" filter="url(#glow)" />
-        <circle cx="400" cy="50" r="16" fill="white" />
-        <text x="400" y="55" textAnchor="middle" fill="#0891b2" fontSize="14" fontWeight="600">2</text>
-      </g>
-      <text x="400" y="95" textAnchor="middle" fill="#0891b2" fontSize="13" fontWeight="500" fontFamily="Poppins, sans-serif">
-        Pembeli
-      </text>
-
-      {/* Node 3: Ejen */}
-      <g className={shouldAnimate ? 'node-3' : ''} style={{ transformOrigin: '700px 50px' }}>
-        <circle cx="700" cy="50" r="22" fill="#0d9488" filter="url(#glow)" />
-        <circle cx="700" cy="50" r="16" fill="white" />
-        <text x="700" y="55" textAnchor="middle" fill="#0d9488" fontSize="14" fontWeight="600">3</text>
-      </g>
-      <text x="700" y="95" textAnchor="middle" fill="#0d9488" fontSize="13" fontWeight="500" fontFamily="Poppins, sans-serif">
-        Ejen
-      </text>
-    </svg>
-  )
+// Role-specific colors
+const roleColors = {
+  pemaju: 'from-cyan-500 to-cyan-600',
+  pembeli: 'from-emerald-500 to-emerald-600',
+  ejen: 'from-violet-500 to-violet-600',
 }
-
-// ==========================================
-// Wave Background
-// ==========================================
-
-function GelombangTenang() {
-  const animationTier = useAnimationCapability()
-  
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <svg 
-        viewBox="0 0 1440 320" 
-        className="absolute bottom-0 w-[200%] opacity-[0.03]"
-        preserveAspectRatio="none"
-        style={{ 
-          animation: animationTier === 'full' ? 'waveDrift 60s linear infinite' : 'none',
-        }}
-      >
-        <path 
-          fill="#1e40af" 
-          d="M0,160L48,170.7C96,181,192,203,288,192C384,181,480,139,576,128C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L0,320Z"
-        />
-      </svg>
-      <style jsx>{`
-        @keyframes waveDrift {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
-    </div>
-  )
-}
-
-// ==========================================
-// Hero Section
-// ==========================================
 
 export function HeroSection() {
+  const [activeRole, setActiveRole] = useState<'pemaju' | 'pembeli' | 'ejen'>('pemaju')
+
+  // Auto-rotate roles every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveRole(prev => {
+        if (prev === 'pemaju') return 'pembeli'
+        if (prev === 'pembeli') return 'ejen'
+        return 'pemaju'
+      })
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const roleTaglines = {
+    pemaju: {
+      action: 'Pantau pipeline',
+      benefit: 'data agregat untuk keputusan strategik',
+      cta: 'Lihat Dashboard Pemaju'
+    },
+    pembeli: {
+      action: 'Semak kelayakan',
+      benefit: 'tahu DSR sebelum jumpa sesiapa',
+      cta: 'Cuba Semakan DSR'
+    },
+    ejen: {
+      action: 'Proses submission',
+      benefit: 'terima kes ready, bukan chase dokumen',
+      cta: 'Lihat Portal Submission'
+    },
+  }
+
   return (
-    <section className="relative min-h-[90vh] flex flex-col justify-center overflow-hidden bg-gradient-to-b from-white to-blue-50/30">
-      {/* Background */}
-      <GelombangTenang />
-      
-      {/* Decorative blurs */}
-      <div className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+      {/* Animated Background Pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-white to-secondary/5" />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-        {/* Badge */}
-        <AnimatedContainer animation="fade-up" delay={0}>
-          <div className="flex justify-center mb-6">
-            <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
-              <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
-              Platform Kesediaan LPPSA
-            </span>
-          </div>
-        </AnimatedContainer>
+      {/* Langkah Tiga Pattern (subtle) */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.03]" viewBox="0 0 100 100">
+        <circle cx="20" cy="50" r="8" fill="currentColor" className="text-primary" />
+        <circle cx="50" cy="50" r="8" fill="currentColor" className="text-primary" />
+        <circle cx="80" cy="50" r="8" fill="currentColor" className="text-primary" />
+        <line x1="28" y1="50" x2="42" y2="50" stroke="currentColor" strokeWidth="2" className="text-primary" />
+        <line x1="58" y1="50" x2="72" y2="50" stroke="currentColor" strokeWidth="2" className="text-primary" />
+      </svg>
 
-        {/* Main headline */}
-        <AnimatedContainer animation="fade-up" delay={100}>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-center text-primary-dark leading-tight">
-            Semak Kelayakan Rumah,
+      <div className="container mx-auto px-4 py-20 relative z-10">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-8"
+          >
+            <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            Platform Kesediaan Pinjaman LPPSA
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6"
+          >
+            Satu Platform.
             <br />
-            <span className="text-secondary">Tanpa Leceh</span>
-          </h1>
-        </AnimatedContainer>
+            <span className="text-primary">Tiga Peranan.</span>
+            <br />
+            Sifar Leceh.
+          </motion.h1>
 
-        {/* Subheadline */}
-        <AnimatedContainer animation="fade-up" delay={200}>
-          <p className="mt-6 text-lg sm:text-xl text-center text-neutral-600 max-w-2xl mx-auto leading-relaxed">
-            Kami jadikan proses pinjaman rumah anda lebih senang — dari semakan pertama 
-            hingga penghantaran terakhir. Untuk pembeli, pemaju, dan ejen.
-          </p>
-        </AnimatedContainer>
+          {/* Dynamic Role Tagline */}
+          <motion.div
+            key={activeRole}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="h-24 flex flex-col items-center justify-center mb-8"
+          >
+            <p className="text-xl text-neutral-600 mb-2">
+              <span className={`font-semibold bg-gradient-to-r ${roleColors[activeRole]} bg-clip-text text-transparent`}>
+                {activeRole === 'pemaju' ? 'Pemaju' : activeRole === 'pembeli' ? 'Pembeli' : 'Ejen'}
+              </span>
+              {' '}{roleTaglines[activeRole].action} —
+            </p>
+            <p className="text-lg text-neutral-500">
+              {roleTaglines[activeRole].benefit}
+            </p>
+          </motion.div>
 
-        {/* Langkah Tiga Pattern */}
-        <AnimatedContainer animation="fade-up" delay={300}>
-          <div className="mt-10 mb-8 hidden sm:block">
-            <LangkahTiga />
-          </div>
-        </AnimatedContainer>
-
-        {/* CTAs */}
-        <AnimatedContainer animation="fade-up" delay={400}>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
-            <Link href="/buyer">
-              <TouchButton 
-                variant="primary" 
-                size="lg"
-                className="group shadow-lg shadow-primary/25"
+          {/* Role Selector Pills */}
+          <div className="flex justify-center gap-2 mb-10">
+            {(['pemaju', 'pembeli', 'ejen'] as const).map((role) => (
+              <button
+                key={role}
+                onClick={() => setActiveRole(role)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  activeRole === role
+                    ? `bg-gradient-to-r ${roleColors[role]} text-white shadow-lg`
+                    : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                }`}
               >
-                Mula Semakan Sekarang
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </TouchButton>
-            </Link>
-            <Link href="#how">
-              <TouchButton variant="outline" size="lg">
-                <Play className="w-5 h-5" />
-                Lihat Cara Guna
-              </TouchButton>
-            </Link>
+                {role === 'pemaju' ? '🏢 Pemaju' : role === 'pembeli' ? '👤 Pembeli' : '💼 Ejen'}
+              </button>
+            ))}
           </div>
-        </AnimatedContainer>
 
-        {/* Privacy Note */}
-        <AnimatedContainer animation="fade-up" delay={500}>
-          <PrivacyNoteCTA locale="ms" className="mt-4" />
-        </AnimatedContainer>
+          {/* CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          >
+            <Link
+              href="/demo"
+              className="group flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-semibold hover:bg-primary-dark transition-colors shadow-lg shadow-primary/25"
+            >
+              <Play className="w-5 h-5" />
+              Cuba Demo Interaktif
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
 
-        {/* Trust line */}
-        <AnimatedContainer animation="fade-up" delay={600}>
-          <p className="text-center text-sm text-neutral-500 mt-2">
-            Percuma. Tiada pendaftaran diperlukan. Semakan 5 minit.
-          </p>
-        </AnimatedContainer>
-      </div>
+            <Link
+              href="#untuk-siapa"
+              className="flex items-center gap-2 text-neutral-600 hover:text-primary transition-colors px-6 py-4"
+            >
+              <Users className="w-5 h-5" />
+              Lihat Untuk Siapa
+            </Link>
+          </motion.div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce hidden sm:block">
-        <svg className="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
+          {/* Trust Line */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-8 text-sm text-neutral-500"
+          >
+            Tiada pendaftaran. Tiada komitmen. Demo 5 minit dengan data contoh.
+          </motion.p>
+        </div>
+
+        {/* Role Preview Cards (Desktop) */}
+        <div className="hidden lg:grid grid-cols-3 gap-6 max-w-5xl mx-auto mt-16">
+          {[
+            { role: 'pemaju', icon: '📊', title: 'Dashboard Agregat', desc: 'Pipeline tanpa data individu' },
+            { role: 'pembeli', icon: '🛡️', title: 'Privasi Terjamin', desc: 'Ejen nampak range sahaja' },
+            { role: 'ejen', icon: '📋', title: 'Kes Ready', desc: 'DSR dikira, dokumen checklist' },
+          ].map((item, i) => (
+            <motion.div
+              key={item.role}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              className={`p-6 rounded-2xl border transition-all cursor-pointer ${
+                activeRole === item.role
+                  ? 'bg-white border-primary/30 shadow-lg shadow-primary/10'
+                  : 'bg-white/50 border-neutral-200 hover:border-primary/20'
+              }`}
+              onClick={() => setActiveRole(item.role as 'pemaju' | 'pembeli' | 'ejen')}
+            >
+              <div className="text-3xl mb-3">{item.icon}</div>
+              <h3 className="font-semibold text-neutral-800 mb-1">{item.title}</h3>
+              <p className="text-sm text-neutral-500">{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   )
