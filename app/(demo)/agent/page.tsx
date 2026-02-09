@@ -12,6 +12,7 @@ import {
 import { AuthorityDisclaimer, PermissionWarning } from '@/components/permission-gate';
 import { useCaseStore } from '@/lib/store/case-store';
 import { getPhaseLabel, getPhaseConfig } from '@/lib/orchestrator/case-state';
+import { maskPhone } from '@/lib/utils';
 import { confidenceToLabel } from '@/lib/orchestrator/permissions';
 
 type FilterTab = 'all' | 'tac' | 'docs' | 'kj' | 'lo';
@@ -264,7 +265,7 @@ export default function AgentControlPanel() {
               <div className="mb-4">
                 <p className="text-sm text-slate-500 mb-1">Pembeli</p>
                 <p className="font-semibold text-slate-800">{currentCase.buyer.name}</p>
-                <p className="text-sm text-slate-600">{currentCase.buyer.phone}</p>
+                <p className="text-sm text-slate-600 font-mono">{maskPhone(currentCase.buyer.phone)}</p>
               </div>
 
               {/* Property */}

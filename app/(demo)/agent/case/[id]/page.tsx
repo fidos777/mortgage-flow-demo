@@ -11,6 +11,7 @@ import {
 import { AuthorityDisclaimer, PermissionWarning } from '@/components/permission-gate';
 import { QuerySignalsPanel } from '@/components/QuerySignalsPanel';
 import { useCaseStore } from '@/lib/store/case-store';
+import { maskPhone } from '@/lib/utils';
 import { useProofLogger } from '@/lib/services/hooks';
 import { getPhaseLabel, getPhaseConfig, getNextAction } from '@/lib/orchestrator/case-state';
 import { confidenceToLabel } from '@/lib/orchestrator/permissions';
@@ -135,7 +136,7 @@ export default function AgentCaseDetail() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">No. Telefon</p>
-                  <p className="font-medium text-slate-800">{caseData.buyer.phone}</p>
+                  <p className="font-medium text-slate-800 font-mono">{maskPhone(caseData.buyer.phone)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Pekerjaan</p>

@@ -6,6 +6,12 @@ import { Zap, FileText, Calendar, ArrowRight, Shield, Check } from 'lucide-react
 import { AuthorityDisclaimer } from '@/components/permission-gate';
 import { useConsentGuard } from '@/lib/hooks/useConsentGuard';
 import { ConsentSummary } from '@/components/consent';
+import { format } from 'date-fns';
+import { ms } from 'date-fns/locale';
+
+// Demo fallback date - used when no real date provided
+// Fixes the blank "-" issue in PDPA display
+const DEMO_CONSENT_DATE = new Date('2026-02-01T10:30:00+08:00');
 
 export default function BuyerDashboard() {
   // PDPA consent status check (non-redirecting)
@@ -108,7 +114,7 @@ export default function BuyerDashboard() {
               </p>
               <p className={`text-xs ${hasPdpaConsent ? 'text-teal-600' : 'text-amber-600'}`}>
                 {hasPdpaConsent
-                  ? `Diberikan pada ${consentedAt ? new Date(consentedAt).toLocaleDateString('ms-MY') : '-'}`
+                  ? `Diberikan pada ${format(consentedAt ? new Date(consentedAt) : DEMO_CONSENT_DATE, 'd MMM yyyy, HH:mm', { locale: ms })}`
                   : 'Sila berikan persetujuan sebelum meneruskan'
                 }
               </p>
