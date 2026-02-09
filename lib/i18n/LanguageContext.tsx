@@ -1,4 +1,14 @@
-// lib/i18n/LanguageContext.tsx
+/**
+ * @scope VISUAL ONLY - Presentation Layer
+ * i18n language context provider.
+ *
+ * ⚠️ BOUNDARIES:
+ * - Client-side only (localStorage persistence)
+ * - Hydration-safe with mounted state
+ * - No backend sync
+ *
+ * @see /docs/UI-AMENDMENTS.md
+ */
 'use client';
 
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from 'react';
@@ -16,6 +26,15 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'qontrek_language';
+
+/**
+ * Feature flag check: determine if i18n is enabled
+ * If disabled, always use BM (default language)
+ */
+function isI18nEnabled(): boolean {
+  if (typeof window === 'undefined') return true; // SSR safety
+  return process.env.NEXT_PUBLIC_ENABLE_I18N !== 'false';
+}
 
 /**
  * Get nested value from object using dot notation
@@ -48,6 +67,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setMounted(true);
     if (typeof window !== 'undefined') {
       try {
+        // If i18n is disabled, always use BM
+        if (!isI18nEnabled()) {
+          setLangState('bm');
+          return;
+        }
+
         const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
         if (saved && (saved === 'bm' || saved === 'en')) {
           setLangState(saved);
@@ -59,10 +84,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setLang = useCallback((newLang: Language) => {
-    setLangState(newLang);
+    // If i18n is disabled, always force BM
+    const langToSet = !isI18nEnabled() ? 'bm' : newLang;
+    setLangState(langToSet);
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem(STORAGE_KEY, newLang);
+        localStorage.setItem(STORAGE_KEY, langToSet);
       } catch (e) {
         // localStorage not available
       }

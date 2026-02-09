@@ -1,5 +1,5 @@
-// lib/i18n/glossary.ts
 /**
+ * @scope VISUAL ONLY - Presentation Layer
  * Glossary for consistent terminology across BM/EN translations
  *
  * This file serves as the single source of truth for key terms used in the mortgage flow.
@@ -8,6 +8,8 @@
  * COMPLIANCE NOTE:
  * Avoid using approval-related terms (lulus, kelulusan, approved, eligible, etc.)
  * Use neutral terms like "signal", "readiness", "indication" instead.
+ *
+ * @see /docs/UI-AMENDMENTS.md
  */
 
 export const glossary = {

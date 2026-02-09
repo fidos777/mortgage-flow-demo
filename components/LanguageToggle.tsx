@@ -1,4 +1,15 @@
-// components/LanguageToggle.tsx
+/**
+ * @scope VISUAL ONLY - Presentation Layer
+ * i18n localization system - Language toggle button.
+ *
+ * ⚠️ BOUNDARIES:
+ * - Client-side dictionary lookup only
+ * - Persists to localStorage only
+ * - Does NOT sync to server
+ * - Does NOT affect backend locale
+ *
+ * @see /docs/UI-AMENDMENTS.md
+ */
 'use client';
 
 import { useLanguage } from '@/lib/i18n';
@@ -10,6 +21,11 @@ interface LanguageToggleProps {
 
 export function LanguageToggle({ variant = 'default', className = '' }: LanguageToggleProps) {
   const { lang, setLang } = useLanguage();
+
+  // Feature flag: if i18n is disabled, don't show the toggle
+  if (!process.env.NEXT_PUBLIC_ENABLE_I18N) {
+    return null;
+  }
 
   if (variant === 'pill') {
     return (

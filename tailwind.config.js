@@ -5,7 +5,31 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    // Mobile-first breakpoints (Malaysia market optimization)
+    screens: {
+      'xs': '375px',   // iPhone SE, small Android
+      'sm': '640px',   // Primary mobile breakpoint
+      'md': '768px',   // Tablets
+      'lg': '1024px',  // Desktop
+      'xl': '1280px',  // Large desktop
+      '2xl': '1536px', // Ultra-wide
+    },
     extend: {
+      // Touch target sizes (WCAG 2.1 AA)
+      spacing: {
+        'touch': '44px',        // Minimum touch target
+        'touch-lg': '48px',     // Comfortable touch target
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-top': 'env(safe-area-inset-top)',
+      },
+      minHeight: {
+        'touch': '44px',
+        'touch-lg': '48px',
+      },
+      minWidth: {
+        'touch': '44px',
+        'touch-lg': '48px',
+      },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'monospace'],

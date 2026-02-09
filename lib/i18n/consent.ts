@@ -1,10 +1,18 @@
 /**
+ * @scope VISUAL ONLY - Presentation Layer
  * PDPA Consent i18n Strings
  * Sprint 0, Session S0.2 | PRD v3.6.3 CR-010
  * SF.2: Added C1-C6 purpose labels
  *
  * Bilingual support (BM + EN) for PDPA consent gate.
  * All strings follow Safe Language Guidelines.
+ *
+ * ⚠️ BOUNDARIES:
+ * - Presentation layer strings only
+ * - Does NOT write consent records
+ * - Does NOT make API calls
+ *
+ * @see /docs/UI-AMENDMENTS.md
  */
 
 import type { ConsentPurpose } from '../types/consent';

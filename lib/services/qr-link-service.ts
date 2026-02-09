@@ -212,28 +212,28 @@ export const DEMO_QR_LINKS = {
   // Seri Maya project link
   seriMaya: generateQRLink({
     projectId: 'PROJ-001',
-    developerId: 'DEV-GFR-001',
+    developerId: 'DEV-SMD-001',
     projectName: 'Seri Maya Residensi',
-    developerName: 'Global Fiz Resources Sdn Bhd',
-    agentId: 'AGT-001',
+    developerName: 'Seri Maya Development Sdn Bhd',
+    agentId: 'AGT-001', // Global Fiz Resources - Mortgage Agent
     source: 'demo',
   }),
 
   // Taman Anggerik project link
   tamanAnggerik: generateQRLink({
     projectId: 'PROJ-002',
-    developerId: 'DEV-GFR-001',
+    developerId: 'DEV-TAD-001',
     projectName: 'Taman Anggerik',
-    developerName: 'Global Fiz Resources Sdn Bhd',
+    developerName: 'Anggerik Development Sdn Bhd',
     source: 'demo',
   }),
 
   // Expired link for testing
   expired: generateQRLink({
     projectId: 'PROJ-003',
-    developerId: 'DEV-GFR-001',
+    developerId: 'DEV-TEST-001',
     projectName: 'Expired Project',
-    developerName: 'Global Fiz Resources Sdn Bhd',
+    developerName: 'Demo Developer Sdn Bhd',
     expiresInDays: -1, // Already expired
     source: 'demo',
   }),

@@ -1,4 +1,16 @@
-// lib/i18n/index.ts
+/**
+ * @scope VISUAL ONLY - Presentation Layer
+ * i18n localization system.
+ *
+ * ⚠️ BOUNDARIES:
+ * - Client-side dictionary lookup only
+ * - Persists to localStorage only
+ * - Does NOT sync to server
+ * - Does NOT affect backend locale
+ *
+ * @see /docs/UI-AMENDMENTS.md
+ */
+
 export { LanguageProvider, useLanguage, useTranslation } from './LanguageContext';
 export { translations, defaultLanguage } from './translations';
 export type { Language } from './translations';

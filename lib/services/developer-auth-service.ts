@@ -30,24 +30,26 @@ const DEMO_DEVELOPER_ID = 'dev-001-demo';
 const DEMO_AUTHORIZATION: DeveloperAuthorization = {
   id: 'auth-001-demo',
   developer_id: DEMO_DEVELOPER_ID,
-  company_name: 'Global Fiz Resources Sdn Bhd',
+  company_name: 'Seri Maya Development Sdn Bhd',
   ssm_number: '202401012345',
   company_address: 'Level 15, Menara PKNS, 40000 Shah Alam, Selangor',
-  authorized_person: 'Ahmad bin Ismail',
-  authorized_email: 'ahmad@globalfiz.com.my',
+  authorized_person: 'Dato Ahmad bin Ismail',
+  authorized_email: 'ahmad@serimaya.com.my',
   authorized_phone: '0123456789',
   authorized_designation: 'Pengarah Urusan',
   appointed_agents: [
     {
+      // Global Fiz Resources Sdn Bhd - Mortgage Agent
       agent_id: 'agent-001',
-      name: 'Siti Aminah',
+      name: 'Siti Aminah (Global Fiz Resources)',
       phone: '0129876543',
       email: 'siti@globalfiz.com.my',
       appointed_at: '2026-01-15T10:00:00Z',
     },
     {
+      // Global Fiz Resources Sdn Bhd - Mortgage Agent
       agent_id: 'agent-002',
-      name: 'Mohd Faizal',
+      name: 'Mohd Faizal (Global Fiz Resources)',
       phone: '0127654321',
       email: 'faizal@globalfiz.com.my',
       appointed_at: '2026-01-15T10:00:00Z',

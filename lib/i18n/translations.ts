@@ -1,5 +1,14 @@
-// lib/i18n/translations.ts
-// Dual language support: Bahasa Malaysia (default) and English
+/**
+ * @scope VISUAL ONLY - Presentation Layer
+ * i18n translations - Bahasa Malaysia & English
+ *
+ * ⚠️ BOUNDARIES:
+ * - Client-side dictionary only
+ * - No server-side rendering effects
+ * - Lookup-based interpolation only
+ *
+ * @see /docs/UI-AMENDMENTS.md
+ */
 
 export type Language = 'bm' | 'en';
 

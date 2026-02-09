@@ -225,12 +225,147 @@ textarea {
   .no-print {
     display: none !important;
   }
-  
+
   .print-only {
     display: block !important;
   }
-  
+
   body {
     background: white !important;
   }
+}
+
+/* =============================================================================
+   SESSION 5: MOBILE-FIRST POLISH (Malaysia Market)
+   ============================================================================= */
+
+/* Malaysia device optimization (RM500 Android phones) */
+@layer utilities {
+  /* Touch target enforcement */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  .touch-target-lg {
+    @apply min-h-[48px] min-w-[48px];
+  }
+
+  /* Mobile-only visibility */
+  .mobile-only {
+    @apply block sm:hidden;
+  }
+
+  .desktop-only {
+    @apply hidden sm:block;
+  }
+
+  /* Text truncation utilities */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Mobile-optimized spacing */
+  .mobile-spacing {
+    @apply px-4 py-3 sm:px-6 sm:py-4;
+  }
+
+  /* Card with mobile optimization */
+  .mobile-card {
+    @apply rounded-lg bg-white shadow-sm border border-slate-200;
+    @apply p-4 sm:p-6;
+  }
+
+  /* Safe area aware container */
+  .safe-container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Prevent text size adjustment on orientation change (iOS) */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Optimize touch scrolling */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Prevent pull-to-refresh on mobile (where not wanted) */
+.no-pull-refresh {
+  overscroll-behavior-y: contain;
+}
+
+/* Hide scrollbar but keep functionality (for horizontal scroll) */
+.scroll-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scroll-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile-friendly form inputs */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    @apply min-h-[44px];
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mobile-card {
+    @apply border-2 border-slate-900;
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    @apply ring-4;
+  }
+}
+
+/* Dark mode foundation (future-ready) */
+@media (prefers-color-scheme: dark) {
+  /* Reserve for future dark mode implementation */
+  /* Currently snang.my uses light mode only */
 }
