@@ -7,9 +7,10 @@ import {
   Search, Filter, Bell, Clock, FileText, User, Calendar,
   AlertTriangle, CheckCircle, ChevronRight, Send, Eye,
   MoreVertical, Phone, Building, RefreshCw, ArrowUpRight,
-  Zap, Shield, AlertCircle, Info, XCircle
+  Zap, Shield, AlertCircle, Info, XCircle, MessageCircle
 } from 'lucide-react';
 import { AuthorityDisclaimer, PermissionWarning } from '@/components/permission-gate';
+import { WhatsAppContactCTA } from '@/components/agent';
 import { useCaseStore } from '@/lib/store/case-store';
 import { getPhaseLabel, getPhaseConfig } from '@/lib/orchestrator/case-state';
 import { maskPhone } from '@/lib/utils';
@@ -382,10 +383,29 @@ export default function AgentControlPanel() {
                   <Eye className="w-4 h-4" />
                   Lihat Penuh
                 </button>
-                <button className="w-full bg-slate-100 text-slate-700 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
-                  <Phone className="w-4 h-4" />
-                  Hubungi Pembeli
-                </button>
+                <div className="flex gap-2">
+                  <WhatsAppContactCTA
+                    buyer={{
+                      name: currentCase.buyer.name,
+                      phone: currentCase.buyer.phone,
+                      caseRef: currentCase.id,
+                      propertyName: currentCase.property.name,
+                      unitCode: currentCase.property.unit,
+                      tacDate: currentCase.tacSchedule?.date,
+                      tacTime: currentCase.tacSchedule?.time,
+                      missingDocs: currentCase.documents
+                        .filter(d => d.status !== 'verified')
+                        .map(d => d.type),
+                    }}
+                    caseId={currentCase.id}
+                    locale="bm"
+                    variant="dropdown"
+                  />
+                  <button className="flex-1 bg-slate-100 text-slate-700 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
+                    <Phone className="w-4 h-4" />
+                    Panggil
+                  </button>
+                </div>
               </div>
 
               {/* PRD Warning */}
