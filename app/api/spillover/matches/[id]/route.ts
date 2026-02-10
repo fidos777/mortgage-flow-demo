@@ -112,7 +112,7 @@ export async function PUT(
     // Check if match exists
     const { data: existing } = await supabase
       .from('spillover_matches')
-      .select('id, status, consent_id, matched_property_id')
+      .select('id, status, consent_id, matched_property_id, contacted_at, first_response_at')
       .eq('id', id)
       .single();
 
