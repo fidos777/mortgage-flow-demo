@@ -1,32 +1,181 @@
-// app/agent/page.tsx
+// app/(demo)/agent/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Search, Filter, Bell, Clock, FileText, User, Calendar,
   AlertTriangle, CheckCircle, ChevronRight, Send, Eye,
   MoreVertical, Phone, Building, RefreshCw, ArrowUpRight,
-  Zap, Shield, AlertCircle, Info, XCircle, MessageCircle
+  Zap, Shield, AlertCircle, Info, XCircle, MessageCircle,
+  Loader2
 } from 'lucide-react';
 import { AuthorityDisclaimer, PermissionWarning } from '@/components/permission-gate';
 import { WhatsAppContactCTA } from '@/components/agent';
-import { useCaseStore } from '@/lib/store/case-store';
 import { getPhaseLabel, getPhaseConfig } from '@/lib/orchestrator/case-state';
 import { maskPhone } from '@/lib/utils';
 import { confidenceToLabel } from '@/lib/orchestrator/permissions';
+import { salaryToRange } from '@/lib/orchestrator/permissions';
+import type { Case, CasePhase, Document } from '@/types/case';
 
 type FilterTab = 'all' | 'tac' | 'docs' | 'kj' | 'lo';
 type Priority = 'P1' | 'P2' | 'P3' | 'P4';
 
+// API response types
+interface APICaseResponse {
+  id: string;
+  case_ref: string;
+  developer_id: string;
+  property_id: string | null;
+  unit_id: string | null;
+  buyer_name: string;
+  buyer_ic: string | null;
+  buyer_phone: string | null;
+  buyer_email: string | null;
+  property_price: number | null;
+  loan_amount_requested: number | null;
+  income_declared: number | null;
+  assigned_agent_id: string | null;
+  status: string;
+  priority: string | null;
+  tac_scheduled_at: string | null;
+  tac_confirmed: boolean;
+  kj_status: string | null;
+  kj_days_pending: number | null;
+  lo_days_remaining: number | null;
+  query_risk: string | null;
+  created_at: string;
+  updated_at: string;
+  developer: { id: string; company_name: string } | null;
+  property: { id: string; name: string; slug: string; location?: string; type?: string } | null;
+  unit: { id: string; unit_no: string; price: number } | null;
+  agent: { id: string; name: string; phone_display: string } | null;
+}
+
+// Map API status to CasePhase
+function mapStatusToPhase(status: string): CasePhase {
+  const mapping: Record<string, CasePhase> = {
+    'new': 'PRESCAN',
+    'documents_pending': 'DOCS_PENDING',
+    'documents_received': 'DOCS_COMPLETE',
+    'under_review': 'IR_REVIEW',
+    'tac_scheduled': 'TAC_SCHEDULED',
+    'tac_confirmed': 'TAC_CONFIRMED',
+    'submitted_bank': 'SUBMITTED',
+    'bank_processing': 'SUBMITTED',
+    'lo_received': 'LO_RECEIVED',
+    'kj_pending': 'KJ_PENDING',
+    'approved': 'COMPLETED',
+    'completed': 'COMPLETED',
+    'rejected': 'COMPLETED',
+    'cancelled': 'COMPLETED',
+  };
+  return mapping[status] || 'PRESCAN';
+}
+
+// Map priority string to typed priority
+function mapPriority(priority: string | null): Priority {
+  if (priority && ['P1', 'P2', 'P3', 'P4'].includes(priority)) {
+    return priority as Priority;
+  }
+  return 'P3'; // Default medium priority
+}
+
+// Transform API response to Case type
+function transformAPICase(apiCase: APICaseResponse): Case {
+  return {
+    id: apiCase.id,
+    buyer: {
+      id: `buyer-${apiCase.id}`,
+      name: apiCase.buyer_name,
+      phone: apiCase.buyer_phone || '',
+      ic: apiCase.buyer_ic || undefined,
+      email: apiCase.buyer_email || undefined,
+      incomeRange: apiCase.income_declared ? salaryToRange(apiCase.income_declared) : undefined,
+    },
+    property: {
+      name: apiCase.property?.name || 'Unknown Property',
+      unit: apiCase.unit?.unit_no || '-',
+      price: apiCase.unit?.price || apiCase.property_price || 0,
+      type: (apiCase.property?.type as 'subsale' | 'new_project' | 'land_build') || 'subsale',
+      location: apiCase.property?.location || '',
+    },
+    phase: mapStatusToPhase(apiCase.status),
+    priority: mapPriority(apiCase.priority),
+    loanType: 'LPPSA',
+    readiness: undefined, // Will be fetched separately if needed
+    documents: [], // Will be fetched separately if needed
+    tacSchedule: apiCase.tac_scheduled_at ? {
+      date: new Date(apiCase.tac_scheduled_at).toLocaleDateString('ms-MY'),
+      time: new Date(apiCase.tac_scheduled_at).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' }),
+      confirmed: apiCase.tac_confirmed,
+    } : undefined,
+    kjStatus: apiCase.kj_status as 'pending' | 'received' | 'overdue' | undefined,
+    kjDays: apiCase.kj_days_pending || undefined,
+    loExpiry: apiCase.lo_days_remaining || undefined,
+    queryRisk: (apiCase.query_risk as 'none' | 'low' | 'medium' | 'high') || 'none',
+    createdAt: apiCase.created_at,
+    updatedAt: apiCase.updated_at,
+  };
+}
+
+// Fetch cases from API
+async function fetchCases(agentId?: string): Promise<Case[]> {
+  const params = new URLSearchParams();
+  if (agentId) {
+    params.set('agent_id', agentId);
+  }
+
+  const url = `/api/cases${params.toString() ? `?${params.toString()}` : ''}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch cases: ${response.status}`);
+  }
+
+  const result = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to fetch cases');
+  }
+
+  return (result.data || []).map(transformAPICase);
+}
+
 export default function AgentControlPanel() {
   const router = useRouter();
-  const { cases, selectCase } = useCaseStore();
-  
+
+  // Data state
+  const [cases, setCases] = useState<Case[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // UI state
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+
+  // Load cases
+  const loadCases = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // TODO: Get agent ID from session/auth context
+      const data = await fetchCases();
+      setCases(data);
+    } catch (err) {
+      console.error('Failed to load cases:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load cases');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCases();
+  }, [loadCases]);
 
   const filters: { id: FilterTab; label: string; count: number; icon: React.ElementType }[] = [
     { id: 'all', label: 'Semua', count: cases.length, icon: FileText },
@@ -42,8 +191,8 @@ export default function AgentControlPanel() {
     if (activeFilter === 'kj') return c.kjStatus === 'overdue';
     if (activeFilter === 'lo') return c.loExpiry && c.loExpiry <= 5;
     return true;
-  }).filter(c => 
-    searchQuery === '' || 
+  }).filter(c =>
+    searchQuery === '' ||
     c.buyer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.property.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -72,9 +221,44 @@ export default function AgentControlPanel() {
 
   const handleCaseClick = (caseId: string) => {
     setSelectedCase(caseId);
-    selectCase(caseId);
     setShowPreview(true);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-snang-teal-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600">Memuatkan kes...</p>
+          <p className="text-sm text-slate-400">Loading cases...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-sm p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Ralat Memuatkan Data</h2>
+          <p className="text-slate-600 mb-4">{error}</p>
+          <p className="text-sm text-slate-500 mb-6">Failed to load cases. Please try again.</p>
+          <button
+            onClick={loadCases}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-snang-teal-600 text-white rounded-lg font-medium hover:bg-snang-teal-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Cuba Lagi / Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -86,6 +270,13 @@ export default function AgentControlPanel() {
             <p className="text-sm text-slate-500">Urus kes permohonan LPPSA</p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={loadCases}
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              title="Refresh cases"
+            >
+              <RefreshCw className="w-5 h-5 text-slate-500" />
+            </button>
             <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
               <Bell className="w-5 h-5 text-slate-500" />
             </button>
@@ -123,7 +314,7 @@ export default function AgentControlPanel() {
         </div>
 
         {/* PRD Reminder */}
-        <PermissionWarning 
+        <PermissionWarning
           message="Ejen melihat julat pendapatan sahaja, bukan angka tepat. Tahap keyakinan ditunjukkan sebagai HIGH/LOW."
           type="info"
         />
@@ -145,7 +336,7 @@ export default function AgentControlPanel() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex overflow-x-auto p-2 gap-1">
                 {filters.map(filter => {
                   const Icon = filter.icon;
@@ -174,13 +365,33 @@ export default function AgentControlPanel() {
               </div>
             </div>
 
+            {/* Empty State */}
+            {filteredCases.length === 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">Tiada Kes Dijumpai</h3>
+                <p className="text-slate-500 mb-4">
+                  {searchQuery
+                    ? `Tiada kes yang sepadan dengan "${searchQuery}"`
+                    : 'Tiada kes dalam kategori ini'}
+                </p>
+                <p className="text-sm text-slate-400">
+                  {searchQuery
+                    ? `No cases match "${searchQuery}"`
+                    : 'No cases in this category'}
+                </p>
+              </div>
+            )}
+
             {/* Case Cards */}
             <div className="space-y-3">
               {filteredCases.map(caseData => {
                 const priorityConfig = getPriorityConfig(caseData.priority);
                 const readinessConfig = getReadinessConfig(caseData.readiness?.band);
                 const phaseConfig = getPhaseConfig(caseData.phase);
-                
+
                 return (
                   <div
                     key={caseData.id}
@@ -214,13 +425,15 @@ export default function AgentControlPanel() {
                         <span className={`px-2 py-1 rounded ${phaseConfig.bgColor} ${phaseConfig.textColor}`}>
                           {getPhaseLabel(caseData.phase)}
                         </span>
-                        
+
                         {/* PRD Compliance: Show income RANGE not exact figure */}
-                        <span className="text-slate-500">
-                          Pendapatan: <span className="font-medium text-slate-700">{caseData.buyer.incomeRange}</span>
-                        </span>
+                        {caseData.buyer.incomeRange && (
+                          <span className="text-slate-500">
+                            Pendapatan: <span className="font-medium text-slate-700">{caseData.buyer.incomeRange}</span>
+                          </span>
+                        )}
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         {caseData.kjStatus === 'overdue' && (
                           <span className="flex items-center gap-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
@@ -254,7 +467,7 @@ export default function AgentControlPanel() {
             <div className="w-96 bg-white rounded-xl shadow-sm p-5 sticky top-20 h-fit">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-slate-800">Pratonton Kes</h3>
-                <button 
+                <button
                   onClick={() => setShowPreview(false)}
                   className="text-slate-400 hover:text-slate-600"
                 >
@@ -266,7 +479,9 @@ export default function AgentControlPanel() {
               <div className="mb-4">
                 <p className="text-sm text-slate-500 mb-1">Pembeli</p>
                 <p className="font-semibold text-slate-800">{currentCase.buyer.name}</p>
-                <p className="text-sm text-slate-600 font-mono">{maskPhone(currentCase.buyer.phone)}</p>
+                {currentCase.buyer.phone && (
+                  <p className="text-sm text-slate-600 font-mono">{maskPhone(currentCase.buyer.phone)}</p>
+                )}
               </div>
 
               {/* Property */}
@@ -279,50 +494,54 @@ export default function AgentControlPanel() {
               </div>
 
               {/* PRD Compliance: Income as RANGE only */}
-              <div className="mb-4">
-                <p className="text-sm text-slate-500 mb-1">Julat Pendapatan</p>
-                <p className="font-semibold text-slate-800">{currentCase.buyer.incomeRange}</p>
-                <p className="text-xs text-slate-400">Angka tepat tidak ditunjukkan</p>
-              </div>
+              {currentCase.buyer.incomeRange && (
+                <div className="mb-4">
+                  <p className="text-sm text-slate-500 mb-1">Julat Pendapatan</p>
+                  <p className="font-semibold text-slate-800">{currentCase.buyer.incomeRange}</p>
+                  <p className="text-xs text-slate-400">Angka tepat tidak ditunjukkan</p>
+                </div>
+              )}
 
               {/* Documents with PRD-compliant confidence labels */}
-              <div className="mb-4">
-                <p className="text-sm text-slate-500 mb-2">Status Dokumen</p>
-                <div className="space-y-2">
-                  {currentCase.documents.slice(0, 4).map(doc => {
-                    // PRD Compliance: Show confidence LABEL not percentage
-                    const confidenceLabel = doc.confidence 
-                      ? confidenceToLabel(doc.confidence)
-                      : null;
-                    
-                    return (
-                      <div key={doc.id} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          {doc.status === 'verified' ? (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <Clock className="w-4 h-4 text-yellow-500" />
+              {currentCase.documents.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm text-slate-500 mb-2">Status Dokumen</p>
+                  <div className="space-y-2">
+                    {currentCase.documents.slice(0, 4).map(doc => {
+                      // PRD Compliance: Show confidence LABEL not percentage
+                      const confidenceLabel = doc.confidence
+                        ? confidenceToLabel(doc.confidence)
+                        : null;
+
+                      return (
+                        <div key={doc.id} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            {doc.status === 'verified' ? (
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            ) : (
+                              <Clock className="w-4 h-4 text-yellow-500" />
+                            )}
+                            <span className="text-slate-700">{doc.type}</span>
+                          </div>
+                          {confidenceLabel && (
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              confidenceLabel === 'HIGH_CONFIDENCE'
+                                ? 'bg-green-100 text-green-700'
+                                : confidenceLabel === 'LOW_CONFIDENCE'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {confidenceLabel === 'HIGH_CONFIDENCE' ? 'TINGGI' :
+                               confidenceLabel === 'LOW_CONFIDENCE' ? 'RENDAH' :
+                               'SEMAK'}
+                            </span>
                           )}
-                          <span className="text-slate-700">{doc.type}</span>
                         </div>
-                        {confidenceLabel && (
-                          <span className={`text-xs px-2 py-0.5 rounded ${
-                            confidenceLabel === 'HIGH_CONFIDENCE'
-                              ? 'bg-green-100 text-green-700'
-                              : confidenceLabel === 'LOW_CONFIDENCE'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {confidenceLabel === 'HIGH_CONFIDENCE' ? 'TINGGI' :
-                             confidenceLabel === 'LOW_CONFIDENCE' ? 'RENDAH' :
-                             'SEMAK'}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* TAC Info */}
               {currentCase.tacSchedule && (
@@ -343,8 +562,8 @@ export default function AgentControlPanel() {
               {/* KJ Status - PRD: This is buyer-reported, not system-verified */}
               {currentCase.kjStatus && (
                 <div className={`mb-4 rounded-lg p-3 ${
-                  currentCase.kjStatus === 'overdue' 
-                    ? 'bg-red-50 border border-red-200' 
+                  currentCase.kjStatus === 'overdue'
+                    ? 'bg-red-50 border border-red-200'
                     : 'bg-slate-50 border border-slate-200'
                 }`}>
                   <div className="flex items-center gap-2 mb-1">
@@ -360,7 +579,7 @@ export default function AgentControlPanel() {
                   <p className={`text-sm ${
                     currentCase.kjStatus === 'overdue' ? 'text-red-700' : 'text-slate-600'
                   }`}>
-                    {currentCase.kjStatus === 'overdue' 
+                    {currentCase.kjStatus === 'overdue'
                       ? `Belum diterima (${currentCase.kjDays} hari)`
                       : currentCase.kjStatus === 'received'
                       ? 'Diterima'
@@ -376,7 +595,7 @@ export default function AgentControlPanel() {
 
               {/* Actions */}
               <div className="space-y-2">
-                <button 
+                <button
                   onClick={() => router.push(`/agent/case/${currentCase.id}`)}
                   className="w-full bg-snang-teal-600 text-white py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-snang-teal-700 transition-colors"
                 >
@@ -384,23 +603,25 @@ export default function AgentControlPanel() {
                   Lihat Penuh
                 </button>
                 <div className="flex gap-2">
-                  <WhatsAppContactCTA
-                    buyer={{
-                      name: currentCase.buyer.name,
-                      phone: currentCase.buyer.phone,
-                      caseRef: currentCase.id,
-                      propertyName: currentCase.property.name,
-                      unitCode: currentCase.property.unit,
-                      tacDate: currentCase.tacSchedule?.date,
-                      tacTime: currentCase.tacSchedule?.time,
-                      missingDocs: currentCase.documents
-                        .filter(d => d.status !== 'verified')
-                        .map(d => d.type),
-                    }}
-                    caseId={currentCase.id}
-                    locale="bm"
-                    variant="dropdown"
-                  />
+                  {currentCase.buyer.phone && (
+                    <WhatsAppContactCTA
+                      buyer={{
+                        name: currentCase.buyer.name,
+                        phone: currentCase.buyer.phone,
+                        caseRef: currentCase.id,
+                        propertyName: currentCase.property.name,
+                        unitCode: currentCase.property.unit,
+                        tacDate: currentCase.tacSchedule?.date,
+                        tacTime: currentCase.tacSchedule?.time,
+                        missingDocs: currentCase.documents
+                          .filter(d => d.status !== 'verified')
+                          .map(d => d.type),
+                      }}
+                      caseId={currentCase.id}
+                      locale="bm"
+                      variant="dropdown"
+                    />
+                  )}
                   <button className="flex-1 bg-slate-100 text-slate-700 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
                     <Phone className="w-4 h-4" />
                     Panggil
@@ -411,7 +632,7 @@ export default function AgentControlPanel() {
               {/* PRD Warning */}
               <div className="mt-4 pt-4 border-t border-slate-100">
                 <p className="text-xs text-slate-400 text-center">
-                  Ejen tidak boleh meluluskan atau menolak permohonan. 
+                  Ejen tidak boleh meluluskan atau menolak permohonan.
                   Hanya koordinasi dan penghantaran.
                 </p>
               </div>

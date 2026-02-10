@@ -6,31 +6,26 @@
  *
  * Developer dashboard for managing properties, units, and QR-based buyer access.
  * Shows aggregate property data with drill-down to unit-level management.
+ *
+ * WIRED TO REAL APIs - Sprint S4 Day 2
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Building2,
   QrCode,
-  Users,
   TrendingUp,
   ChevronRight,
   Plus,
-  Filter,
   Search,
-  Eye,
   Link as LinkIcon,
   BarChart3,
   FileText,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
-import {
-  PropertyUnit,
-  UNIT_STATUS_CONFIG,
-  formatPrice,
-} from '@/lib/types/property-unit';
+import { formatPrice } from '@/lib/types/property-unit';
 
 // =============================================================================
 // TYPES
@@ -42,10 +37,12 @@ export interface Property {
   location: string;
   developerId: string;
   totalUnits: number;
-  status: 'ACTIVE' | 'COMING_SOON' | 'SOLD_OUT';
+  status: 'ACTIVE' | 'COMING_SOON' | 'SOLD_OUT' | 'active' | 'coming_soon' | 'sold_out';
   launchDate?: string;
   completionDate?: string;
   thumbnail?: string;
+  priceMin?: number;
+  priceMax?: number;
 }
 
 export interface PropertyStats {
@@ -67,46 +64,96 @@ export interface MortgageCase {
   phase: string;
   createdAt: string;
   updatedAt: string;
-  // No PII - aggregate view only
 }
 
 // =============================================================================
-// DEMO DATA
+// API FUNCTIONS
 // =============================================================================
 
-const DEMO_PROPERTIES: Property[] = [
-  {
-    id: 'prop-1',
-    name: 'Seven Sky Residences',
-    location: 'Seksyen 13, Shah Alam',
-    developerId: 'dev-seven-sky',
-    totalUnits: 350,
-    status: 'ACTIVE',
-    launchDate: '2024-01-15',
-    completionDate: '2026-06-30',
-  },
-];
+async function fetchProperties(developerId?: string): Promise<Property[]> {
+  try {
+    const url = developerId
+      ? `/api/properties?developer_id=${developerId}`
+      : '/api/properties';
 
-const DEMO_STATS: Record<string, PropertyStats> = {
-  'prop-1': {
-    available: 180,
-    reserved: 45,
-    pending: 85,
-    sold: 40,
-    totalValue: 157500000, // RM 157.5M
-    activeLinks: 234,
-    totalScans: 1847,
-    activeCases: 130,
-  },
-};
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch properties');
 
-const DEMO_CASES: MortgageCase[] = [
-  { id: 'c1', caseRef: 'QTK-2025-00142', unitId: 'u1', unitCode: 'A-12-03', phase: 'DOCS_PENDING', createdAt: '2025-02-01', updatedAt: '2025-02-08' },
-  { id: 'c2', caseRef: 'QTK-2025-00143', unitId: 'u2', unitCode: 'A-12-05', phase: 'TAC_SCHEDULED', createdAt: '2025-02-02', updatedAt: '2025-02-09' },
-  { id: 'c3', caseRef: 'QTK-2025-00144', unitId: 'u3', unitCode: 'B-08-01', phase: 'SUBMITTED', createdAt: '2025-02-03', updatedAt: '2025-02-10' },
-  { id: 'c4', caseRef: 'QTK-2025-00145', unitId: 'u4', unitCode: 'B-15-02', phase: 'LO_RECEIVED', createdAt: '2025-01-28', updatedAt: '2025-02-07' },
-  { id: 'c5', caseRef: 'QTK-2025-00146', unitId: 'u5', unitCode: 'A-20-01', phase: 'COMPLETED', createdAt: '2025-01-15', updatedAt: '2025-02-05' },
-];
+    const data = await res.json();
+
+    // Transform API response to component format
+    return (data.data || []).map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      location: p.location || p.city || 'N/A',
+      developerId: p.developer_id,
+      totalUnits: p.total_units || 0,
+      status: p.status?.toUpperCase() || 'ACTIVE',
+      launchDate: p.launch_date,
+      completionDate: p.completion_date,
+      thumbnail: p.thumbnail_url,
+      priceMin: p.price_min,
+      priceMax: p.price_max,
+    }));
+  } catch (error) {
+    console.error('Error fetching properties:', error);
+    return [];
+  }
+}
+
+async function fetchPropertyStats(propertyId: string): Promise<PropertyStats | null> {
+  try {
+    // Fetch units for this property to calculate stats
+    const res = await fetch(`/api/properties/${propertyId}/units`);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const units = data.data || [];
+
+    // Calculate stats from units
+    const stats: PropertyStats = {
+      available: units.filter((u: any) => u.status === 'available').length,
+      reserved: units.filter((u: any) => u.status === 'reserved').length,
+      pending: units.filter((u: any) => u.status === 'pending' || u.status === 'mortgage_pending').length,
+      sold: units.filter((u: any) => u.status === 'sold').length,
+      totalValue: units.reduce((sum: number, u: any) => sum + (u.price || 0), 0),
+      activeLinks: 0, // Would need separate API call
+      totalScans: 0,  // Would need separate API call
+      activeCases: units.filter((u: any) => u.status === 'pending' || u.status === 'mortgage_pending').length,
+    };
+
+    return stats;
+  } catch (error) {
+    console.error('Error fetching property stats:', error);
+    return null;
+  }
+}
+
+async function fetchCases(propertyId?: string): Promise<MortgageCase[]> {
+  try {
+    const url = propertyId
+      ? `/api/cases?property_id=${propertyId}`
+      : '/api/cases';
+
+    const res = await fetch(url);
+    if (!res.ok) return [];
+
+    const data = await res.json();
+
+    return (data.data || []).map((c: any) => ({
+      id: c.id,
+      caseRef: c.case_ref || c.reference_number || `QTK-${c.id.slice(0, 8)}`,
+      unitId: c.unit_id || '',
+      unitCode: c.unit_code || 'N/A',
+      phase: c.phase || c.status || 'PRESCAN',
+      createdAt: c.created_at,
+      updatedAt: c.updated_at,
+    }));
+  } catch (error) {
+    console.error('Error fetching cases:', error);
+    return [];
+  }
+}
 
 // =============================================================================
 // PROPS
@@ -129,38 +176,165 @@ export function PropertyConsole({
   onSelectProperty,
   onGenerateQR,
 }: PropertyConsoleProps) {
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>('prop-1');
+  // Data state
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [stats, setStats] = useState<PropertyStats | null>(null);
+  const [cases, setCases] = useState<MortgageCase[]>([]);
+
+  // UI state
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'units' | 'cases'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Get selected property data
-  const selectedProperty = DEMO_PROPERTIES.find(p => p.id === selectedPropertyId);
-  const stats = selectedPropertyId ? DEMO_STATS[selectedPropertyId] : null;
+  // Loading state
+  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch properties on mount
+  useEffect(() => {
+    async function loadProperties() {
+      setLoading(true);
+      setError(null);
+
+      const data = await fetchProperties(developerId);
+      setProperties(data);
+
+      // Auto-select first property
+      if (data.length > 0 && !selectedPropertyId) {
+        setSelectedPropertyId(data[0].id);
+      }
+
+      setLoading(false);
+    }
+
+    loadProperties();
+  }, [developerId]);
+
+  // Fetch stats and cases when property is selected
+  useEffect(() => {
+    if (!selectedPropertyId) return;
+
+    // Capture the value to avoid null in async context
+    const propertyId = selectedPropertyId;
+
+    async function loadPropertyData() {
+      setStatsLoading(true);
+
+      const [statsData, casesData] = await Promise.all([
+        fetchPropertyStats(propertyId),
+        fetchCases(propertyId),
+      ]);
+
+      setStats(statsData);
+      setCases(casesData);
+      setStatsLoading(false);
+    }
+
+    loadPropertyData();
+  }, [selectedPropertyId]);
+
+  // Refresh function
+  const handleRefresh = useCallback(async () => {
+    setLoading(true);
+    const data = await fetchProperties(developerId);
+    setProperties(data);
+
+    if (selectedPropertyId) {
+      const [statsData, casesData] = await Promise.all([
+        fetchPropertyStats(selectedPropertyId),
+        fetchCases(selectedPropertyId),
+      ]);
+      setStats(statsData);
+      setCases(casesData);
+    }
+
+    setLoading(false);
+  }, [developerId, selectedPropertyId]);
+
+  // Get selected property
+  const selectedProperty = properties.find(p => p.id === selectedPropertyId);
 
   // Filter cases by search
   const filteredCases = useMemo(() => {
-    if (!searchQuery) return DEMO_CASES;
+    if (!searchQuery) return cases;
     const q = searchQuery.toLowerCase();
-    return DEMO_CASES.filter(c =>
+    return cases.filter(c =>
       c.caseRef.toLowerCase().includes(q) ||
       c.unitCode.toLowerCase().includes(q)
     );
-  }, [searchQuery]);
+  }, [cases, searchQuery]);
 
   // Phase display config
   const getPhaseConfig = (phase: string) => {
     const configs: Record<string, { label: string; color: string; bgColor: string }> = {
       PRESCAN: { label: 'Imbasan', color: 'text-slate-600', bgColor: 'bg-slate-100' },
+      prescan: { label: 'Imbasan', color: 'text-slate-600', bgColor: 'bg-slate-100' },
       DOCS_PENDING: { label: 'Dokumen', color: 'text-amber-600', bgColor: 'bg-amber-100' },
+      docs_pending: { label: 'Dokumen', color: 'text-amber-600', bgColor: 'bg-amber-100' },
       DOCS_COMPLETE: { label: 'Dokumen ✓', color: 'text-amber-700', bgColor: 'bg-amber-100' },
+      docs_complete: { label: 'Dokumen ✓', color: 'text-amber-700', bgColor: 'bg-amber-100' },
       TAC_SCHEDULED: { label: 'TAC Dijadualkan', color: 'text-blue-600', bgColor: 'bg-blue-100' },
+      tac_scheduled: { label: 'TAC Dijadualkan', color: 'text-blue-600', bgColor: 'bg-blue-100' },
       TAC_CONFIRMED: { label: 'TAC Disahkan', color: 'text-blue-700', bgColor: 'bg-blue-100' },
+      tac_confirmed: { label: 'TAC Disahkan', color: 'text-blue-700', bgColor: 'bg-blue-100' },
       SUBMITTED: { label: 'Dihantar', color: 'text-purple-600', bgColor: 'bg-purple-100' },
+      submitted: { label: 'Dihantar', color: 'text-purple-600', bgColor: 'bg-purple-100' },
       LO_RECEIVED: { label: 'LO Diterima', color: 'text-teal-600', bgColor: 'bg-teal-100' },
+      lo_received: { label: 'LO Diterima', color: 'text-teal-600', bgColor: 'bg-teal-100' },
       COMPLETED: { label: 'Selesai', color: 'text-green-600', bgColor: 'bg-green-100' },
+      completed: { label: 'Selesai', color: 'text-green-600', bgColor: 'bg-green-100' },
     };
     return configs[phase] || { label: phase, color: 'text-slate-600', bgColor: 'bg-slate-100' };
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+        <span className="ml-3 text-slate-600">
+          {locale === 'bm' ? 'Memuatkan...' : 'Loading...'}
+        </span>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <p className="text-slate-600 mb-4">{error}</p>
+        <button
+          onClick={handleRefresh}
+          className="text-cyan-600 hover:text-cyan-700 flex items-center gap-2 mx-auto"
+        >
+          <RefreshCw className="w-4 h-4" />
+          {locale === 'bm' ? 'Cuba Lagi' : 'Try Again'}
+        </button>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (properties.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+        <p className="text-slate-500 mb-4">
+          {locale === 'bm' ? 'Tiada projek ditemui' : 'No projects found'}
+        </p>
+        <button
+          onClick={handleRefresh}
+          className="text-cyan-600 hover:text-cyan-700 flex items-center gap-2 mx-auto"
+        >
+          <RefreshCw className="w-4 h-4" />
+          {locale === 'bm' ? 'Muat Semula' : 'Refresh'}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -171,16 +345,24 @@ export function PropertyConsole({
             <Building2 className="w-5 h-5 text-cyan-600" />
             {locale === 'bm' ? 'Projek Anda' : 'Your Projects'}
           </h3>
-          <button className="text-sm text-cyan-600 hover:text-cyan-700 flex items-center gap-1">
-            <Plus className="w-4 h-4" />
-            {locale === 'bm' ? 'Tambah Projek' : 'Add Project'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleRefresh}
+              className="text-slate-400 hover:text-slate-600 p-1"
+              title={locale === 'bm' ? 'Muat semula' : 'Refresh'}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <button className="text-sm text-cyan-600 hover:text-cyan-700 flex items-center gap-1">
+              <Plus className="w-4 h-4" />
+              {locale === 'bm' ? 'Tambah Projek' : 'Add Project'}
+            </button>
+          </div>
         </div>
 
         {/* Property Cards */}
         <div className="grid gap-3">
-          {DEMO_PROPERTIES.map(property => {
-            const propStats = DEMO_STATS[property.id];
+          {properties.map(property => {
             const isSelected = selectedPropertyId === property.id;
 
             return (
@@ -206,22 +388,16 @@ export function PropertyConsole({
                   <ChevronRight className={`w-5 h-5 transition-transform ${isSelected ? 'rotate-90 text-cyan-600' : 'text-slate-400'}`} />
                 </div>
 
-                {propStats && (
-                  <div className="mt-3 flex items-center gap-4 text-xs">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-green-500" />
-                      {propStats.available} {locale === 'bm' ? 'tersedia' : 'available'}
+                <div className="mt-3 flex items-center gap-4 text-xs">
+                  <span className="text-slate-500">
+                    {property.totalUnits} {locale === 'bm' ? 'unit' : 'units'}
+                  </span>
+                  {property.priceMin && (
+                    <span className="text-slate-500">
+                      {locale === 'bm' ? 'dari' : 'from'} {formatPrice(property.priceMin)}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-amber-500" />
-                      {propStats.reserved} {locale === 'bm' ? 'ditempah' : 'reserved'}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-blue-500" />
-                      {propStats.pending} {locale === 'bm' ? 'dalam proses' : 'pending'}
-                    </span>
-                  </div>
-                )}
+                  )}
+                </div>
               </button>
             );
           })}
@@ -229,7 +405,7 @@ export function PropertyConsole({
       </div>
 
       {/* Property Detail Panel */}
-      {selectedProperty && stats && (
+      {selectedProperty && (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-cyan-700 to-cyan-900 p-6 text-white">
@@ -239,42 +415,36 @@ export function PropertyConsole({
                 <p className="text-cyan-200 text-sm">{selectedProperty.location}</p>
               </div>
               <div className="text-right">
-                <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Nilai Jualan' : 'Sales Value'}</p>
-                <p className="text-2xl font-bold">{formatPrice(stats.totalValue)}</p>
+                <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Jumlah Unit' : 'Total Units'}</p>
+                <p className="text-2xl font-bold">{selectedProperty.totalUnits}</p>
               </div>
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-cyan-600">
-              <div>
-                <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Pautan Aktif' : 'Active Links'}</p>
-                <p className="text-2xl font-bold flex items-center gap-2">
-                  <LinkIcon className="w-5 h-5" />
-                  {stats.activeLinks}
-                </p>
+            {statsLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="w-5 h-5 animate-spin text-cyan-300" />
               </div>
-              <div>
-                <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Jumlah Imbasan' : 'Total Scans'}</p>
-                <p className="text-2xl font-bold flex items-center gap-2">
-                  <QrCode className="w-5 h-5" />
-                  {stats.totalScans}
-                </p>
+            ) : stats && (
+              <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-cyan-600">
+                <div>
+                  <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Tersedia' : 'Available'}</p>
+                  <p className="text-2xl font-bold">{stats.available}</p>
+                </div>
+                <div>
+                  <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Dalam Proses' : 'Pending'}</p>
+                  <p className="text-2xl font-bold">{stats.pending}</p>
+                </div>
+                <div>
+                  <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Terjual' : 'Sold'}</p>
+                  <p className="text-2xl font-bold">{stats.sold}</p>
+                </div>
+                <div>
+                  <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Nilai Jumlah' : 'Total Value'}</p>
+                  <p className="text-xl font-bold">{formatPrice(stats.totalValue)}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Kes Aktif' : 'Active Cases'}</p>
-                <p className="text-2xl font-bold flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  {stats.activeCases}
-                </p>
-              </div>
-              <div>
-                <p className="text-cyan-300 text-xs">{locale === 'bm' ? 'Kadar Penukaran' : 'Conversion'}</p>
-                <p className="text-2xl font-bold flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  {Math.round((stats.sold / selectedProperty.totalUnits) * 100)}%
-                </p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Tabs */}
@@ -308,7 +478,7 @@ export function PropertyConsole({
 
           {/* Tab Content */}
           <div className="p-6">
-            {activeTab === 'overview' && (
+            {activeTab === 'overview' && stats && (
               <div className="space-y-6">
                 {/* Unit Status Distribution */}
                 <div>
@@ -342,9 +512,9 @@ export function PropertyConsole({
                     <span>{stats.sold + stats.pending + stats.reserved} / {selectedProperty.totalUnits} unit</span>
                   </div>
                   <div className="h-4 bg-slate-100 rounded-full overflow-hidden flex">
-                    <div className="bg-green-500 h-full" style={{ width: `${(stats.sold / selectedProperty.totalUnits) * 100}%` }} />
-                    <div className="bg-blue-500 h-full" style={{ width: `${(stats.pending / selectedProperty.totalUnits) * 100}%` }} />
-                    <div className="bg-amber-500 h-full" style={{ width: `${(stats.reserved / selectedProperty.totalUnits) * 100}%` }} />
+                    <div className="bg-green-500 h-full" style={{ width: `${(stats.sold / Math.max(selectedProperty.totalUnits, 1)) * 100}%` }} />
+                    <div className="bg-blue-500 h-full" style={{ width: `${(stats.pending / Math.max(selectedProperty.totalUnits, 1)) * 100}%` }} />
+                    <div className="bg-amber-500 h-full" style={{ width: `${(stats.reserved / Math.max(selectedProperty.totalUnits, 1)) * 100}%` }} />
                   </div>
                 </div>
               </div>
@@ -368,32 +538,16 @@ export function PropertyConsole({
                   </button>
                 </div>
 
-                {/* Unit Grid Preview */}
+                {/* Unit Grid Preview - Would load from API */}
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                   <p className="text-sm font-medium text-slate-700 mb-3">
-                    {locale === 'bm' ? 'Contoh Unit dengan QR' : 'Sample Units with QR'}
+                    {locale === 'bm' ? 'Unit dengan QR' : 'Units with QR'}
                   </p>
-                  <div className="grid grid-cols-4 gap-3">
-                    {['A-12-03', 'A-12-05', 'B-08-01', 'B-15-02'].map((unitCode, idx) => (
-                      <div key={unitCode} className="bg-white rounded-lg p-3 border border-slate-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-sm text-slate-800">{unitCode}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${idx === 0 ? 'bg-green-100 text-green-600' : idx === 1 ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
-                            {idx === 0 ? 'Tersedia' : idx === 1 ? 'Ditempah' : 'Proses'}
-                          </span>
-                        </div>
-                        <div className="aspect-square bg-slate-100 rounded-lg flex items-center justify-center mb-2">
-                          <QrCode className="w-12 h-12 text-slate-400" />
-                        </div>
-                        <button
-                          onClick={() => onGenerateQR?.(unitCode)}
-                          className="w-full text-xs text-cyan-600 hover:text-cyan-700 py-1"
-                        >
-                          {locale === 'bm' ? 'Lihat QR' : 'View QR'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-sm text-slate-500">
+                    {locale === 'bm'
+                      ? 'Gunakan tab "Kes Mortgage" untuk melihat unit dengan kes aktif'
+                      : 'Use "Mortgage Cases" tab to view units with active cases'}
+                  </p>
                 </div>
               </div>
             )}
@@ -412,38 +566,44 @@ export function PropertyConsole({
                   />
                 </div>
 
-                {/* Case List - Aggregate View Only */}
-                <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-slate-100 text-slate-600">
-                        <th className="text-left px-4 py-3 font-medium">{locale === 'bm' ? 'No. Kes' : 'Case Ref'}</th>
-                        <th className="text-left px-4 py-3 font-medium">{locale === 'bm' ? 'Unit' : 'Unit'}</th>
-                        <th className="text-left px-4 py-3 font-medium">{locale === 'bm' ? 'Fasa' : 'Phase'}</th>
-                        <th className="text-left px-4 py-3 font-medium">{locale === 'bm' ? 'Kemaskini' : 'Updated'}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredCases.map(caseItem => {
-                        const phaseConfig = getPhaseConfig(caseItem.phase);
-                        return (
-                          <tr key={caseItem.id} className="border-t border-slate-200 hover:bg-white">
-                            <td className="px-4 py-3 font-mono text-slate-800">{caseItem.caseRef}</td>
-                            <td className="px-4 py-3 text-slate-600">{caseItem.unitCode}</td>
-                            <td className="px-4 py-3">
-                              <span className={`text-xs px-2 py-1 rounded ${phaseConfig.bgColor} ${phaseConfig.color}`}>
-                                {phaseConfig.label}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-slate-500">
-                              {new Date(caseItem.updatedAt).toLocaleDateString('ms-MY')}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                {/* Case List */}
+                {filteredCases.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    {locale === 'bm' ? 'Tiada kes ditemui' : 'No cases found'}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-slate-100 text-slate-600">
+                          <th className="text-left px-4 py-3 font-medium">{locale === 'bm' ? 'No. Kes' : 'Case Ref'}</th>
+                          <th className="text-left px-4 py-3 font-medium">{locale === 'bm' ? 'Unit' : 'Unit'}</th>
+                          <th className="text-left px-4 py-3 font-medium">{locale === 'bm' ? 'Fasa' : 'Phase'}</th>
+                          <th className="text-left px-4 py-3 font-medium">{locale === 'bm' ? 'Kemaskini' : 'Updated'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCases.map(caseItem => {
+                          const phaseConfig = getPhaseConfig(caseItem.phase);
+                          return (
+                            <tr key={caseItem.id} className="border-t border-slate-200 hover:bg-white">
+                              <td className="px-4 py-3 font-mono text-slate-800">{caseItem.caseRef}</td>
+                              <td className="px-4 py-3 text-slate-600">{caseItem.unitCode}</td>
+                              <td className="px-4 py-3">
+                                <span className={`text-xs px-2 py-1 rounded ${phaseConfig.bgColor} ${phaseConfig.color}`}>
+                                  {phaseConfig.label}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-slate-500">
+                                {new Date(caseItem.updatedAt).toLocaleDateString('ms-MY')}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
                 <p className="text-xs text-slate-400 text-center">
                   {locale === 'bm'
