@@ -1,27 +1,6 @@
-// app/page.tsx
-// snang.my Landing Page - Full Integration
-// UI/UX Design Amendments v2.1
-
 import { Metadata } from 'next'
-
-// Trust Components
-import { TrustStrip } from '@/components/trust'
-import { TrustSection } from '@/components/trust'
-
-// Progressive Disclosure
-import { CollapsibleSection } from '@/components/ui/collapsible-section'
-import { Accordion } from '@/components/ui/accordion'
-import { ExpandableCard } from '@/components/ui/expandable-card'
-import { StepCards } from '@/components/ui/step-cards'
-
-// Mobile
-import { ScrollToTop } from '@/components/mobile'
-import { MobileContainer, MobileStack, MobileBottomBar } from '@/components/mobile'
-
-// Animation
-import { AnimatedContainer } from '@/components/ui/animated-container'
-
-// Local Section Components (created below)
+import { Navbar } from './sections/navbar'
+import { TrustStrip, TrustSection } from '@/components/trust'
 import { HeroSection } from './sections/hero'
 import { StatsSection } from './sections/stats'
 import { ProblemsSection } from './sections/problems'
@@ -33,45 +12,27 @@ import { Footer } from './sections/footer'
 
 export const metadata: Metadata = {
   title: 'Snang.my — Satu Platform. Tiga Peranan. Sifar Leceh.',
-  description: 'Platform kesediaan pinjaman LPPSA untuk pemaju, pembeli, dan ejen hartanah Malaysia. Pantau pipeline, semak kelayakan, proses submission — semuanya dalam satu tempat.',
-  openGraph: {
-    title: 'Snang.my — Satu Platform. Tiga Peranan. Sifar Leceh.',
-    description: 'Platform kesediaan pinjaman LPPSA untuk pemaju, pembeli, dan ejen hartanah Malaysia. Pantau pipeline, semak kelayakan, proses submission — semuanya dalam satu tempat.',
-    url: 'https://snang.my',
-    siteName: 'Snang.my',
-    locale: 'ms_MY',
-    type: 'website',
-  },
+  description: 'Platform kesediaan pinjaman LPPSA untuk pemaju, pembeli rumah, dan ejen hartanah Malaysia. Semak kelayakan dalam 5 minit.',
 }
 
 export default function HomePage() {
   return (
     <>
-      {/* Trust Strip - Persistent below navbar */}
-      <TrustStrip />
-      
+      <Navbar />
+      <div className="pt-16">
+        <TrustStrip />
+      </div>
       <main className="min-h-screen bg-neutral-50">
-        {/* === ABOVE THE FOLD === */}
         <HeroSection />
         <StatsSection />
-        
-        {/* === FIRST SCROLL === */}
         <ProblemsSection />
         <PersonasSection />
-        
-        {/* === PROGRESSIVE REVEAL === */}
         <HowItWorksSection />
-        <TrustSection locale="ms" variant="full" />
+        <TrustSection />
         <SocialProofSection />
-        
-        {/* === CONVERSION === */}
         <FinalCTASection />
       </main>
-      
       <Footer />
-      
-      {/* Mobile utilities */}
-      <ScrollToTop />
     </>
   )
 }

@@ -1,133 +1,69 @@
-// app/sections/social-proof.tsx
-// Social Proof Section with Beta Placeholder
-// Integrates: AnimatedContainer, TouchButton
-
 'use client'
 
+import { Building2, Landmark, Home, Hotel, Target, MessageSquare, BadgePercent, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { AnimatedContainer } from '@/components/ui/animated-container'
-import { TouchButton } from '@/components/mobile'
-import { Building2, MessageSquare, Trophy, ArrowRight } from 'lucide-react'
 
-// ==========================================
-// Beta Benefit Card
-// ==========================================
-
-interface BetaBenefitProps {
-  icon: React.ReactNode
-  title: string
-  description: string
+function PartnerSlot({ icon, index }: { icon: React.ReactNode; index: number }) {
+  return (
+    <div className="group relative bg-white rounded-2xl p-6 border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all duration-300">
+      <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-primary/5 flex items-center justify-center text-primary/40 group-hover:text-primary/60 transition-colors">{icon}</div>
+      <p className="text-sm font-medium text-neutral-400 text-center">Slot Tersedia</p>
+      <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center"><span className="text-xs font-medium text-primary">{index}</span></div>
+    </div>
+  )
 }
 
-function BetaBenefit({ icon, title, description }: BetaBenefitProps) {
+function BenefitCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
     <div className="text-center">
-      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-        {icon}
-      </div>
-      <h3 className="font-semibold text-neutral-700 text-sm">{title}</h3>
-      <p className="text-xs text-neutral-500 mt-1">{description}</p>
+      <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{icon}</div>
+      <h4 className="font-semibold text-neutral-800 mb-1">{title}</h4>
+      <p className="text-sm text-neutral-500">{description}</p>
     </div>
   )
 }
-
-// ==========================================
-// Placeholder Logo Card
-// ==========================================
-
-function PlaceholderLogo({ index }: { index: number }) {
-  // Different icons for visual variety
-  const icons = ['🏢', '🏗️', '🏠', '🏛️']
-
-  return (
-    <div className="bg-gradient-to-br from-neutral-50 to-white rounded-xl border border-neutral-200 p-6 flex flex-col items-center justify-center min-h-[120px] hover:border-primary/30 hover:shadow-sm transition-all group">
-      <div className="w-14 h-14 bg-primary/5 rounded-xl flex items-center justify-center mb-3 group-hover:bg-primary/10 transition-colors">
-        <span className="text-2xl opacity-50 group-hover:opacity-70 transition-opacity">
-          {icons[index - 1]}
-        </span>
-      </div>
-      <span className="text-xs font-medium text-neutral-400 group-hover:text-primary/60 transition-colors">
-        Slot Tersedia
-      </span>
-    </div>
-  )
-}
-
-// ==========================================
-// Social Proof Section
-// ==========================================
 
 export function SocialProofSection() {
+  const partnerIcons = [
+    <Building2 key="1" className="w-7 h-7" />,
+    <Landmark key="2" className="w-7 h-7" />,
+    <Home key="3" className="w-7 h-7" />,
+    <Hotel key="4" className="w-7 h-7" />
+  ]
   const benefits = [
-    {
-      icon: <span className="text-xl">🎯</span>,
-      title: 'Akses Awal',
-      description: 'Guna platform sebelum pelancaran umum',
-    },
-    {
-      icon: <MessageSquare className="w-5 h-5 text-secondary" />,
-      title: 'Suara Anda Didengari',
-      description: 'Maklum balas anda membentuk produk',
-    },
-    {
-      icon: <Trophy className="w-5 h-5 text-trust" />,
-      title: 'Harga Istimewa',
-      description: 'Kadar khas untuk rakan beta',
-    },
+    { icon: <Target className="w-5 h-5" />, title: 'Akses Awal', description: 'Guna platform sebelum pelancaran umum' },
+    { icon: <MessageSquare className="w-5 h-5" />, title: 'Suara Anda Didengari', description: 'Maklum balas anda membentuk produk' },
+    { icon: <BadgePercent className="w-5 h-5" />, title: 'Harga Istimewa', description: 'Kadar khas untuk rakan beta' },
   ]
 
   return (
-    <section className="py-12 sm:py-16 bg-gradient-to-b from-neutral-50 to-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        {/* Header */}
-        <AnimatedContainer>
-          <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-2 bg-trust/10 text-trust px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <Building2 className="w-4 h-4" />
-              Dalam Pembangunan Bersama
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900">
-              Program Rakan Beta
-            </h2>
-            <p className="text-neutral-600 mt-3 max-w-xl mx-auto">
-              Kami sedang bekerjasama dengan pemaju terpilih untuk memperhalusi platform ini 
-              sebelum pelancaran penuh.
-            </p>
+    <section className="py-16 sm:py-20 bg-gradient-to-b from-neutral-50 to-white">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <Building2 className="w-4 h-4" />
+            Dalam Pembangunan Bersama
           </div>
-        </AnimatedContainer>
-
-        {/* Placeholder Logos */}
-        <AnimatedContainer>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <PlaceholderLogo key={i} index={i} />
-            ))}
-          </div>
-        </AnimatedContainer>
-
-        {/* CTA */}
-        <AnimatedContainer>
-          <div className="text-center mb-10">
-            <p className="text-neutral-600 mb-4">
-              Berminat menjadi antara yang pertama menggunakan Snang.my?
-            </p>
-            <Link href="/hubungi-kami">
-              <TouchButton variant="primary" size="md">
-                Mohon Sebagai Rakan Beta
-                <ArrowRight className="w-4 h-4" />
-              </TouchButton>
-            </Link>
-          </div>
-        </AnimatedContainer>
-
-        {/* Benefits */}
-        <AnimatedContainer>
-          <div className="grid grid-cols-3 gap-6 pt-8 border-t border-neutral-100">
-            {benefits.map((benefit) => (
-              <BetaBenefit key={benefit.title} {...benefit} />
-            ))}
-          </div>
-        </AnimatedContainer>
+          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-800 mb-3">Program Rakan Beta</h2>
+          <p className="text-neutral-600 max-w-xl mx-auto">Kami sedang bekerjasama dengan pemaju terpilih untuk memperhalusi platform ini sebelum pelancaran penuh.</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          {partnerIcons.map((icon, index) => (
+            <PartnerSlot key={index} icon={icon} index={index + 1} />
+          ))}
+        </div>
+        <div className="text-center mb-12">
+          <p className="text-neutral-600 mb-4">Berminat menjadi antara yang pertama menggunakan Snang.my?</p>
+          <Link href="/hubungi-kami" className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20">
+            Mohon Sebagai Rakan Beta
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8 border-t border-neutral-100">
+          {benefits.map((benefit, index) => (
+            <BenefitCard key={index} {...benefit} />
+          ))}
+        </div>
       </div>
     </section>
   )
