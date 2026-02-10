@@ -1,126 +1,109 @@
-// app/sections/final-cta.tsx
-// Final CTA Section V3 - Role-Specific Entry Points
-
 'use client'
 
 import Link from 'next/link'
-import { Play, ArrowRight } from 'lucide-react'
+import { Building2, User, Briefcase, ArrowRight, Play } from 'lucide-react'
+
+const roles = [
+  {
+    id: 'developer',
+    icon: Building2,
+    title: 'PEMAJU',
+    description: 'Dashboard agregat, QR generation, pipeline tracking',
+    href: '/developer',
+    cta: 'Demo pemaju'
+  },
+  {
+    id: 'buyer',
+    icon: User,
+    title: 'PEMBELI',
+    description: 'Semak DSR dengan data contoh, lihat privacy controls',
+    href: '/buyer',
+    cta: 'Demo pembeli'
+  },
+  {
+    id: 'agent',
+    icon: Briefcase,
+    title: 'EJEN',
+    description: 'Case management, submission kit, contact tools',
+    href: '/agent',
+    cta: 'Demo ejen'
+  }
+]
 
 export function FinalCTASection() {
   return (
-    <section className="py-20 bg-gradient-to-br from-primary via-primary to-primary-dark text-white">
-      <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-primary-light font-semibold text-sm uppercase tracking-wide">
-            MULA SEKARANG
+    <section className="py-16 sm:py-20 bg-gradient-to-br from-primary via-primary to-primary-dark relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border border-white rounded-full" />
+        <div className="absolute bottom-10 right-10 w-48 h-48 border border-white rounded-full" />
+        <div className="absolute top-1/2 left-1/3 w-24 h-24 border border-white rounded-full" />
+      </div>
+      
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <span className="text-white/60 text-sm font-medium uppercase tracking-wider">
+            Mula Sekarang
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mt-2 mb-3">
             Pilih Peranan Anda untuk Demo yang Relevan
           </h2>
-          <p className="text-lg text-white/80">
-            Lihat sendiri bagaimana Snang.my membantu peranan anda dalam proses LPPSA.
+          <p className="text-white/80 max-w-xl mx-auto">
+            Lihat sendiri bagaimana Snang.my membantu peranan anda dalam proses LPPSA. 
             Tiada pendaftaran. Tiada komitmen.
           </p>
         </div>
 
-        {/* Role Demo Cards */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
-          <RoleDemoCard
-            icon="🏢"
-            role="PEMAJU"
-            description="Dashboard agregat, QR generation, pipeline tracking"
-            href="/developer"
-            color="cyan"
-          />
-          <RoleDemoCard
-            icon="👤"
-            role="PEMBELI"
-            description="Semak DSR dengan data contoh, lihat privacy controls"
-            href="/buyer"
-            color="emerald"
-          />
-          <RoleDemoCard
-            icon="💼"
-            role="EJEN"
-            description="Case management, submission kit, contact tools"
-            href="/agent"
-            color="violet"
-          />
+        {/* Role Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+          {roles.map((role) => {
+            const Icon = role.icon
+            return (
+              <Link
+                key={role.id}
+                href={role.href}
+                className="group bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all"
+              >
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-bold text-white mb-2">{role.title}</h3>
+                <p className="text-white/70 text-sm mb-4">{role.description}</p>
+                <span className="inline-flex items-center gap-1 text-white font-medium text-sm group-hover:gap-2 transition-all">
+                  {role.cta} <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
+            )
+          })}
         </div>
 
-        {/* Or Full Walkthrough */}
+        {/* Walkthrough CTA */}
         <div className="text-center">
           <p className="text-white/60 text-sm mb-4">ATAU</p>
           <Link
             href="/walkthrough"
-            className="inline-flex items-center gap-3 bg-white text-primary px-8 py-4 rounded-xl font-semibold hover:bg-neutral-100 transition-all shadow-lg"
+            className="inline-flex items-center gap-2 bg-white text-primary px-6 py-3 rounded-xl font-medium hover:bg-neutral-100 transition-colors shadow-lg"
           >
-            <Play className="w-5 h-5" />
+            <Play className="w-4 h-4" />
             Lihat Full Walkthrough (15 minit)
             <ArrowRight className="w-4 h-4" />
           </Link>
-          <p className="text-white/50 text-sm mt-4">
+          <p className="text-white/50 text-xs mt-3">
             32 screenshots • 3 bahagian • Aliran lengkap Pemaju → Pembeli → Ejen
           </p>
         </div>
 
-        {/* Trust Footer */}
-        <div className="mt-16 pt-8 border-t border-white/10">
-          <div className="flex flex-wrap justify-center gap-8 text-sm text-white/60">
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-400 rounded-full" />
-              Data contoh sahaja
+        {/* Trust indicators */}
+        <div className="flex flex-wrap justify-center gap-6 mt-10 pt-8 border-t border-white/10">
+          {['Data contoh sahaja', 'Tiada pendaftaran', 'PDPA Compliant', 'Demo interaktif'].map((item, i) => (
+            <span key={i} className="text-white/60 text-sm flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-white/60 rounded-full" />
+              {item}
             </span>
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-400 rounded-full" />
-              Tiada pendaftaran
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-400 rounded-full" />
-              PDPA Compliant
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-400 rounded-full" />
-              Demo interaktif
-            </span>
-          </div>
+          ))}
         </div>
       </div>
     </section>
-  )
-}
-
-function RoleDemoCard({
-  icon,
-  role,
-  description,
-  href,
-  color,
-}: {
-  icon: string
-  role: string
-  description: string
-  href: string
-  color: 'cyan' | 'emerald' | 'violet'
-}) {
-  const colorClasses = {
-    cyan: 'hover:border-cyan-400 group-hover:text-cyan-400',
-    emerald: 'hover:border-emerald-400 group-hover:text-emerald-400',
-    violet: 'hover:border-violet-400 group-hover:text-violet-400',
-  }
-
-  return (
-    <Link
-      href={href}
-      className={`group block p-6 rounded-2xl bg-white/10 border-2 border-white/20 backdrop-blur-sm transition-all hover:bg-white/20 ${colorClasses[color]}`}
-    >
-      <div className="text-4xl mb-4">{icon}</div>
-      <h3 className="font-bold text-lg mb-2">{role}</h3>
-      <p className="text-sm text-white/70 mb-4">{description}</p>
-      <span className={`text-sm font-semibold flex items-center gap-1 ${colorClasses[color]}`}>
-        Demo {role.toLowerCase()} →
-      </span>
-    </Link>
   )
 }
