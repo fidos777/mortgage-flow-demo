@@ -1,12 +1,11 @@
 // app/sections/footer.tsx
 // Footer Component
-// Integrates: SSLBadge, AnimationToggle, LanguageToggle
+// Integrates: SSLBadge, LanguageToggle
 
 'use client'
 
 import Link from 'next/link'
-import { SSLBadge } from '@/components/trust'
-import { AnimationToggle } from '@/components/mobile/animation-toggle'
+import { Shield } from 'lucide-react'
 
 // ==========================================
 // Footer Links
@@ -43,8 +42,9 @@ export function Footer() {
               Platform kesediaan pinjaman LPPSA untuk pembeli rumah, 
               pemaju, dan ejen hartanah Malaysia.
             </p>
-            <div className="flex items-center gap-4 mt-4">
-              <SSLBadge />
+            <div className="flex items-center gap-1.5 mt-4 text-white/80">
+              <Shield className="w-4 h-4" />
+              <span className="text-sm">SSL Secured</span>
             </div>
           </div>
 
@@ -99,14 +99,11 @@ export function Footer() {
           <div className="text-sm text-white/50">
             © 2026 SME Cloud Sdn Bhd. Hak cipta terpelihara.
           </div>
-          
+
           <div className="flex items-center gap-4">
-            {/* Animation Toggle */}
-            <AnimationToggle />
-            
             {/* Powered by */}
             <span className="text-xs text-white/40">
-              Powered by Qontrek Authority Engine · PRD v3.6.1
+              Powered by Qontrek Authority Engine
             </span>
           </div>
         </div>

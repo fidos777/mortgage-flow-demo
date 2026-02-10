@@ -36,12 +36,19 @@ function BetaBenefit({ icon, title, description }: BetaBenefitProps) {
 // ==========================================
 
 function PlaceholderLogo({ index }: { index: number }) {
+  // Different icons for visual variety
+  const icons = ['🏢', '🏗️', '🏠', '🏛️']
+
   return (
-    <div className="bg-white rounded-xl border-2 border-dashed border-neutral-200 p-6 flex flex-col items-center justify-center min-h-[120px] hover:border-primary/30 transition-colors">
-      <div className="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center mb-2">
-        <Building2 className="w-6 h-6 text-neutral-300" />
+    <div className="bg-gradient-to-br from-neutral-50 to-white rounded-xl border border-neutral-200 p-6 flex flex-col items-center justify-center min-h-[120px] hover:border-primary/30 hover:shadow-sm transition-all group">
+      <div className="w-14 h-14 bg-primary/5 rounded-xl flex items-center justify-center mb-3 group-hover:bg-primary/10 transition-colors">
+        <span className="text-2xl opacity-50 group-hover:opacity-70 transition-opacity">
+          {icons[index - 1]}
+        </span>
       </div>
-      <span className="text-xs text-neutral-400">Rakan Beta #{index}</span>
+      <span className="text-xs font-medium text-neutral-400 group-hover:text-primary/60 transition-colors">
+        Slot Tersedia
+      </span>
     </div>
   )
 }

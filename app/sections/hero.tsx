@@ -54,8 +54,8 @@ export function HeroSection() {
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-white to-secondary/5" />
 
-      {/* Langkah Tiga Pattern (subtle) */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.03]" viewBox="0 0 100 100">
+      {/* Langkah Tiga Pattern (subtle but visible) */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.08]" viewBox="0 0 100 100">
         <circle cx="20" cy="50" r="8" fill="currentColor" className="text-primary" />
         <circle cx="50" cy="50" r="8" fill="currentColor" className="text-primary" />
         <circle cx="80" cy="50" r="8" fill="currentColor" className="text-primary" />

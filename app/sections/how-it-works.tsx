@@ -46,32 +46,32 @@ const steps = [
 
 function Timeline() {
   const personaColors = {
-    pemaju: { bg: 'bg-pemaju', border: 'border-pemaju', text: 'text-pemaju' },
-    pembeli: { bg: 'bg-pembeli', border: 'border-pembeli', text: 'text-pembeli' },
-    ejen: { bg: 'bg-ejen', border: 'border-ejen', text: 'text-ejen' },
+    pemaju: { bg: 'bg-pemaju', border: 'border-pemaju', text: 'text-pemaju', ring: 'ring-pemaju/30' },
+    pembeli: { bg: 'bg-pembeli', border: 'border-pembeli', text: 'text-pembeli', ring: 'ring-pembeli/30' },
+    ejen: { bg: 'bg-ejen', border: 'border-ejen', text: 'text-ejen', ring: 'ring-ejen/30' },
   }
 
   return (
     <div className="relative">
-      {/* Horizontal line */}
-      <div className="absolute top-6 left-[10%] right-[10%] h-1 bg-gradient-to-r from-pemaju via-pembeli to-ejen rounded-full" />
-      
+      {/* Horizontal line with better visibility */}
+      <div className="absolute top-6 left-[16.67%] right-[16.67%] h-1.5 bg-gradient-to-r from-pemaju via-pembeli to-ejen rounded-full shadow-sm" />
+
       {/* Steps */}
       <div className="grid grid-cols-3 gap-4">
         {steps.map((step, index) => {
           const colors = personaColors[step.persona]
-          
+
           return (
             <AnimatedContainer key={step.number}>
               <div className="flex flex-col items-center text-center">
-                {/* Node */}
+                {/* Node with ring for better visibility */}
                 <div className={`
-                  relative z-10 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg
+                  relative z-10 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg ring-4 ${colors.ring}
                   ${colors.bg}
                 `}>
                   {step.number}
                 </div>
-                
+
                 {/* Content */}
                 <div className="mt-6 p-4 bg-white rounded-xl border border-neutral-100 shadow-sm w-full">
                   <h3 className={`font-semibold mb-1 ${colors.text}`}>

@@ -109,9 +109,8 @@ function StatCard({ value, suffix = '', prefix = '', label, delay = 0 }: StatCar
 export function StatsSection() {
   const stats = [
     { value: 80.5, suffix: '%', label: 'Kadar Kelulusan', delay: 0 },
-    { value: 400, prefix: '~', label: 'Kes Sebulan', delay: 100 },
-    { value: 5, suffix: ' min', label: 'Semakan DSR', delay: 200 },
-    { value: 7, label: 'Jenis Pinjaman', delay: 300 },
+    { value: 5, suffix: ' min', label: 'Semakan DSR', delay: 100 },
+    { value: 7, label: 'Jenis Pinjaman', delay: 200 },
   ]
 
   return (
@@ -127,7 +126,7 @@ export function StatsSection() {
         </div>
         
         {/* Desktop: Grid */}
-        <div className="hidden sm:grid grid-cols-4 gap-4">
+        <div className="hidden sm:grid grid-cols-3 gap-4">
           {stats.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}
