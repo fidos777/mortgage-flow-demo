@@ -4,8 +4,43 @@
 
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { Shield } from 'lucide-react'
+import { Shield, Globe } from 'lucide-react'
+
+// ==========================================
+// Language Toggle (Footer-specific)
+// ==========================================
+
+function LanguageToggleFooter() {
+  const [lang, setLang] = useState<'bm' | 'en'>('bm')
+
+  return (
+    <div className="flex items-center gap-1 bg-white/10 rounded-full p-0.5">
+      <button
+        onClick={() => setLang('bm')}
+        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+          lang === 'bm'
+            ? 'bg-white/20 text-white'
+            : 'text-white/50 hover:text-white/80'
+        }`}
+      >
+        <Globe className="w-3 h-3" />
+        BM
+      </button>
+      <button
+        onClick={() => setLang('en')}
+        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+          lang === 'en'
+            ? 'bg-white/20 text-white'
+            : 'text-white/50 hover:text-white/80'
+        }`}
+      >
+        EN
+      </button>
+    </div>
+  )
+}
 
 // ==========================================
 // Footer Links
@@ -101,6 +136,9 @@ export function Footer() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Language Toggle */}
+            <LanguageToggleFooter />
+
             {/* Powered by */}
             <span className="text-xs text-white/40">
               Powered by Qontrek Authority Engine
