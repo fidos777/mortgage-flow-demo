@@ -380,13 +380,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Insert demo developers
 INSERT INTO developers (id, company_name, registration_no, slug, email, phone, category, status) VALUES
-    ('d1000000-0000-0000-0000-000000000001', 'Seven Sky Development Sdn Bhd', 'SSM-1234567-A', 'seven-sky', 'admin@sevensky.my', '+60123456789', 'A', 'active'),
-    ('d2000000-0000-0000-0000-000000000002', 'Meridian Properties Sdn Bhd', 'SSM-2345678-B', 'meridian', 'admin@meridian.my', '+60123456790', 'B', 'active')
+    ('a1000000-0000-0000-0000-000000000001', 'Seven Sky Development Sdn Bhd', 'SSM-1234567-A', 'seven-sky', 'admin@sevensky.my', '+60123456789', 'A', 'active'),
+    ('a2000000-0000-0000-0000-000000000002', 'Meridian Properties Sdn Bhd', 'SSM-2345678-B', 'meridian', 'admin@meridian.my', '+60123456790', 'B', 'active')
 ON CONFLICT (registration_no) DO NOTHING;
 
 -- Insert demo property
 INSERT INTO properties (id, developer_id, name, slug, property_type, address, city, state, postcode, price_min, price_max, status) VALUES
-    ('p1000000-0000-0000-0000-000000000001', 'd1000000-0000-0000-0000-000000000001', 'Residensi Harmoni', 'residensi-harmoni', 'condominium', 'Jalan Harmoni 1, Taman Harmoni', 'Shah Alam', 'Selangor', '40000', 350000.00, 550000.00, 'active')
+    ('b1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'Residensi Harmoni', 'residensi-harmoni', 'condominium', 'Jalan Harmoni 1, Taman Harmoni', 'Shah Alam', 'Selangor', '40000', 350000.00, 550000.00, 'active')
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================

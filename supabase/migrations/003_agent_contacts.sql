@@ -385,7 +385,7 @@ INSERT INTO mortgage_agents (id, name, phone, phone_display, email, developer_id
     '+60123456789',
     'XXX-XXX-6789',
     'ahmad.razak@globalfiz.my',
-    'd1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000001',
     true,
     'active'
 ),
@@ -395,7 +395,7 @@ INSERT INTO mortgage_agents (id, name, phone, phone_display, email, developer_id
     '+60198765432',
     'XXX-XXX-5432',
     'siti.aminah@globalfiz.my',
-    'd1000000-0000-0000-0000-000000000001',
+    'a1000000-0000-0000-0000-000000000001',
     false,
     'active'
 )
