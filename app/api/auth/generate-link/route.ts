@@ -12,11 +12,14 @@ import { generateSecureLink, revokeLink, getLinksForCase } from '@/lib/auth/gene
 
 // Request body types
 interface GenerateLinkRequest {
-  caseId: string;
+  caseId?: string;        // Optional: for unit-level QR codes (before case exists)
   propertyId?: string;
+  unitId?: string;        // Optional: link to specific unit
   createdBy: string;
   expiresInDays?: number;
   maxUses?: number | null;
+  accessType?: 'buyer' | 'agent' | 'developer';
+  scope?: 'full' | 'view_only' | 'documents_only';
 }
 
 interface RevokeLinkRequest {
@@ -33,9 +36,9 @@ export async function POST(request: NextRequest) {
     const body: GenerateLinkRequest = await request.json();
 
     // Validate required fields
-    if (!body.caseId) {
+    if (!body.caseId && !body.propertyId) {
       return NextResponse.json(
-        { error: 'caseId is required' },
+        { error: 'Either caseId or propertyId is required' },
         { status: 400 }
       );
     }
@@ -49,11 +52,13 @@ export async function POST(request: NextRequest) {
 
     // Generate the link
     const result = await generateSecureLink({
-      caseId: body.caseId,
+      caseId: body.caseId || '',
       propertyId: body.propertyId,
       createdBy: body.createdBy,
       expiresInDays: body.expiresInDays || 7,
       maxUses: body.maxUses ?? null,
+      accessType: body.accessType || 'buyer',
+      scope: body.scope || 'full',
     });
 
     if (!result.success) {

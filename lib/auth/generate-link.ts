@@ -109,7 +109,7 @@ export async function generateSecureLink(
       .insert({
         token,
         token_hash: tokenHash,
-        case_id: caseId,
+        case_id: caseId || null,       // null for unit-level QR codes (before case exists)
         property_id: propertyId || null,
         access_type: accessType,
         scope,
