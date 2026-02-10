@@ -42,3 +42,4 @@ pnpm-debug.log*
 # misc
 .DS_Store
 supabase/.temp/
+supabase/.temp/
