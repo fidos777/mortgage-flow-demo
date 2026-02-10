@@ -48,7 +48,7 @@ export default function HomePage() {
   return (
     <>
       {/* Trust Strip - Persistent below navbar */}
-      <TrustStrip locale="ms" />
+      <TrustStrip />
       
       <main className="min-h-screen bg-neutral-50">
         {/* === ABOVE THE FOLD === */}

@@ -73,7 +73,7 @@ export function SocialProofSection() {
     <section className="py-12 sm:py-16 bg-gradient-to-b from-neutral-50 to-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <AnimatedContainer animation="fade-up">
+        <AnimatedContainer>
           <div className="text-center mb-8">
             <span className="inline-flex items-center gap-2 bg-trust/10 text-trust px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Building2 className="w-4 h-4" />
@@ -90,7 +90,7 @@ export function SocialProofSection() {
         </AnimatedContainer>
 
         {/* Placeholder Logos */}
-        <AnimatedContainer animation="fade-up" delay={100}>
+        <AnimatedContainer>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
             {[1, 2, 3, 4].map((i) => (
               <PlaceholderLogo key={i} index={i} />
@@ -99,7 +99,7 @@ export function SocialProofSection() {
         </AnimatedContainer>
 
         {/* CTA */}
-        <AnimatedContainer animation="fade-up" delay={200}>
+        <AnimatedContainer>
           <div className="text-center mb-10">
             <p className="text-neutral-600 mb-4">
               Berminat menjadi antara yang pertama menggunakan Snang.my?
@@ -114,7 +114,7 @@ export function SocialProofSection() {
         </AnimatedContainer>
 
         {/* Benefits */}
-        <AnimatedContainer animation="fade-up" delay={300}>
+        <AnimatedContainer>
           <div className="grid grid-cols-3 gap-6 pt-8 border-t border-neutral-100">
             {benefits.map((benefit) => (
               <BetaBenefit key={benefit.title} {...benefit} />

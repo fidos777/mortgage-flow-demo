@@ -62,7 +62,7 @@ function Timeline() {
           const colors = personaColors[step.persona]
           
           return (
-            <AnimatedContainer key={step.number} animation="fade-up" delay={index * 150}>
+            <AnimatedContainer key={step.number}>
               <div className="flex flex-col items-center text-center">
                 {/* Node */}
                 <div className={`
@@ -112,7 +112,7 @@ export function HowItWorksSection() {
   return (
     <section id="how" className="py-12 sm:py-16 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <AnimatedContainer animation="fade-up">
+        <AnimatedContainer>
           <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 text-center mb-3">
             Tiga langkah. Satu aliran.
           </h2>
@@ -125,7 +125,7 @@ export function HowItWorksSection() {
         <div className="lg:hidden">
           <Accordion 
             items={accordionItems}
-            defaultOpenIds={['step-1']}
+            defaultOpenIndex={0}
           />
         </div>
 

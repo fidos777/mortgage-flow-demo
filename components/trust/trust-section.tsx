@@ -139,7 +139,7 @@ export function TrustSection({ locale = 'ms', variant = 'full' }: TrustSectionPr
   return (
     <section id="trust" className="py-16 bg-gradient-to-b from-blue-50/30 to-white">
       <div className="max-w-5xl mx-auto px-4">
-        <AnimatedContainer animation="fade-up">
+        <AnimatedContainer>
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-neutral-800">{t.title}</h2>
             <p className="mt-2 text-neutral-600">{t.subtitle}</p>
@@ -148,7 +148,7 @@ export function TrustSection({ locale = 'ms', variant = 'full' }: TrustSectionPr
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {t.badges.map((badge, index) => (
-            <AnimatedContainer key={index} animation="fade-up" delay={index * 100}>
+            <AnimatedContainer key={index}>
               <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-neutral-100 hover:shadow-md transition-shadow text-center">
                 <div className="w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
                   <badge.icon className="w-6 h-6 text-blue-600" />

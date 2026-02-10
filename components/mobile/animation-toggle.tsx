@@ -1,30 +1,28 @@
-// components/mobile/animation-toggle.tsx
-// Animation Toggle Component
-// Allows users to enable/disable animations
-
 'use client'
 
-import { useAnimationToggle } from '@/lib/hooks/use-animation'
-import { Play, Pause } from 'lucide-react'
+import { Sparkles, X } from 'lucide-react'
+import { useState } from 'react'
 
 export function AnimationToggle() {
-  const { currentTier, toggle } = useAnimationToggle()
-  const isOff = currentTier === 'none'
+  const [isOff, setIsOff] = useState(false)
 
   return (
     <button
-      onClick={toggle}
-      className="flex items-center gap-2 text-xs text-white/50 hover:text-white/70 transition-colors"
+      onClick={() => setIsOff(!isOff)}
+      className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
       aria-label={isOff ? 'Hidupkan animasi' : 'Matikan animasi'}
     >
       {isOff ? (
-        <Play className="w-3 h-3" />
+        <>
+          <X className="w-3.5 h-3.5" />
+          <span>Animasi: Mati</span>
+        </>
       ) : (
-        <Pause className="w-3 h-3" />
+        <>
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Animasi: Hidup</span>
+        </>
       )}
-      <span className="hidden sm:inline">
-        Animasi: {isOff ? 'Mati' : 'Hidup'}
-      </span>
     </button>
   )
 }

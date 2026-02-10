@@ -44,7 +44,7 @@ export function Footer() {
               pemaju, dan ejen hartanah Malaysia.
             </p>
             <div className="flex items-center gap-4 mt-4">
-              <SSLBadge className="text-white/50" />
+              <SSLBadge />
             </div>
           </div>
 

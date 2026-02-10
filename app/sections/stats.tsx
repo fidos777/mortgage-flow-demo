@@ -88,7 +88,7 @@ function StatCard({ value, suffix = '', prefix = '', label, delay = 0 }: StatCar
     : count.toFixed(1)
 
   return (
-    <AnimatedContainer animation="fade-up" delay={delay}>
+    <AnimatedContainer>
       <div 
         ref={ref}
         className="bg-white/80 backdrop-blur-sm rounded-xl p-4 sm:p-5 shadow-sm border border-neutral-100 text-center min-w-[140px] sm:min-w-0 flex-shrink-0 sm:flex-shrink hover:shadow-md transition-shadow"
