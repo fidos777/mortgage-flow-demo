@@ -8,12 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 type ContactType = 'whatsapp' | 'call' | 'sms' | 'email';
 type ContactDirection = 'outbound' | 'inbound';
 type ContactStatus = 'initiated' | 'opened' | 'responded' | 'no_response' | 'failed';
@@ -35,6 +29,12 @@ interface LogContactRequest {
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { searchParams } = new URL(request.url);
 
     // Query parameters
@@ -110,6 +110,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const body: LogContactRequest = await request.json();
 
     // Validate required fields

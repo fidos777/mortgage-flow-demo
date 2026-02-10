@@ -8,12 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 type UnitStatus = 'available' | 'reserved' | 'booked' | 'sold' | 'unavailable';
 
 interface CreateUnitRequest {
@@ -43,6 +37,12 @@ export async function GET(
   { params }: RouteParams
 ) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { id: propertyId } = await params;
     const { searchParams } = new URL(request.url);
 
@@ -129,6 +129,12 @@ export async function POST(
   { params }: RouteParams
 ) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { id: propertyId } = await params;
     const body: CreateUnitRequest = await request.json();
 

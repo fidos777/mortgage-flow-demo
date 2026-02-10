@@ -8,12 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 type MatchStatus = 'pending' | 'queued' | 'contacted' | 'interested' | 'viewing' | 'applied' | 'converted' | 'rejected' | 'expired';
 
 interface UpdateMatchRequest {
@@ -35,6 +29,12 @@ export async function GET(
   { params }: RouteParams
 ) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { id } = await params;
 
     const { data, error } = await supabase
@@ -106,6 +106,12 @@ export async function PUT(
   { params }: RouteParams
 ) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { id } = await params;
     const body: UpdateMatchRequest = await request.json();
 

@@ -8,12 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 // Property types from schema
 type PropertyType = 'apartment' | 'condominium' | 'townhouse' | 'semi-d' | 'bungalow' | 'terrace' | 'commercial' | 'mixed';
 type PropertyStatus = 'draft' | 'active' | 'sold_out' | 'archived';
@@ -49,6 +43,12 @@ interface CreatePropertyRequest {
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { searchParams } = new URL(request.url);
 
     // Query parameters
@@ -120,6 +120,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const body: CreatePropertyRequest = await request.json();
 
     // Validate required fields

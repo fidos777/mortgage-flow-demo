@@ -8,12 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 type CaseStatus = 'new' | 'documents_pending' | 'documents_received' | 'under_review' |
   'submitted_bank' | 'bank_processing' | 'approved' | 'rejected' | 'completed' | 'cancelled';
 
@@ -36,6 +30,12 @@ interface CreateCaseRequest {
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { searchParams } = new URL(request.url);
 
     const developerId = searchParams.get('developer_id');
@@ -99,6 +99,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const body: CreateCaseRequest = await request.json();
 
     // Validate required fields

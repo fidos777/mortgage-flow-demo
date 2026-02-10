@@ -9,12 +9,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 type UnitStatus = 'available' | 'reserved' | 'booked' | 'sold' | 'unavailable';
 
 interface UpdateUnitRequest {
@@ -46,6 +40,12 @@ export async function GET(
   { params }: RouteParams
 ) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { id: propertyId, unitId } = await params;
 
     const { data, error } = await supabase
@@ -93,6 +93,12 @@ export async function PUT(
   { params }: RouteParams
 ) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { id: propertyId, unitId } = await params;
     const body: UpdateUnitRequest = await request.json();
 
@@ -185,6 +191,12 @@ export async function DELETE(
   { params }: RouteParams
 ) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { id: propertyId, unitId } = await params;
 
     // Check if unit exists

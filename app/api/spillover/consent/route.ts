@@ -8,12 +8,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 type RejectionReason = 'dsr_exceeded' | 'income_insufficient' | 'credit_score_low' | 'age_restriction' | 'property_sold' | 'other';
 type ConsentStatus = 'pending' | 'consented' | 'declined' | 'matched' | 'contacted' | 'converted' | 'expired';
 
@@ -48,6 +42,12 @@ interface UpdateConsentRequest {
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const { searchParams } = new URL(request.url);
 
     // Query parameters
@@ -122,6 +122,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const body: CreateConsentRequest = await request.json();
 
     // Validate required fields

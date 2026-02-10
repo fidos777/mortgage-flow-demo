@@ -7,12 +7,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
-
 interface AssignCaseRequest {
   case_id: string;
   agent_id?: string;         // If provided = manual assignment
@@ -28,6 +22,12 @@ interface AssignCaseRequest {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
     const body: AssignCaseRequest = await request.json();
 
     // Validate required fields
