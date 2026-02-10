@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { AuthorityDisclaimer, PermissionWarning } from '@/components/permission-gate';
 import { QuerySignalsPanel } from '@/components/QuerySignalsPanel';
+import { WhatsAppContactCTA, SubmissionKit } from '@/components/agent';
 import { useCaseStore } from '@/lib/store/case-store';
 import { maskPhone } from '@/lib/utils';
 import { useProofLogger } from '@/lib/services/hooks';
@@ -29,7 +30,7 @@ export default function AgentCaseDetail() {
   const caseData = cases.find(c => c.id === caseId);
   const caseProofEvents = proofEvents.filter(e => e.caseId === caseId);
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'query' | 'docs' | 'timeline' | 'proof'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'query' | 'submission'>('overview');
 
   if (!caseData) {
     return (
@@ -109,12 +110,36 @@ export default function AgentCaseDetail() {
               )}
             </span>
           </button>
+          <button
+            onClick={() => setActiveTab('submission')}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'submission'
+                ? 'bg-white text-slate-800 shadow-sm'
+                : 'text-slate-600 hover:text-slate-800'
+            }`}
+          >
+            Submission Kit
+          </button>
         </div>
 
         {/* Query Tab Content */}
         {activeTab === 'query' && (
           <div className="bg-white rounded-xl p-5 shadow-sm mb-4">
             <QuerySignalsPanel caseData={caseData} />
+          </div>
+        )}
+
+        {/* Submission Kit Tab Content */}
+        {activeTab === 'submission' && (
+          <div className="mb-4">
+            <SubmissionKit
+              caseId={caseData.id}
+              buyerName={caseData.buyer.name}
+              onComplete={() => {
+                // Handle submission completion
+                console.log('Submission completed for case:', caseData.id);
+              }}
+            />
           </div>
         )}
 
@@ -402,10 +427,25 @@ export default function AgentCaseDetail() {
                 <Phone className="w-4 h-4" />
                 Hubungi Pembeli
               </button>
-              <button className="w-full bg-slate-100 text-slate-700 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
-                <MessageSquare className="w-4 h-4" />
-                WhatsApp
-              </button>
+
+              {/* CR-004: WhatsApp Contact CTA */}
+              <WhatsAppContactCTA
+                buyer={{
+                  name: caseData.buyer.name,
+                  phone: caseData.buyer.phone,
+                  caseRef: caseData.id,
+                  propertyName: caseData.property.name,
+                  unitCode: caseData.property.unit,
+                  tacDate: caseData.tacSchedule?.date,
+                  tacTime: caseData.tacSchedule?.time,
+                  missingDocs: caseData.documents
+                    .filter(d => d.status !== 'verified')
+                    .map(d => d.name)
+                }}
+                caseId={caseData.id}
+                locale="bm"
+                variant="dropdown"
+              />
             </div>
 
             {/* PRD Boundary Reminder */}
