@@ -2,17 +2,6 @@
 
 import Link from 'next/link'
 import { Shield, Globe } from 'lucide-react'
-import { useState } from 'react'
-
-function LanguageToggle() {
-  const [lang, setLang] = useState<'bm' | 'en'>('bm')
-  return (
-    <div className="inline-flex items-center gap-1 bg-white/10 rounded-full p-1">
-      <button onClick={() => setLang('bm')} className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${lang === 'bm' ? 'bg-white text-neutral-800' : 'text-white/70 hover:text-white'}`}>BM</button>
-      <button onClick={() => setLang('en')} className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${lang === 'en' ? 'bg-white text-neutral-800' : 'text-white/70 hover:text-white'}`}>EN</button>
-    </div>
-  )
-}
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -48,10 +37,7 @@ export function Footer() {
       </div>
       <div className="border-t border-neutral-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-neutral-500 text-xs text-center sm:text-left">© {currentYear} SME Cloud Sdn Bhd. Hak cipta terpelihara.</p>
-            <LanguageToggle />
-          </div>
+          <p className="text-neutral-500 text-xs text-center">© {currentYear} SME Cloud Sdn Bhd. Hak cipta terpelihara.</p>
         </div>
       </div>
     </footer>
