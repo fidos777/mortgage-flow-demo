@@ -162,7 +162,7 @@ export default function DeveloperPropertiesPage() {
       <div className="max-w-6xl mx-auto p-4">
         {viewMode === 'console' ? (
           <PropertyConsole
-            developerId="dev-seven-sky"
+            developerId=""
             locale={locale}
             onSelectProperty={setSelectedProperty}
             onGenerateQR={handleGenerateQR}
