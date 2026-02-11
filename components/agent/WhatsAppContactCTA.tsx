@@ -382,6 +382,23 @@ export function WhatsAppContactCTA({
       ...prev.slice(0, 4),
     ]);
 
+    // S5 A09: Log proof event for WhatsApp contact
+    fetch('/api/proof-events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'WHATSAPP_CONTACT_INITIATED',
+        case_id: caseId,
+        actor_type: 'agent',
+        event_category: 'AGENT',
+        metadata: {
+          purpose: selectedTemplate?.purpose || 'GENERAL_UPDATE',
+          channel: 'WHATSAPP',
+          buyer_phone_masked: buyer.phone.replace(/(\d{3})\d+(\d{4})/, '$1****$2'),
+        },
+      }),
+    }).catch(() => {});
+
     setIsOpen(false);
     setSelectedTemplate(null);
     setCustomMessage('');

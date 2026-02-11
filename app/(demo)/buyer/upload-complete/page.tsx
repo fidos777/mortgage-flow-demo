@@ -121,11 +121,22 @@ function UploadCompleteFlow() {
 
   // Handle continue to Temujanji
   const handleBookTemujanji = () => {
-    // Log event
-    console.log('[UploadComplete] TEMUJANJI_FLOW_STARTED:', {
-      buyerHash: sessionStorage.getItem('buyer_hash'),
-      documentCount: uploadedDocs.length,
-    });
+    // S5 B06: Log TEMUJANJI_FLOW_STARTED proof event via real API
+    const buyerHash = sessionStorage.getItem('buyer_hash');
+    if (buyerHash) {
+      fetch('/api/proof-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: 'TEMUJANJI_FLOW_STARTED',
+          buyer_hash: buyerHash,
+          case_id: sessionStorage.getItem('case_id') || undefined,
+          metadata: { document_count: uploadedDocs.length },
+        }),
+      }).catch(() => {
+        console.warn('[UploadComplete] Failed to log proof event');
+      });
+    }
 
     // Build query params
     const params = new URLSearchParams();

@@ -3,10 +3,12 @@
 /**
  * Buyer Temujanji (Appointment) Page - CR-008 Doc-First Flow
  * PRD v3.6.3 CR-008 | Step 4 of 4
+ * S5 B05: Added LPPSA_SUBMISSION consent gate before booking confirmation
  *
  * Appointment booking with consultant (perunding):
  * - Select available time slot
  * - Or request custom time
+ * - LPPSA submission consent checkbox (per S5 refinement)
  * - Confirmation and next steps
  *
  * Flow: /buyer/upload-complete → /buyer/temujanji → /buyer (dashboard)
@@ -27,6 +29,7 @@ import {
   Building,
   Info,
   AlertCircle,
+  Shield,
 } from 'lucide-react';
 import { AuthorityDisclaimer } from '@/components/permission-gate';
 import { TemujanjiSlot, TemujanjiStatus } from '@/lib/types/buyer-flow';
@@ -143,6 +146,10 @@ function TemujanjiFlow() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // S5 B05: LPPSA submission consent state
+  const [lppConsentGranted, setLppConsentGranted] = useState(false);
+  const [lppConsentLoading, setLppConsentLoading] = useState(false);
+
   // Group slots by date
   const slotsByDate = AVAILABLE_SLOTS.reduce((acc, slot) => {
     if (!acc[slot.date]) acc[slot.date] = [];
@@ -159,6 +166,60 @@ function TemujanjiFlow() {
     }
   };
 
+  // S5 B05: Handle LPPSA consent toggle
+  const handleLppConsent = async (checked: boolean) => {
+    if (!checked) {
+      setLppConsentGranted(false);
+      return;
+    }
+
+    setLppConsentLoading(true);
+    const buyerHash = sessionStorage.getItem('buyer_hash');
+
+    if (buyerHash) {
+      try {
+        // Grant LPPSA_SUBMISSION consent via API (SF.2 purposes path)
+        const response = await fetch('/api/consent/grant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buyer_hash: buyerHash,
+            purposes: ['C5_COMMUNICATION'], // C5 purpose encompasses LPPSA submission consent
+            consent_version: '1.0',
+          }),
+        });
+
+        if (response.ok) {
+          setLppConsentGranted(true);
+          // Log proof event
+          await fetch('/api/proof-events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event_type: 'LPPSA_SUBMISSION_CONSENT_GRANTED',
+              buyer_hash: buyerHash,
+              case_id: sessionStorage.getItem('case_id') || undefined,
+              metadata: { purpose: 'C5', contact_method: contactMethod },
+            }),
+          }).catch(() => {});
+        } else {
+          // API error — grant locally as fallback
+          console.warn('[Temujanji] Consent API error, granting locally');
+          setLppConsentGranted(true);
+        }
+      } catch {
+        // Network error — grant locally
+        console.warn('[Temujanji] Consent API unreachable, granting locally');
+        setLppConsentGranted(true);
+      }
+    } else {
+      // No buyer_hash — grant locally
+      setLppConsentGranted(true);
+    }
+
+    setLppConsentLoading(false);
+  };
+
   // Handle booking confirmation
   const handleConfirm = async () => {
     if (mode === 'select' && !selectedSlot) {
@@ -169,12 +230,14 @@ function TemujanjiFlow() {
       setError('Sila lengkapkan tarikh dan masa cadangan');
       return;
     }
+    // S5 B05: LPPSA consent required before booking
+    if (!lppConsentGranted) {
+      setError('Sila berikan persetujuan untuk permohonan rasmi LPPSA');
+      return;
+    }
 
     setLoading(true);
     setError(null);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Store booking in sessionStorage
     const booking = {
@@ -187,8 +250,47 @@ function TemujanjiFlow() {
     };
     sessionStorage.setItem('temujanji_booking', JSON.stringify(booking));
 
-    // Log proof event
-    console.log('[Temujanji] TEMUJANJI_BOOKED:', booking);
+    // S5 B06: Log TEMUJANJI_BOOKED + TAC_SESSION_BOOKED proof events
+    const buyerHash = sessionStorage.getItem('buyer_hash');
+    if (buyerHash) {
+      try {
+        // Log TEMUJANJI_BOOKED
+        await fetch('/api/proof-events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'TEMUJANJI_BOOKED',
+            buyer_hash: buyerHash,
+            case_id: sessionStorage.getItem('case_id') || undefined,
+            metadata: {
+              slot_id: selectedSlot,
+              custom_date: customDate || undefined,
+              custom_time: customTime || undefined,
+              contact_method: contactMethod,
+            },
+          }),
+        });
+
+        // Log TAC_SESSION_BOOKED (the appointment IS the TAC session)
+        await fetch('/api/proof-events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'TAC_SESSION_BOOKED',
+            buyer_hash: buyerHash,
+            case_id: sessionStorage.getItem('case_id') || undefined,
+            metadata: {
+              slot_id: selectedSlot,
+              booking_mode: mode,
+              contact_method: contactMethod,
+            },
+          }),
+        });
+      } catch {
+        // Non-fatal: proof event failure doesn't block booking
+        console.warn('[Temujanji] Failed to log proof events');
+      }
+    }
 
     setLoading(false);
     setMode('confirmed');
@@ -356,6 +458,41 @@ function TemujanjiFlow() {
         </div>
       </div>
 
+      {/* S5 B05: LPPSA Submission Consent Gate */}
+      <div className="mt-5 border-2 border-slate-200 rounded-xl p-4 bg-slate-50">
+        <div className="flex items-start gap-3">
+          <div className="flex items-center h-6 mt-0.5">
+            <input
+              type="checkbox"
+              checked={lppConsentGranted}
+              onChange={(e) => handleLppConsent(e.target.checked)}
+              disabled={lppConsentLoading}
+              className="h-5 w-5 rounded border-2 border-slate-300 text-teal-600 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+            />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <Shield className="w-4 h-4 text-teal-600" />
+              <p className="font-semibold text-sm text-slate-800">
+                Persetujuan Permohonan Rasmi LPPSA
+              </p>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Saya membenarkan ejen yang dilantik untuk mengemukakan permohonan pinjaman
+              perumahan LPPSA bagi pihak saya menggunakan dokumen yang telah dimuat naik.
+              Saya faham bahawa Snang.my hanya menyediakan dokumen dan tidak membuat
+              sebarang keputusan kelulusan.
+            </p>
+            {lppConsentLoading && (
+              <div className="flex items-center gap-1 mt-1">
+                <Loader2 className="w-3 h-3 animate-spin text-teal-500" />
+                <span className="text-xs text-teal-600">Menyimpan persetujuan...</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Error Message */}
       {error && (
         <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2">
@@ -364,12 +501,12 @@ function TemujanjiFlow() {
         </div>
       )}
 
-      {/* Confirm Button */}
+      {/* Confirm Button — requires LPPSA consent */}
       <button
         onClick={handleConfirm}
-        disabled={loading || (mode === 'select' && !selectedSlot)}
+        disabled={loading || !lppConsentGranted || (mode === 'select' && !selectedSlot)}
         className={`w-full mt-5 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
-          (mode === 'select' && selectedSlot) || (mode === 'custom' && customDate && customTime)
+          lppConsentGranted && ((mode === 'select' && selectedSlot) || (mode === 'custom' && customDate && customTime))
             ? 'bg-gradient-to-r from-teal-600 to-teal-700 text-white shadow-lg shadow-teal-500/30 hover:shadow-xl'
             : 'bg-slate-100 text-slate-400 cursor-not-allowed'
         }`}

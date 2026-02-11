@@ -18,7 +18,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ConsentType, CONSENT_TYPES, CONSENT_CONFIG } from '@/lib/types/consent';
 import { Locale, getConsentStrings } from '@/lib/i18n/consent';
-import { getConsentService } from '@/lib/services/consent-service';
+// S5: Removed direct ConsentService import — using API routes instead
 import { isPdpaGateEnabled } from '@/lib/services/feature-flags';
 import ConsentCheckbox from './ConsentCheckbox';
 
@@ -67,29 +67,41 @@ export function PDPAConsentGate({
   const [error, setError] = useState<string | null>(null);
 
   const strings = getConsentStrings(locale);
-  const consentService = getConsentService();
 
   // Check if gate is enabled
   const gateEnabled = isPdpaGateEnabled();
 
-  // Load current PDPA notice
+  // S5: Load current PDPA notice via API route
   useEffect(() => {
     async function loadNotice() {
       setIsLoading(true);
       try {
-        const notice = await consentService.getNoticeForDisplay(locale);
-        if (notice) {
-          setNoticeContent(notice.content);
-          setNoticeVersion(notice.version);
+        const res = await fetch(`/api/consent/notice?locale=${locale}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data) {
+            setNoticeContent(json.data.content);
+            setNoticeVersion(json.data.version);
+          }
+        } else {
+          // Fallback notice
+          setNoticeContent(locale === 'bm'
+            ? 'NOTIS PERLINDUNGAN DATA PERIBADI — Sila berikan persetujuan anda untuk meneruskan.'
+            : 'PERSONAL DATA PROTECTION NOTICE — Please provide your consent to proceed.');
+          setNoticeVersion('1.0');
         }
       } catch (err) {
         console.error('Error loading PDPA notice:', err);
+        setNoticeContent(locale === 'bm'
+          ? 'NOTIS PERLINDUNGAN DATA PERIBADI — Sila berikan persetujuan anda untuk meneruskan.'
+          : 'PERSONAL DATA PROTECTION NOTICE — Please provide your consent to proceed.');
+        setNoticeVersion('1.0');
       } finally {
         setIsLoading(false);
       }
     }
     loadNotice();
-  }, [locale, consentService]);
+  }, [locale]);
 
   // Handle locale change
   const handleLocaleChange = useCallback(
@@ -132,7 +144,7 @@ export function PDPAConsentGate({
     });
   }, []);
 
-  // Submit consents
+  // S5: Submit consents via API route
   const handleSubmit = useCallback(async () => {
     // Validate required consent
     if (!consents.PDPA_BASIC) {
@@ -150,15 +162,30 @@ export function PDPAConsentGate({
         granted: consents[type] || false,
       }));
 
-      // Grant consents
-      await consentService.grantBatchConsents({
-        buyerHash,
-        consents: consentBatch,
-        consentVersion: noticeVersion,
+      // S5: Grant consents via API route
+      const res = await fetch('/api/consent/grant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          buyer_hash: buyerHash,
+          consents: consentBatch,
+          consent_version: noticeVersion,
+        }),
       });
 
-      // Callback with granted consent types
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || 'Failed to save consents');
+      }
+
+      // Cache consent info in sessionStorage for offline fallback
       const grantedTypes = CONSENT_TYPES.filter((type) => consents[type]);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('pdpa_consents', JSON.stringify(grantedTypes));
+        sessionStorage.setItem('pdpa_consented_at', new Date().toISOString());
+      }
+
+      // Callback with granted consent types
       onConsentGranted(grantedTypes);
     } catch (err) {
       console.error('Error saving consents:', err);
@@ -171,7 +198,6 @@ export function PDPAConsentGate({
     buyerHash,
     noticeVersion,
     strings.messages,
-    consentService,
     onConsentGranted,
   ]);
 

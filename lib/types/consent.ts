@@ -73,13 +73,15 @@ export type ConsentType =
   | 'PDPA_BASIC'
   | 'PDPA_MARKETING'
   | 'PDPA_ANALYTICS'
-  | 'PDPA_THIRD_PARTY';
+  | 'PDPA_THIRD_PARTY'
+  | 'LPPSA_SUBMISSION';  // S5: LPPSA formal submission consent (migration 007)
 
 export const CONSENT_TYPES: readonly ConsentType[] = [
   'PDPA_BASIC',
   'PDPA_MARKETING',
   'PDPA_ANALYTICS',
   'PDPA_THIRD_PARTY',
+  'LPPSA_SUBMISSION',
 ] as const;
 
 /**
@@ -91,6 +93,7 @@ export const CONSENT_TYPE_TO_PURPOSES: Record<ConsentType, ConsentPurpose[]> = {
   PDPA_MARKETING: ['C6_PROMOTIONAL'],
   PDPA_ANALYTICS: ['C4_DEVELOPER_ANALYTICS'], // Absorbed into C4
   PDPA_THIRD_PARTY: ['C3_SHARE_AGENT'], // LPPSA sharing is implicit with C1
+  LPPSA_SUBMISSION: ['C5_COMMUNICATION'], // C5 purpose encompasses LPPSA submission consent
 };
 
 /**
@@ -253,6 +256,16 @@ export const CONSENT_CONFIG: Record<ConsentType, ConsentTypeConfig> = {
     retentionYears: 7,
     mappedPurposes: ['C3_SHARE_AGENT'],
   },
+  LPPSA_SUBMISSION: {
+    type: 'LPPSA_SUBMISSION',
+    required: false, // Required at temujanji booking stage (agent BYOD gate)
+    labelEn: 'LPPSA Formal Submission',
+    labelBm: 'Permohonan Rasmi LPPSA',
+    descriptionEn: 'Authorize the appointed agent to submit formal LPPSA loan application on your behalf using uploaded documents.',
+    descriptionBm: 'Membenarkan ejen yang dilantik untuk mengemukakan permohonan pinjaman LPPSA bagi pihak anda menggunakan dokumen yang telah dimuat naik.',
+    retentionYears: 7,
+    mappedPurposes: ['C5_COMMUNICATION'], // C5 purpose encompasses LPPSA submission consent
+  },
 };
 
 // =============================================================================
@@ -280,7 +293,8 @@ export interface ConsentRecord {
   ipHash: string | null;
   userAgentHash: string | null;
   captureMethod: ConsentCaptureMethod;
-  proofEventId: string | null;
+  /** S5: case_id (dual-key, backfilled when case created) — replaces Sprint 0's proof_event_id */
+  caseId: string | null;
   createdAt: string;
   updatedAt: string;
   /** SF.2: Specific purposes granted under this consent type */
@@ -379,6 +393,8 @@ export interface BuyerConsentStatus {
   hasMarketing: boolean;
   hasAnalytics: boolean;
   hasThirdParty: boolean;
+  /** S5: LPPSA formal submission consent (migration 007 view) */
+  hasLppsaSubmission: boolean;
   activeConsentCount: number;
   firstConsentAt: string | null;
   latestConsentAt: string | null;
@@ -438,10 +454,12 @@ export type ConsentProofEventType =
   | 'PDPA_MARKETING_GRANTED'
   | 'PDPA_ANALYTICS_GRANTED'
   | 'PDPA_THIRD_PARTY_GRANTED'
+  | 'LPPSA_SUBMISSION_GRANTED'
   | 'PDPA_BASIC_REVOKED'
   | 'PDPA_MARKETING_REVOKED'
   | 'PDPA_ANALYTICS_REVOKED'
   | 'PDPA_THIRD_PARTY_REVOKED'
+  | 'LPPSA_SUBMISSION_REVOKED'
   // SF.2: Purpose-specific events
   | 'PURPOSE_C1_ELIGIBILITY_GRANTED'
   | 'PURPOSE_C2_DOCUMENT_PROCESSING_GRANTED'
@@ -464,6 +482,7 @@ export const CONSENT_TO_PROOF_EVENT: Record<ConsentType, ConsentProofEventType> 
   PDPA_MARKETING: 'PDPA_MARKETING_GRANTED',
   PDPA_ANALYTICS: 'PDPA_ANALYTICS_GRANTED',
   PDPA_THIRD_PARTY: 'PDPA_THIRD_PARTY_GRANTED',
+  LPPSA_SUBMISSION: 'LPPSA_SUBMISSION_GRANTED',
 };
 
 /**
@@ -474,6 +493,7 @@ export const REVOKE_TO_PROOF_EVENT: Record<ConsentType, ConsentProofEventType> =
   PDPA_MARKETING: 'PDPA_MARKETING_REVOKED',
   PDPA_ANALYTICS: 'PDPA_ANALYTICS_REVOKED',
   PDPA_THIRD_PARTY: 'PDPA_THIRD_PARTY_REVOKED',
+  LPPSA_SUBMISSION: 'LPPSA_SUBMISSION_REVOKED',
 };
 
 /**
@@ -520,7 +540,8 @@ export interface ConsentRecordRow {
   ip_hash: string | null;
   user_agent_hash: string | null;
   capture_method: string;
-  proof_event_id: string | null;
+  /** S5: Dual-key case linkage (replaces Sprint 0's proof_event_id) */
+  case_id: string | null;
   created_at: string;
   updated_at: string;
   /** SF.2: Specific purposes granted (JSONB array) */
@@ -544,7 +565,7 @@ export function toConsentRecord(row: ConsentRecordRow): ConsentRecord {
     ipHash: row.ip_hash,
     userAgentHash: row.user_agent_hash,
     captureMethod: row.capture_method as ConsentCaptureMethod,
-    proofEventId: row.proof_event_id,
+    caseId: row.case_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     purposes: row.purposes as ConsentPurpose[] | undefined,

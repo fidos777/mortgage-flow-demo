@@ -2,15 +2,44 @@
  * Next.js Middleware
  *
  * Handles:
- * - Request logging for API routes
- * - Security headers
- * - Rate limiting stub (placeholder)
- * - CORS headers for API routes
+ * 1. Password wall for strategy concealment (pilot phase)
+ * 2. Request logging for API routes
+ * 3. Security headers
+ * 4. Rate limiting stub (placeholder)
+ * 5. CORS headers for API routes
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// Configuration
+// ─── Password Wall Config ──────────────────────────────────────────────
+const BASIC_PASSWORD = process.env.BASIC_PASSWORD || '';
+const COOKIE_SALT = process.env.AUTH_COOKIE_SALT || 'snang-default-salt-change-me';
+
+// SHA-256 using Web Crypto (Edge Runtime compatible)
+async function sha256(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Routes that DON'T need password protection
+const PUBLIC_PATHS = [
+  '/protected-login',     // Login page itself
+  '/api/',                // All API routes (have their own auth)
+  '/q/',                  // QR / secure link buyer entry
+  '/buyer/',              // Buyer flow (accessed via secure links)
+  '/_next/',              // Next.js internals
+  '/favicon',             // Static assets
+  '/manifest',            // PWA manifest
+];
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some(prefix => pathname.startsWith(prefix));
+}
+
+// ─── Existing Config ───────────────────────────────────────────────────
 const CONFIG = {
   // Enable request logging
   enableLogging: process.env.NODE_ENV === 'development' || process.env.ENABLE_REQUEST_LOGGING === 'true',
@@ -34,7 +63,27 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const startTime = Date.now();
 
-  // Skip static assets and health checks
+  // ── Step 1: Password wall check ──────────────────────────────────
+  // Skip if no password configured (password wall disabled)
+  if (BASIC_PASSWORD && !isPublicPath(pathname)) {
+    const authCookie = request.cookies.get('snang_auth');
+    let authenticated = false;
+
+    if (authCookie?.value) {
+      const expectedToken = await sha256(`${BASIC_PASSWORD}|${COOKIE_SALT}`);
+      authenticated = authCookie.value === expectedToken;
+    }
+
+    if (!authenticated) {
+      // Not authenticated — redirect to login
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/protected-login';
+      loginUrl.searchParams.set('from', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // ── Step 2: Skip static assets and health checks ─────────────────
   if (CONFIG.skipLogPaths.some(path => pathname.startsWith(path))) {
     return NextResponse.next();
   }
@@ -42,21 +91,21 @@ export async function middleware(request: NextRequest) {
   // Create response
   let response = NextResponse.next();
 
-  // Add security headers
+  // ── Step 3: Security headers ─────────────────────────────────────
   response = addSecurityHeaders(response);
 
-  // Add CORS headers for API routes
+  // ── Step 4: CORS headers for API routes ──────────────────────────
   if (pathname.startsWith('/api/')) {
     response = addCorsHeaders(request, response);
   }
 
-  // Log API requests
+  // ── Step 5: Log API requests ─────────────────────────────────────
   if (CONFIG.enableLogging && CONFIG.logPaths.some(path => pathname.startsWith(path))) {
     const duration = Date.now() - startTime;
     logRequest(request, response, duration);
   }
 
-  // Rate limiting check (stub)
+  // ── Step 6: Rate limiting check (stub) ───────────────────────────
   if (CONFIG.rateLimitEnabled && pathname.startsWith('/api/')) {
     const rateLimitResult = checkRateLimit(request);
     if (!rateLimitResult.allowed) {
@@ -101,12 +150,6 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
     'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
   );
 
-  // Content Security Policy (basic - adjust for production)
-  // response.headers.set(
-  //   'Content-Security-Policy',
-  //   "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;"
-  // );
-
   return response;
 }
 
@@ -147,50 +190,16 @@ function logRequest(request: NextRequest, response: NextResponse, duration: numb
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
              request.headers.get('x-real-ip') ||
              'unknown';
-  const userAgent = request.headers.get('user-agent') || 'unknown';
 
   // Format log entry
-  const logEntry = {
-    timestamp: new Date().toISOString(),
-    method,
-    path: pathname + search,
-    ip,
-    userAgent: userAgent.substring(0, 100), // Truncate long user agents
-    duration: `${duration}ms`,
-  };
-
-  // Log to console (in production, send to logging service)
   console.log(`[API] ${method} ${pathname} - ${duration}ms - ${ip}`);
-
-  // In production, you would send this to a logging service:
-  // await sendToLoggingService(logEntry);
 }
 
 /**
  * Rate limiting check (stub implementation)
- *
- * In production, implement with Redis/Upstash:
- * - Use IP address or user ID as key
- * - Sliding window or token bucket algorithm
- * - Store counts in Redis with TTL
  */
 function checkRateLimit(request: NextRequest): { allowed: boolean; retryAfter?: number } {
   // Stub implementation - always allow
-  // TODO: Implement with Redis/Upstash for production
-
-  // const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0];
-  // const key = `ratelimit:${ip}`;
-
-  // const current = await redis.incr(key);
-  // if (current === 1) {
-  //   await redis.expire(key, CONFIG.rateLimitWindow);
-  // }
-
-  // if (current > CONFIG.rateLimitRequests) {
-  //   const ttl = await redis.ttl(key);
-  //   return { allowed: false, retryAfter: ttl };
-  // }
-
   return { allowed: true };
 }
 
@@ -201,13 +210,6 @@ function checkRateLimit(request: NextRequest): { allowed: boolean; retryAfter?: 
  */
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

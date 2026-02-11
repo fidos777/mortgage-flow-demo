@@ -67,6 +67,11 @@ export interface ConsentStrings {
       description: string;
       situational: string;
     };
+    LPPSA_SUBMISSION: {
+      label: string;
+      description: string;
+      situational: string;
+    };
   };
 
   // Buttons
@@ -185,6 +190,12 @@ export const consentStringsBM: ConsentStrings = {
         'Kongsi data permohonan anda dengan LPPSA dan bank rakan kongsi untuk pemprosesan pinjaman. Diperlukan semasa penyerahan permohonan.',
       situational: 'Situasi',
     },
+    LPPSA_SUBMISSION: {
+      label: 'Permohonan Rasmi LPPSA',
+      description:
+        'Membenarkan ejen yang dilantik untuk mengemukakan permohonan pinjaman LPPSA bagi pihak anda menggunakan dokumen yang telah dimuat naik.',
+      situational: 'Situasi',
+    },
   },
 
   buttons: {
@@ -297,6 +308,12 @@ export const consentStringsEN: ConsentStrings = {
       label: 'Third-Party Sharing',
       description:
         'Share your application data with LPPSA and partner banks for loan processing. Required at submission stage.',
+      situational: 'Situational',
+    },
+    LPPSA_SUBMISSION: {
+      label: 'LPPSA Formal Submission',
+      description:
+        'Authorize the appointed agent to submit formal LPPSA loan application on your behalf using uploaded documents.',
       situational: 'Situational',
     },
   },

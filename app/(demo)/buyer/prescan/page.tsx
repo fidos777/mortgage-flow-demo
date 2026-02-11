@@ -42,12 +42,14 @@ function PreScanFlow() {
   const { t, lang } = useTranslation();
 
   // PDPA Consent Guard - Sprint 0 Integration
+  // S5: Added buyerHash for consent linkage
   const {
     isChecking: isCheckingConsent,
     hasConsent: hasPdpaConsent,
     isGateEnabled,
     consentedTypes,
     consentedAt,
+    buyerHash,
   } = useConsentGuard({
     redirectOnMissing: true,
     returnUrl: '/buyer/prescan',
@@ -83,6 +85,12 @@ function PreScanFlow() {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
 
+  // S5: Buyer info for case creation
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerPhone, setBuyerPhone] = useState('');
+  const [caseId, setCaseId] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+
   // New: Commitment calculator
   const [showCalculator, setShowCalculator] = useState(false);
   const [calcIncome, setCalcIncome] = useState('');
@@ -91,7 +99,7 @@ function PreScanFlow() {
     { name: 'PTPTN', amount: '' },
   ]);
   const [calcResult, setCalcResult] = useState<{total: number; dsr: number; band: string} | null>(null);
-  
+
   const [answers, setAnswers] = useState<ReadinessInputs>({
     employmentType: '',
     employmentScheme: '',
@@ -103,6 +111,7 @@ function PreScanFlow() {
     hasUpload: false
   });
 
+  // S5: Demo property — will be replaced by URL params / QR context in production
   const propertyInfo = {
     name: 'Residensi Harmoni',
     unit: 'A-12-03',
@@ -110,6 +119,10 @@ function PreScanFlow() {
     type: 'Apartment (Subsale)',
     agent: 'Ahmad Razif'
   };
+
+  // S5: Demo IDs — Seven Sky developer + Residensi Harmoni property
+  const DEMO_DEVELOPER_ID = 'a1000000-0000-0000-0000-000000000001';
+  const DEMO_PROPERTY_ID = 'b1000000-0000-0000-0000-000000000001';
 
   // Dynamic labels based on selected language
   const employmentTypes = [
@@ -283,25 +296,122 @@ function PreScanFlow() {
 
   const calculateResult = async () => {
     setProcessing(true);
+    setApiError(null);
     setStep(7); // Go to processing step
 
-    setTimeout(async () => {
+    try {
+      // S5: Step 1 — Create case in Supabase via POST /api/cases
+      const caseRes = await fetch('/api/cases', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          developer_id: DEMO_DEVELOPER_ID,
+          property_id: DEMO_PROPERTY_ID,
+          buyer_name: buyerName || 'Demo Buyer',
+          buyer_phone: buyerPhone || undefined,
+          buyer_email: email || undefined,
+          property_price: 450000,
+          income_declared: undefined, // Set by readiness endpoint
+          buyer_hash: buyerHash || undefined,
+          declared_phone: buyerPhone || undefined,
+        }),
+      });
+
+      const caseData = await caseRes.json();
+
+      if (!caseRes.ok || !caseData.success) {
+        throw new Error(caseData.error || 'Failed to create case');
+      }
+
+      const newCaseId = caseData.data?.id;
+      setCaseId(newCaseId);
+
+      // S5: Step 2 — Compute readiness via POST /api/readiness
+      const readinessRes = await fetch('/api/readiness', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          case_id: newCaseId,
+          employment_type: answers.employmentType,
+          employment_scheme: answers.employmentScheme,
+          service_years: answers.serviceYears,
+          age_range: answers.ageRange,
+          income_range: answers.incomeRange,
+          commitment_range: answers.commitmentRange,
+          existing_loan: answers.existingLoan,
+          property_price: 450000,
+        }),
+      });
+
+      const readinessData = await readinessRes.json();
+
+      if (!readinessRes.ok || !readinessData.success) {
+        throw new Error(readinessData.error || 'Failed to compute readiness');
+      }
+
+      // Map API response to local ReadinessResult shape
+      const apiResult = readinessData.data;
       const readinessResult = calculateReadiness(answers);
+      // Use server band/label/guidance, keep local _internalScore for UI compatibility
+      readinessResult.band = apiResult.band;
+      readinessResult.label = apiResult.label;
+      readinessResult.guidance = apiResult.guidance;
+
       setResult(readinessResult);
 
       // Get component-level feedback for guidance
       const componentFeedback = getComponentFeedback(answers);
       setFeedback(componentFeedback);
 
-      // Log proof event via service hook
-      await logReadinessComputed('C001', readinessResult.band);
+      // Log proof event via service hook (legacy Zustand)
+      await logReadinessComputed(newCaseId || 'C001', readinessResult.band);
+      await logPhaseTransitioned(newCaseId || 'C001', 'PRESCAN', 'PRESCAN_COMPLETE');
 
-      // Also log phase transition
-      await logPhaseTransitioned('C001', 'PRESCAN', 'PRESCAN_COMPLETE');
+      // S5 B06: Log proof events via real API
+      if (buyerHash) {
+        fetch('/api/proof-events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'CASE_CREATED',
+            event_category: 'SYSTEM',
+            buyer_hash: buyerHash,
+            case_id: newCaseId || undefined,
+            actor_type: 'system',
+            metadata: { source: 'prescan', band: apiResult.band },
+          }),
+        }).catch(() => {});
+
+        fetch('/api/proof-events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'PRESCAN_COMPLETED',
+            buyer_hash: buyerHash,
+            case_id: newCaseId || undefined,
+            metadata: { band: apiResult.band, label: apiResult.label },
+          }),
+        }).catch(() => {});
+      }
 
       setProcessing(false);
       setStep(8); // Go to result step
-    }, 2500);
+    } catch (err) {
+      console.error('Prescan API error:', err);
+      setApiError(err instanceof Error ? err.message : 'Unknown error');
+
+      // Fallback: use local calculation if API fails
+      const readinessResult = calculateReadiness(answers);
+      setResult(readinessResult);
+      const componentFeedback = getComponentFeedback(answers);
+      setFeedback(componentFeedback);
+
+      await logReadinessComputed('C001', readinessResult.band);
+      await logPhaseTransitioned('C001', 'PRESCAN', 'PRESCAN_COMPLETE');
+
+      setProcessing(false);
+      setStep(8);
+    }
   };
 
   const renderStep = () => {
@@ -448,6 +558,36 @@ function PreScanFlow() {
                     </span>
                   </span>
                 </label>
+              </div>
+            )}
+
+            {/* S5: Buyer Info Collection — name + phone for case creation */}
+            {(hasPdpaConsent || consent || !isGateEnabled) && (
+              <div className="mb-4 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {lang === 'bm' ? 'Nama Penuh' : 'Full Name'}
+                  </label>
+                  <input
+                    type="text"
+                    value={buyerName}
+                    onChange={(e) => setBuyerName(e.target.value)}
+                    placeholder={lang === 'bm' ? 'Masukkan nama penuh anda' : 'Enter your full name'}
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-snang-teal-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {lang === 'bm' ? 'Nombor Telefon' : 'Phone Number'}
+                  </label>
+                  <input
+                    type="tel"
+                    value={buyerPhone}
+                    onChange={(e) => setBuyerPhone(e.target.value)}
+                    placeholder="012-3456789"
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:border-snang-teal-500 focus:outline-none"
+                  />
+                </div>
               </div>
             )}
 
@@ -1134,6 +1274,30 @@ function PreScanFlow() {
 
             <h2 className="text-xl font-bold text-slate-800 mb-1">{result.label}</h2>
             <p className="text-slate-500 text-sm mb-4">{result.guidance}</p>
+
+            {/* S5: API error fallback notice */}
+            {apiError && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                <p className="text-xs text-amber-700 text-center">
+                  <AlertTriangle className="w-3 h-3 inline mr-1" />
+                  {lang === 'bm'
+                    ? 'Keputusan dijana secara tempatan (pelayan tidak dapat dihubungi)'
+                    : 'Result generated locally (server unreachable)'}
+                </p>
+              </div>
+            )}
+
+            {/* S5: Case reference (if case was created in DB) */}
+            {caseId && !apiError && (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4">
+                <p className="text-xs text-green-700 text-center">
+                  <CheckCircle className="w-3 h-3 inline mr-1" />
+                  {lang === 'bm'
+                    ? 'Kes didaftarkan dalam sistem'
+                    : 'Case registered in system'}
+                </p>
+              </div>
+            )}
 
             {/* PRD Section 16.3: Display Prohibition - NO SCORE SHOWN */}
             <div className={`${bandConfig.bgLight} border ${bandConfig.borderColor} rounded-xl p-4 mb-4`}>

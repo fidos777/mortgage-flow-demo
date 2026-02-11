@@ -3,9 +3,13 @@
 /**
  * Consent Guard Hook
  * Sprint 0, Session S0.3 | PRD v3.6.3 CR-010
+ * S5: Updated to use API routes instead of direct ConsentService
  *
  * Client-side hook for checking PDPA consent status and
  * redirecting to the consent gate if necessary.
+ *
+ * Sprint 0: Used ConsentService directly (fell into mock mode client-side)
+ * Sprint 5: Uses /api/consent/check API route for real Supabase queries
  *
  * Usage:
  * ```tsx
@@ -18,7 +22,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getConsentService } from '@/lib/services/consent-service';
 import { useFeatureFlags } from '@/lib/services/feature-flags';
 import { ConsentType } from '@/lib/types/consent';
 
@@ -119,7 +122,7 @@ export function useConsentGuard(
     router.push(`/buyer/start?redirect=${encodeURIComponent(destination)}`);
   }, [router, returnUrl, pathname]);
 
-  // Check consent
+  // Check consent via API route (S5: server-side Supabase query)
   const checkConsent = useCallback(async () => {
     if (!buyerHash || skip) {
       setIsChecking(false);
@@ -135,20 +138,47 @@ export function useConsentGuard(
       return;
     }
 
-    const consentService = getConsentService();
-
     try {
-      // Check specific consent type
-      const hasRequiredConsent = await consentService.hasConsent(
-        buyerHash,
-        requiredConsent
+      // S5: Use API route instead of direct ConsentService
+      // This ensures server-side Supabase query with service role key
+      const res = await fetch(
+        `/api/consent/check?buyer_hash=${encodeURIComponent(buyerHash)}&type=${requiredConsent}`
       );
 
-      setHasConsent(hasRequiredConsent);
+      if (res.ok) {
+        const json = await res.json();
+        const hasRequiredConsent = json.data?.hasConsent ?? false;
 
-      // Redirect if missing and option enabled
-      if (!hasRequiredConsent && redirectOnMissing) {
-        redirectToGate();
+        setHasConsent(hasRequiredConsent);
+
+        // Update session cache if consent exists
+        if (hasRequiredConsent && json.data?.grantedAt) {
+          setConsentedAt(json.data.grantedAt);
+        }
+
+        // Redirect if missing and option enabled
+        if (!hasRequiredConsent && redirectOnMissing) {
+          redirectToGate();
+        }
+      } else {
+        // API error — check sessionStorage cache as fallback
+        const cachedTypes = sessionStorage.getItem('pdpa_consents');
+        if (cachedTypes) {
+          try {
+            const types = JSON.parse(cachedTypes) as ConsentType[];
+            const hasCached = types.includes(requiredConsent);
+            setHasConsent(hasCached);
+            if (!hasCached && redirectOnMissing) {
+              redirectToGate();
+            }
+          } catch {
+            setHasConsent(false);
+            if (redirectOnMissing) redirectToGate();
+          }
+        } else {
+          setHasConsent(false);
+          if (redirectOnMissing) redirectToGate();
+        }
       }
     } catch (error) {
       console.error('[useConsentGuard] Error checking consent:', error);
@@ -209,6 +239,7 @@ export function useBuyerHash(): string | null {
 
 /**
  * Hook to check if user has any specific consent type
+ * S5: Uses API route for real Supabase query
  */
 export function useHasConsent(consentType: ConsentType): boolean | null {
   const [hasConsent, setHasConsent] = useState<boolean | null>(null);
@@ -226,8 +257,11 @@ export function useHasConsent(consentType: ConsentType): boolean | null {
       return;
     }
 
-    const consentService = getConsentService();
-    consentService.hasConsent(buyerHash, consentType).then(setHasConsent);
+    // S5: Use API route instead of direct ConsentService
+    fetch(`/api/consent/check?buyer_hash=${encodeURIComponent(buyerHash)}&type=${consentType}`)
+      .then(res => res.json())
+      .then(json => setHasConsent(json.data?.hasConsent ?? false))
+      .catch(() => setHasConsent(false));
   }, [buyerHash, consentType, isGateEnabled]);
 
   return hasConsent;

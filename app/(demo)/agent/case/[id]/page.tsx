@@ -11,6 +11,7 @@ import {
 import { AuthorityDisclaimer, PermissionWarning } from '@/components/permission-gate';
 import { QuerySignalsPanel } from '@/components/QuerySignalsPanel';
 import { WhatsAppContactCTA, SubmissionKit } from '@/components/agent';
+import { AgentReadinessPanel } from '@/components/agent/AgentReadinessPanel';
 import { useCaseStore } from '@/lib/store/case-store';
 import { maskPhone } from '@/lib/utils';
 import { useProofLogger } from '@/lib/services/hooks';
@@ -340,27 +341,14 @@ export default function AgentCaseDetail() {
               </div>
             </div>
 
-            {/* Readiness Signal */}
-            {caseData.readiness && (
-              <div className="bg-white rounded-xl p-5 shadow-sm">
-                <h3 className="font-semibold text-slate-800 mb-3">Isyarat Kesediaan</h3>
-                <div className={`p-3 rounded-lg ${
-                  caseData.readiness.band === 'ready' ? 'bg-green-50' :
-                  caseData.readiness.band === 'caution' ? 'bg-yellow-50' : 'bg-red-50'
-                }`}>
-                  <p className={`font-bold ${
-                    caseData.readiness.band === 'ready' ? 'text-green-700' :
-                    caseData.readiness.band === 'caution' ? 'text-yellow-700' : 'text-red-700'
-                  }`}>
-                    {caseData.readiness.label}
-                  </p>
-                  {/* PRD: Score breakdown NOT shown to agent */}
-                  <p className="text-xs text-slate-500 mt-1">
-                    Pecahan skor tidak ditunjukkan
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* S5 R03: Agent Readiness Panel */}
+            <AgentReadinessPanel
+              caseId={caseData.id}
+              readinessBand={caseData.readiness?.band}
+              readinessLabel={caseData.readiness?.label}
+              readinessGuidance={caseData.readiness?.guidance}
+              locale="bm"
+            />
 
             {/* TAC Card */}
             {caseData.tacSchedule && (

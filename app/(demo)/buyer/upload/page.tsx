@@ -3,6 +3,7 @@
 /**
  * Buyer Document Upload Page - CR-008 Doc-First Flow
  * PRD v3.6.3 CR-008 | Step 2 of 4
+ * S5 B04: Wired to POST /api/documents/upload (Supabase Storage)
  *
  * Simplified 4-document upload flow:
  * 1. MyKad (IC) - Required
@@ -123,44 +124,92 @@ function BuyerUploadFlow() {
   const allRequiredUploaded = hasAllRequiredDocuments(documents);
   const requiredDocs = getRequiredDocuments();
 
-  // Handle file upload
+  // S5 B04: Track whether we have a real API or are in fallback
+  const [apiMode, setApiMode] = useState<'real' | 'fallback'>('real');
+
+  // Handle file upload — real API with graceful fallback
   const handleUpload = useCallback(
     async (docType: DocFirstDocumentType, file?: File) => {
       setError(null);
       setUploading(docType);
 
       const config = DOC_FIRST_DOCUMENTS[docType];
+      const buyerHash = sessionStorage.getItem('buyer_hash');
 
-      // Simulate file for demo (in real app, from file input)
-      const mockFile = file || {
-        name: `${docType.toLowerCase()}_document.pdf`,
-        type: 'application/pdf',
-        size: 1024 * Math.floor(Math.random() * 500 + 100), // Random 100-600KB
-      };
+      // If no file provided, create a demo file for testing
+      const uploadFile = file || new File(
+        [new ArrayBuffer(1024 * Math.floor(Math.random() * 500 + 100))],
+        `${docType.toLowerCase()}_document.pdf`,
+        { type: 'application/pdf' }
+      );
 
-      // Validate file size
-      if (mockFile.size > config.maxSizeMb * 1024 * 1024) {
+      // Client-side validation
+      if (uploadFile.size > config.maxSizeMb * 1024 * 1024) {
         setError(`Fail terlalu besar. Maksimum ${config.maxSizeMb}MB.`);
         setUploading(null);
         return;
       }
 
-      // Validate file type
-      if (!config.acceptedFormats.includes(mockFile.type)) {
+      if (!config.acceptedFormats.includes(uploadFile.type)) {
         setError('Format fail tidak diterima. Sila gunakan PDF atau imej.');
         setUploading(null);
         return;
       }
 
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 500));
+      // Try real API upload
+      try {
+        const formData = new FormData();
+        formData.append('file', uploadFile);
+        formData.append('buyer_hash', buyerHash || 'anonymous');
+        formData.append('document_type', docType);
 
-      // Update state
+        // Include case_id if available
+        const storedCaseId = sessionStorage.getItem('case_id');
+        if (storedCaseId) {
+          formData.append('case_id', storedCaseId);
+        }
+
+        const response = await fetch('/api/documents/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+
+          const uploaded: UploadedDocument = {
+            type: docType,
+            fileName: uploadFile.name,
+            fileSize: uploadFile.size,
+            mimeType: uploadFile.type,
+            uploadedAt: result.data.uploaded_at || new Date().toISOString(),
+            status: 'UPLOADED',
+          };
+
+          setDocuments(prev => ({
+            ...prev,
+            [docType]: uploaded,
+          }));
+          setUploading(null);
+          setApiMode('real');
+          return;
+        }
+
+        // API returned error — fall through to fallback
+        console.warn('[BuyerUpload] API error:', response.status);
+      } catch (apiErr) {
+        console.warn('[BuyerUpload] API unreachable, using local fallback:', apiErr);
+      }
+
+      // === FALLBACK: Local-only mode (no DB persistence) ===
+      setApiMode('fallback');
+      await new Promise(resolve => setTimeout(resolve, 600));
+
       const uploaded: UploadedDocument = {
         type: docType,
-        fileName: mockFile.name,
-        fileSize: mockFile.size,
-        mimeType: mockFile.type,
+        fileName: uploadFile.name,
+        fileSize: uploadFile.size,
+        mimeType: uploadFile.type,
         uploadedAt: new Date().toISOString(),
         status: 'UPLOADED',
       };
@@ -172,11 +221,11 @@ function BuyerUploadFlow() {
 
       setUploading(null);
 
-      // Log proof event
-      console.log('[BuyerUpload] DOC_UPLOADED:', {
+      // Log locally (proof event not persisted — governance gap per Day 1 analysis)
+      console.log('[BuyerUpload] DOC_UPLOADED (fallback):', {
         docType,
-        fileName: mockFile.name,
-        size: mockFile.size,
+        fileName: uploadFile.name,
+        size: uploadFile.size,
       });
     },
     []
@@ -192,9 +241,32 @@ function BuyerUploadFlow() {
   };
 
   // Handle continue to next step
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // Store completion timestamp
     sessionStorage.setItem('doc_first_completed_at', new Date().toISOString());
+
+    // S5 B06: Log ALL_REQUIRED_DOCS_UPLOADED proof event
+    const buyerHash = sessionStorage.getItem('buyer_hash');
+    if (buyerHash) {
+      try {
+        await fetch('/api/proof-events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'ALL_REQUIRED_DOCS_UPLOADED',
+            buyer_hash: buyerHash,
+            case_id: sessionStorage.getItem('case_id') || undefined,
+            metadata: {
+              document_count: Object.keys(documents).length,
+              api_mode: apiMode,
+            },
+          }),
+        });
+      } catch {
+        // Non-fatal: proof event failure doesn't block navigation
+        console.warn('[BuyerUpload] Failed to log proof event');
+      }
+    }
 
     // Build query params for next page
     const params = new URLSearchParams();
@@ -365,6 +437,17 @@ function BuyerUploadFlow() {
               </p>
             )}
           </div>
+
+          {/* S5: Fallback warning */}
+          {apiMode === 'fallback' && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-700">
+                Mod luar talian — dokumen disimpan secara tempatan sahaja.
+                Sila muat naik semula apabila sambungan pulih.
+              </p>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (

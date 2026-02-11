@@ -79,6 +79,7 @@ export const RETENTION_PERIODS: Record<ConsentType, string> = {
   PDPA_MARKETING: '2 years',
   PDPA_ANALYTICS: '1 year',
   PDPA_THIRD_PARTY: '7 years',
+  LPPSA_SUBMISSION: '7 years',
 };
 
 /**
@@ -222,6 +223,7 @@ export class ConsentService {
         hasMarketing: true,
         hasAnalytics: true,
         hasThirdParty: true,
+        hasLppsaSubmission: false,
         activeConsentCount: 4,
         firstConsentAt: new Date().toISOString(),
         latestConsentAt: new Date().toISOString(),
@@ -236,6 +238,7 @@ export class ConsentService {
         hasMarketing: false,
         hasAnalytics: false,
         hasThirdParty: false,
+        hasLppsaSubmission: false,
         activeConsentCount: 1,
         firstConsentAt: null,
         latestConsentAt: null,
@@ -260,6 +263,7 @@ export class ConsentService {
         hasMarketing: false,
         hasAnalytics: false,
         hasThirdParty: false,
+        hasLppsaSubmission: false,
         activeConsentCount: 0,
         firstConsentAt: null,
         latestConsentAt: null,
@@ -273,6 +277,7 @@ export class ConsentService {
       hasMarketing: data.has_marketing,
       hasAnalytics: data.has_analytics,
       hasThirdParty: data.has_third_party,
+      hasLppsaSubmission: data.has_lppsa_submission || false,
       activeConsentCount: data.active_consent_count,
       firstConsentAt: data.first_consent_at,
       latestConsentAt: data.latest_consent_at,
@@ -690,7 +695,7 @@ export class ConsentService {
       ipHash: input.ipHash || null,
       userAgentHash: input.userAgentHash || null,
       captureMethod: input.captureMethod || 'WEB_FORM',
-      proofEventId: null,
+      caseId: null,
       createdAt: now,
       updatedAt: now,
     };
