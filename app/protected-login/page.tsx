@@ -190,7 +190,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '40px',
     height: '40px',
     borderRadius: '10px',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+    background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
