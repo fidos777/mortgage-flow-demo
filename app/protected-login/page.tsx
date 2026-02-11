@@ -78,7 +78,7 @@ function ProtectedLoginInner() {
         {/* Logo / Brand */}
         <div style={styles.brand}>
           <div style={styles.logoMark}>S</div>
-          <h1 style={styles.title}>snang.my</h1>
+          <h1 style={styles.title}>Snang.my</h1>
         </div>
 
         <p style={styles.subtitle}>Akses Terhad</p>
@@ -205,6 +205,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#f1f5f9',
     margin: 0,
     letterSpacing: '-0.03em',
+    fontFamily: '"DM Sans", "Inter", -apple-system, sans-serif',
   },
   subtitle: {
     fontSize: '0.8rem',
