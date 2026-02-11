@@ -4,19 +4,17 @@
 
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function ProtectedLoginPage() {
+function ProtectedLoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('from') || '/';
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
-
-  // Where to redirect after successful login
-  const redirectTo = searchParams.get('from') || '/';
 
   // Check if already authenticated
   useEffect(() => {
@@ -52,7 +50,6 @@ export default function ProtectedLoginPage() {
       const data = await res.json();
 
       if (data.ok) {
-        // Redirect to the page they originally wanted (or homepage)
         router.replace(redirectTo);
       } else {
         setError(data.error || 'Kata laluan salah');
@@ -136,6 +133,23 @@ export default function ProtectedLoginPage() {
       {/* Subtle background pattern */}
       <div style={styles.bgPattern} aria-hidden="true" />
     </div>
+  );
+}
+
+// Suspense wrapper required by Next.js 16 for useSearchParams
+export default function ProtectedLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div style={styles.container}>
+          <div style={styles.card}>
+            <div style={styles.spinner} />
+          </div>
+        </div>
+      }
+    >
+      <ProtectedLoginInner />
+    </Suspense>
   );
 }
 
