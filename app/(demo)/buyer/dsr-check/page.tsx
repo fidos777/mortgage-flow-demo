@@ -1,11 +1,14 @@
 // app/buyer/dsr-check/page.tsx
 // P1-5: DSR Quick Check - Provable in <30 seconds during demo
 // BM-4: Color migration — blue→teal, orange→amber
+// S5 B03: Wired to POST /api/readiness for server-side scoring + persistence
 'use client';
 
 import { useState } from 'react';
-import { Calculator, AlertTriangle, CheckCircle, Info, ArrowLeft } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Calculator, AlertTriangle, CheckCircle, Info, ArrowLeft, Shield } from 'lucide-react';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 interface Commitment {
   id: string;
@@ -13,7 +16,35 @@ interface Commitment {
   amount: number;
 }
 
-export default function DSRQuickCheckPage() {
+interface ServerReadiness {
+  band: 'ready' | 'caution' | 'not_ready';
+  label: string;
+  guidance: string;
+  dsr_ratio: number | null;
+}
+
+// Map exact RM income to API range string
+function toIncomeRange(income: number): string {
+  if (income > 8000) return '8001+';
+  if (income > 6000) return '6001-8000';
+  if (income > 5000) return '5001-6000';
+  if (income > 4000) return '4001-5000';
+  if (income > 3000) return '3001-4000';
+  return '2000-3000';
+}
+
+// Map exact DSR percentage to API commitment range string
+function toCommitmentRange(dsrPct: number): string {
+  if (dsrPct <= 30) return '0-30';
+  if (dsrPct <= 40) return '31-40';
+  if (dsrPct <= 50) return '41-50';
+  return '51+';
+}
+
+function DSRQuickCheckInner() {
+  const searchParams = useSearchParams();
+  const caseId = searchParams.get('case_id');
+
   const [grossIncome, setGrossIncome] = useState<number>(5000);
   const [commitments, setCommitments] = useState<Commitment[]>([
     { id: '1', name: 'Pinjaman Kereta', amount: 800 },
@@ -21,6 +52,9 @@ export default function DSRQuickCheckPage() {
   ]);
   const [proposedLoan, setProposedLoan] = useState<number>(1500);
   const [showResult, setShowResult] = useState(false);
+  const [serverResult, setServerResult] = useState<ServerReadiness | null>(null);
+  const [serverError, setServerError] = useState(false);
+  const [calculating, setCalculating] = useState(false);
 
   const totalCommitments = commitments.reduce((sum, c) => sum + c.amount, 0);
   const totalWithProposed = totalCommitments + proposedLoan;
@@ -33,6 +67,59 @@ export default function DSRQuickCheckPage() {
   };
 
   const dsrInfo = getDSRBand(dsr);
+
+  // S5 B03: POST to readiness API for server-side scoring
+  const handleCalculate = async () => {
+    setShowResult(true);
+    setServerError(false);
+    setServerResult(null);
+    setCalculating(true);
+
+    try {
+      const res = await fetch('/api/readiness', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          case_id: caseId || undefined,
+          employment_type: 'tetap',     // Default for DSR quick check
+          service_years: '3-4',          // Default mid-range
+          age_range: 'below35',          // Default
+          income_range: toIncomeRange(grossIncome),
+          commitment_range: toCommitmentRange(dsr),
+          existing_loan: commitments.length > 0 ? 'yes' : 'no',
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setServerResult(data.data);
+        }
+      }
+    } catch {
+      setServerError(true);
+    } finally {
+      setCalculating(false);
+    }
+
+    // S5: Log proof event (fire-and-forget)
+    fetch('/api/proof-events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'DSR_CHECK_COMPLETED',
+        case_id: caseId || undefined,
+        actor_type: 'buyer',
+        event_category: 'BUYER',
+        metadata: {
+          income_range: toIncomeRange(grossIncome),
+          commitment_range: toCommitmentRange(dsr),
+          dsr_pct: Math.round(dsr * 10) / 10,
+          channel: 'WEB',
+        },
+      }),
+    }).catch(() => {});
+  };
 
   const addCommitment = () => {
     setCommitments([...commitments, { id: Date.now().toString(), name: '', amount: 0 }]);
@@ -164,11 +251,13 @@ export default function DSRQuickCheckPage() {
         </div>
 
         {/* BM-4: Calculate Button — blue gradient → teal gradient */}
+        {/* S5 B03: Now calls server-side readiness API */}
         <button
-          onClick={() => setShowResult(true)}
-          className="w-full bg-gradient-to-r from-snang-teal-600 to-snang-teal-700 text-white py-4 rounded-xl font-display font-semibold hover:from-snang-teal-700 hover:to-snang-teal-900 transition-all"
+          onClick={handleCalculate}
+          disabled={calculating}
+          className="w-full bg-gradient-to-r from-snang-teal-600 to-snang-teal-700 text-white py-4 rounded-xl font-display font-semibold hover:from-snang-teal-700 hover:to-snang-teal-900 transition-all disabled:opacity-50"
         >
-          Kira DSR
+          {calculating ? 'Mengira...' : 'Kira DSR'}
         </button>
       </div>
 
@@ -237,6 +326,44 @@ export default function DSRQuickCheckPage() {
             </div>
           </div>
 
+          {/* S5 B03: Server Readiness Band */}
+          {serverResult && (
+            <div className={`rounded-xl p-4 mb-4 ${
+              serverResult.band === 'ready' ? 'bg-green-50 border border-green-200' :
+              serverResult.band === 'caution' ? 'bg-amber-50 border border-amber-200' :
+              'bg-red-50 border border-red-200'
+            }`}>
+              <div className="flex items-start gap-3">
+                <Shield className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                  serverResult.band === 'ready' ? 'text-green-600' :
+                  serverResult.band === 'caution' ? 'text-amber-600' : 'text-red-600'
+                }`} />
+                <div>
+                  <p className={`text-sm font-semibold ${
+                    serverResult.band === 'ready' ? 'text-green-800' :
+                    serverResult.band === 'caution' ? 'text-amber-800' : 'text-red-800'
+                  }`}>
+                    Penilaian Kesediaan: {serverResult.label}
+                  </p>
+                  <p className={`text-xs mt-1 ${
+                    serverResult.band === 'ready' ? 'text-green-700' :
+                    serverResult.band === 'caution' ? 'text-amber-700' : 'text-red-700'
+                  }`}>
+                    {serverResult.guidance}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {serverError && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+              <p className="text-xs text-amber-700 text-center">
+                Penilaian server tidak dapat dihubungi. DSR tempatan ditunjukkan di atas.
+              </p>
+            </div>
+          )}
+
           {/* Final Disclaimer */}
           <div className="bg-slate-100 rounded-lg p-3 text-xs text-slate-600 text-center">
             <strong>Isyarat kesediaan sahaja.</strong> Keputusan akhir oleh LPPSA berdasarkan dokumen rasmi.
@@ -244,5 +371,18 @@ export default function DSRQuickCheckPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Suspense wrapper for useSearchParams (Next.js 16 requirement)
+export default function DSRQuickCheckPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="animate-pulse bg-slate-200 h-64 rounded-2xl" />
+      </div>
+    }>
+      <DSRQuickCheckInner />
+    </Suspense>
   );
 }
