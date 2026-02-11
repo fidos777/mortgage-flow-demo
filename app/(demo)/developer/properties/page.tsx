@@ -209,21 +209,11 @@ export default function DeveloperPropertiesPage() {
       {/* QR Generator Modal */}
       {selectedUnit && (
         <UnitQRGenerator
-          unit={{
-            id: selectedUnit.id,
-            unitCode: selectedUnit.fullUnitCode,
-            block: selectedUnit.block,
-            floor: selectedUnit.floor,
-            unitNumber: selectedUnit.unitNumber,
-            propertyName: 'Seven Sky Residences',
-            listPrice: selectedUnit.listPrice,
-          }}
-          isOpen={showQRModal}
-          onClose={() => {
-            setShowQRModal(false);
-            setSelectedUnit(null);
-          }}
-          locale={locale}
+          propertyId={selectedUnit.propertyId || "b1000000-0000-0000-0000-000000000001"}
+          propertyName={"Seven Sky Residences"}
+          unitId={selectedUnit.id}
+          unitNo={selectedUnit.fullUnitCode}
+          developerId={"a1000000-0000-0000-0000-000000000001"}
         />
       )}
     </div>
