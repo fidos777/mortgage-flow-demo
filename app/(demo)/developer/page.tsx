@@ -2,52 +2,52 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Building, BarChart3, FileText, TrendingUp, RefreshCw,
-  AlertTriangle, Clock, CheckCircle, Eye, DollarSign, ChevronRight,
-  Link as LinkIcon, ArrowLeft,
+  Building2, Clock, TrendingUp, CheckCircle2,
+  DollarSign, BarChart3, RefreshCw, Eye,
+  LinkIcon, FileText, Plus, ChevronRight
 } from 'lucide-react';
 import { InvitationModal } from '@/components/InvitationModal';
-import { PropertyConsole } from '@/components/developer/PropertyConsole';
 
-interface ApiCase {
-  id: string;
-  case_ref: string;
-  status: string;
-  property_price: number | null;
-  created_at: string;
-  updated_at: string;
-  property?: { id: string; name: string } | null;
-}
-
+// Types matching the S6.3 properties whitelist + cases API
 interface ApiProperty {
   id: string;
   name: string;
   slug: string;
+  address: string;
   city: string;
   state: string;
   price_min: number | null;
   price_max: number | null;
   status: string;
+  published_at: string | null;
+  gallery_urls: string[] | null;
+  developer_id: string;
+  developer_name: string;
+  total_units: number | null;
+  units_sold: number | null;
+  units_available: number | null;
+  property_type: string | null;
+  built_up_area: string | null;
+  completion_date: string | null;
+  description: string | null;
 }
 
-const STATUS_GROUPS: Record<string, { label: string; statuses: string[]; color: string }> = {
-  active: { label: 'Aktif', statuses: ['new', 'prescan', 'dsr_check', 'docs_pending', 'tac_scheduled', 'tac_confirmed'], color: 'text-blue-600' },
-  submitted: { label: 'Dihantar', statuses: ['submitted', 'kj_pending', 'lo_issued'], color: 'text-teal-600' },
-  completed: { label: 'Selesai', statuses: ['completed'], color: 'text-green-600' },
-  closed: { label: 'Ditutup', statuses: ['rejected', 'expired'], color: 'text-gray-500' },
-};
-
-function formatPrice(price: number | null): string {
-  if (!price) return '—';
-  return `RM ${price.toLocaleString('en-MY')}`;
+interface ApiCase {
+  id: string;
+  case_ref: string;
+  status: string;
+  buyer_name: string;
+  property_price: number;
+  created_at: string;
+  property_id: string;
+  property?: {
+    name: string;
+    city: string;
+    state: string;
+  };
 }
 
-function formatDate(date: string | null): string {
-  if (!date) return '—';
-  return new Date(date).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-export default function DeveloperDashboard() {
+export default function DeveloperPage() {
   const [cases, setCases] = useState<ApiCase[]>([]);
   const [properties, setProperties] = useState<ApiProperty[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,212 +59,300 @@ export default function DeveloperDashboard() {
     setLoading(true);
     setError(null);
     try {
-      // S6.3: Dashboard needs all cases for aggregate stats — pass limit=100
       const [casesRes, propsRes] = await Promise.all([
         fetch('/api/cases?limit=100'),
         fetch('/api/properties?limit=100'),
       ]);
-      const casesJson = await casesRes.json();
-      const propsJson = await propsRes.json();
-      if (casesJson.success) setCases(Array.isArray(casesJson.data) ? casesJson.data : []);
-      if (propsJson.success) setProperties(Array.isArray(propsJson.data) ? propsJson.data : []);
+
+      if (casesRes.ok) {
+        const casesData = await casesRes.json();
+        setCases(casesData.data || []);
+      }
+
+      if (propsRes.ok) {
+        const propsData = await propsRes.json();
+        setProperties(propsData.data || []);
+      }
     } catch (err) {
-      console.error('[developer] Fetch error:', err);
-      setError('Gagal mendapatkan data. Sila cuba lagi.');
+      setError('Gagal memuatkan data');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const stats = {
-    totalCases: cases.length,
-    activeCases: cases.filter(c => STATUS_GROUPS.active.statuses.includes(c.status?.toLowerCase())).length,
-    submittedCases: cases.filter(c => STATUS_GROUPS.submitted.statuses.includes(c.status?.toLowerCase())).length,
-    completedCases: cases.filter(c => STATUS_GROUPS.completed.statuses.includes(c.status?.toLowerCase())).length,
-    totalProperties: properties.length,
-    totalPipelineValue: cases.reduce((sum, c) => sum + (c.property_price || 0), 0),
-    conversionRate: cases.length > 0 ? Math.round((cases.filter(c => c.status?.toLowerCase() === 'completed').length / cases.length) * 100) : 0,
-  };
+  // Derived stats
+  const totalCases = cases.length;
+  const activeCases = cases.filter(c => c.status === 'active' || c.status === 'new' || c.status === 'documents_received').length;
+  const submittedCases = cases.filter(c => c.status === 'submitted' || c.status === 'kj_pending').length;
+  const completedCases = cases.filter(c => c.status === 'completed' || c.status === 'approved').length;
+  const pipelineValue = cases.reduce((sum, c) => sum + (c.property_price || 0), 0);
+  const conversionRate = totalCases > 0 ? Math.round((completedCases / totalCases) * 100) : 0;
 
-  const statusBreakdown = Object.entries(STATUS_GROUPS).map(([key, group]) => ({
-    key, label: group.label, color: group.color,
-    count: cases.filter(c => group.statuses.includes(c.status?.toLowerCase())).length,
-  }));
+  // Cases per property
+  const getCasesForProperty = (propId: string) => cases.filter(c => c.property_id === propId);
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-slate-200 rounded w-48" />
+          <div className="h-32 bg-slate-200 rounded-xl" />
+          <div className="grid grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <div key={i} className="h-24 bg-slate-200 rounded-xl" />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <p className="text-red-600 font-medium">{error}</p>
+          <button onClick={fetchData} className="mt-3 text-sm text-red-500 underline">Cuba semula</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">Dashboard Pemaju</h1>
-            <p className="text-sm text-gray-500">Ringkasan projek dan permohonan LPPSA</p>
-          </div>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-slate-800">Dashboard Pemaju</h1>
+          <p className="text-sm text-slate-500">Ringkasan projek dan permohonan LPPSA</p>
+        </div>
+        <button
+          onClick={fetchData}
+          className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          title="Muat semula"
+        >
+          <RefreshCw className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Privacy Banner */}
+      <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3 flex items-start gap-3">
+        <Eye className="w-5 h-5 text-teal-600 mt-0.5 shrink-0" />
+        <p className="text-sm text-teal-800">
+          Pemaju melihat data agregat sahaja. Butiran individu pembeli tidak didedahkan.
+        </p>
+      </div>
+
+      {/* ============================================ */}
+      {/* SECTION 1: PROJEK HARTANAH (moved to top)   */}
+      {/* ============================================ */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (properties.length === 1) {
-                  setSelectedProperty(properties[0]);
-                  setShowInvitation(true);
-                } else if (properties.length > 1) {
-                  // Scroll to property section so user can pick one
-                  document.getElementById('projek-hartanah')?.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              className="flex items-center gap-2 px-3 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors"
-              title="Cipta Pautan Jemputan"
-            >
-              <LinkIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">Cipta Pautan</span>
-            </button>
-            <button onClick={fetchData} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Muat semula">
-              <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
-            </button>
+            <Building2 className="w-5 h-5 text-slate-600" />
+            <h2 className="font-bold text-slate-800">Projek Hartanah</h2>
+            <span className="text-xs text-slate-400 ml-1">{properties.length} projek</span>
           </div>
+          <button
+            onClick={() => alert('Fungsi tambah projek akan datang dalam Sprint S7.')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+            title="Akan datang"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Tambah
+          </button>
+        </div>
+
+        <div className="divide-y divide-slate-100">
+          {properties.map((prop) => {
+            const propCases = getCasesForProperty(prop.id);
+            const propActive = propCases.filter(c => c.status === 'active' || c.status === 'new' || c.status === 'documents_received').length;
+            const propCompleted = propCases.filter(c => c.status === 'completed' || c.status === 'approved').length;
+
+            return (
+              <div key={prop.id} className="px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                {/* Property Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-slate-800 truncate">{prop.name}</h3>
+                  </div>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    {prop.city}, {prop.state}
+                  </p>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                    {prop.price_min && (
+                      <span>Dari RM {(prop.price_min / 1000).toFixed(0)}k</span>
+                    )}
+                    <span>{propCases.length} kes</span>
+                    {propActive > 0 && (
+                      <span className="text-teal-600">{propActive} aktif</span>
+                    )}
+                    {propCompleted > 0 && (
+                      <span className="text-green-600">{propCompleted} selesai</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Per-card Jana Pautan button */}
+                <button
+                  onClick={() => {
+                    setSelectedProperty(prop);
+                    setShowInvitation(true);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors shrink-0 ml-4"
+                >
+                  <LinkIcon className="w-3.5 h-3.5" />
+                  Jana Pautan
+                </button>
+              </div>
+            );
+          })}
+
+          {properties.length === 0 && (
+            <div className="px-5 py-8 text-center text-sm text-slate-400">
+              Tiada projek dijumpai.
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6 flex items-start gap-2">
-          <Eye className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-blue-800">Pemaju melihat data agregat sahaja. Butiran individu pembeli tidak didedahkan.</p>
+      {/* ============================================ */}
+      {/* SECTION 2: KPI GRID                         */}
+      {/* ============================================ */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <FileText className="w-5 h-5 text-slate-400" />
+          </div>
+          <p className="text-2xl font-bold text-slate-800">{totalCases}</p>
+          <p className="text-xs text-slate-500">Jumlah Kes</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
-            <div>
-              <p className="text-red-800 font-medium">{error}</p>
-              <button onClick={fetchData} className="mt-2 text-sm text-red-600 underline">Cuba lagi</button>
-            </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <Clock className="w-5 h-5 text-slate-400" />
           </div>
-        )}
+          <p className="text-2xl font-bold text-teal-600">{activeCases}</p>
+          <p className="text-xs text-slate-500">Kes Aktif</p>
+        </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <RefreshCw className="w-8 h-8 text-gray-400 mx-auto mb-2 animate-spin" />
-            <p className="text-gray-500 text-sm">Memuat data pemaju...</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <TrendingUp className="w-5 h-5 text-slate-400" />
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              {[
-                { label: 'Jumlah Kes', value: stats.totalCases, icon: FileText, color: 'text-gray-900' },
-                { label: 'Kes Aktif', value: stats.activeCases, icon: Clock, color: 'text-blue-600' },
-                { label: 'Dihantar/KJ', value: stats.submittedCases, icon: TrendingUp, color: 'text-teal-600' },
-                { label: 'Selesai', value: stats.completedCases, icon: CheckCircle, color: 'text-green-600' },
-              ].map((kpi) => {
-                const Icon = kpi.icon;
-                return (
-                  <div key={kpi.label} className="bg-white rounded-xl p-4 border">
-                    <div className="flex items-center justify-between mb-2"><Icon className={`w-5 h-5 ${kpi.color}`} /></div>
-                    <p className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</p>
-                    <p className="text-sm text-gray-500">{kpi.label}</p>
-                  </div>
-                );
-              })}
-            </div>
+          <p className="text-2xl font-bold text-amber-600">{submittedCases}</p>
+          <p className="text-xs text-slate-500">Dihantar/KJ</p>
+        </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-white rounded-xl p-5 border">
-                <div className="flex items-center gap-2 mb-1">
-                  <DollarSign className="w-5 h-5 text-emerald-600" />
-                  <p className="text-sm text-gray-500">Nilai Pipeline</p>
-                </div>
-                <p className="text-xl font-bold text-gray-900">{formatPrice(stats.totalPipelineValue)}</p>
-              </div>
-              <div className="bg-white rounded-xl p-5 border">
-                <div className="flex items-center gap-2 mb-1">
-                  <BarChart3 className="w-5 h-5 text-purple-600" />
-                  <p className="text-sm text-gray-500">Kadar Penukaran</p>
-                </div>
-                <p className="text-xl font-bold text-gray-900">{stats.conversionRate}%</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl border p-5 mb-6">
-              <h2 className="font-semibold text-gray-900 mb-4">Pecahan Status</h2>
-              <div className="space-y-3">
-                {statusBreakdown.map((group) => (
-                  <div key={group.key} className="flex items-center justify-between">
-                    <span className={`text-sm font-medium ${group.color}`}>{group.label}</span>
-                    <div className="flex items-center gap-3">
-                      <div className="w-32 bg-gray-100 rounded-full h-2">
-                        <div className="bg-teal-500 h-2 rounded-full transition-all" style={{ width: `${cases.length > 0 ? (group.count / cases.length) * 100 : 0}%` }} />
-                      </div>
-                      <span className="text-sm font-bold text-gray-900 w-6 text-right">{group.count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div id="projek-hartanah" className="bg-white rounded-xl border p-5 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-gray-900">Projek Hartanah</h2>
-                <span className="text-sm text-gray-500">{properties.length} projek</span>
-              </div>
-              {properties.length === 0 ? (
-                <div className="text-center py-8">
-                  <Building className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">Tiada projek dijumpai</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {properties.map((prop) => {
-                    const propCases = cases.filter(c => c.property?.id === prop.id);
-                    return (
-                      <div key={prop.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
-                        onClick={() => { setSelectedProperty(prop); setShowInvitation(true); }}
-                      >
-                        <div>
-                          <p className="font-medium text-gray-900">{prop.name}</p>
-                          <p className="text-sm text-gray-500">{prop.city}, {prop.state} · {propCases.length} kes</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-teal-600 opacity-0 group-hover:opacity-100 transition-opacity">Cipta Pautan</span>
-                          <LinkIcon className="w-4 h-4 text-teal-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <ChevronRight className="w-5 h-5 text-gray-300" />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white rounded-xl border p-5">
-              <h2 className="font-semibold text-gray-900 mb-4">Aktiviti Terkini</h2>
-              {cases.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center py-4">Tiada aktiviti terkini</p>
-              ) : (
-                <div className="space-y-3">
-                  {cases.slice(0, 5).map((c) => (
-                    <div key={c.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-teal-50 rounded-full flex items-center justify-center">
-                          <FileText className="w-4 h-4 text-teal-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{c.case_ref}</p>
-                          <p className="text-xs text-gray-500">{c.property?.name || '—'} · {formatDate(c.updated_at)}</p>
-                        </div>
-                      </div>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 capitalize">{c.status?.replace(/_/g, ' ')}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-center">
-          <p className="text-sm text-amber-800">⚠ Sistem ini untuk rujukan sahaja. Tiada penghantaran atau kelulusan dilakukan oleh sistem.</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <CheckCircle2 className="w-5 h-5 text-slate-400" />
+          </div>
+          <p className="text-2xl font-bold text-green-600">{completedCases}</p>
+          <p className="text-xs text-slate-500">Selesai</p>
         </div>
       </div>
 
+      {/* ============================================ */}
+      {/* SECTION 3: PIPELINE VALUE + CONVERSION       */}
+      {/* ============================================ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <DollarSign className="w-5 h-5 text-slate-400" />
+            <span className="text-sm text-slate-500">Nilai Pipeline</span>
+          </div>
+          <p className="text-2xl font-bold text-slate-800">
+            RM {pipelineValue.toLocaleString('ms-MY')}
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <BarChart3 className="w-5 h-5 text-slate-400" />
+            <span className="text-sm text-slate-500">Kadar Penukaran</span>
+          </div>
+          <p className="text-2xl font-bold text-slate-800">{conversionRate}%</p>
+        </div>
+      </div>
+
+      {/* ============================================ */}
+      {/* SECTION 4: PECAHAN STATUS                    */}
+      {/* ============================================ */}
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <h3 className="font-bold text-slate-800 mb-4">Pecahan Status</h3>
+        <div className="space-y-3">
+          {[
+            { label: 'Aktif', count: activeCases, color: 'bg-teal-500' },
+            { label: 'Dihantar', count: submittedCases, color: 'bg-amber-500' },
+            { label: 'Selesai', count: completedCases, color: 'bg-green-500' },
+            { label: 'Ditutup', count: cases.filter(c => c.status === 'closed' || c.status === 'rejected').length, color: 'bg-slate-400' },
+          ].map((row) => (
+            <div key={row.label} className="flex items-center justify-between">
+              <span className={`text-sm ${row.count > 0 ? 'text-teal-600 font-medium' : 'text-slate-500'}`}>
+                {row.label}
+              </span>
+              <div className="flex items-center gap-3">
+                <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                  {totalCases > 0 && (
+                    <div
+                      className={`h-full ${row.color} rounded-full transition-all`}
+                      style={{ width: `${(row.count / totalCases) * 100}%` }}
+                    />
+                  )}
+                </div>
+                <span className="text-sm font-medium text-slate-700 w-6 text-right">{row.count}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ============================================ */}
+      {/* SECTION 5: AKTIVITI TERKINI                  */}
+      {/* ============================================ */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100">
+          <h3 className="font-bold text-slate-800">Aktiviti Terkini</h3>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {cases.slice(0, 10).map((c) => (
+            <div key={c.id} className="px-5 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-700">{c.case_ref}</p>
+                  <p className="text-xs text-slate-400">
+                    {c.property?.name || 'N/A'} · {new Date(c.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-md capitalize">
+                {c.status?.replace(/_/g, ' ') || 'New'}
+              </span>
+            </div>
+          ))}
+
+          {cases.length === 0 && (
+            <div className="px-5 py-8 text-center text-sm text-slate-400">
+              Tiada aktiviti terkini.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Disclaimer Banner */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-center">
+        <p className="text-sm text-amber-700">
+          ⚠ Sistem ini untuk rujukan sahaja. Tiada penghantaran atau kelulusan dilakukan oleh sistem.
+        </p>
+      </div>
+
+      {/* InvitationModal */}
       <InvitationModal
         isOpen={showInvitation}
         onClose={() => { setShowInvitation(false); setSelectedProperty(null); }}
