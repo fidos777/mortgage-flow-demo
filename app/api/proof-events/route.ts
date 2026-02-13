@@ -1,5 +1,6 @@
 /**
  * S5 B06: Proof Events API
+ * S6.3-N4: Added event_type validation against known enum
  *
  * POST /api/proof-events — Log a proof event
  * GET  /api/proof-events — List proof events for a buyer/case
@@ -7,7 +8,12 @@
  * Proof events are immutable audit records of every significant action.
  * Replaces Sprint 0's telemetry_events (never created in production).
  *
- * Event types include:
+ * === S6.3 API CONTRACT (POST) ===
+ * event_type is now validated against VALID_EVENT_TYPES.
+ * Invalid event_type returns:
+ *   { error: "event_type must be one of: ..." } (status 400)
+ *
+ * Valid event types:
  *   BUYER:   DOC_UPLOADED, DOC_UPLOAD_FAILED, ALL_REQUIRED_DOCS_UPLOADED,
  *            PRESCAN_COMPLETED, TEMUJANJI_BOOKED, TAC_SESSION_BOOKED,
  *            LPPSA_SUBMISSION_CONSENT_GRANTED
@@ -30,6 +36,21 @@ function getSupabase() {
 // Valid event categories
 const VALID_CATEGORIES = ['BUYER', 'AGENT', 'SYSTEM', 'CONSENT'] as const;
 const VALID_ACTOR_TYPES = ['buyer', 'agent', 'system'] as const;
+
+// S6.3-N4: Valid event types — enforced at application layer
+// Matches the documented types in the JSDoc header + seed-demo-data.sql
+const VALID_EVENT_TYPES = [
+  // BUYER events
+  'DOC_UPLOADED', 'DOC_UPLOAD_FAILED', 'ALL_REQUIRED_DOCS_UPLOADED',
+  'PRESCAN_COMPLETED', 'TEMUJANJI_BOOKED', 'TAC_SESSION_BOOKED',
+  'LPPSA_SUBMISSION_CONSENT_GRANTED',
+  // AGENT events
+  'CASE_REVIEWED', 'DOCS_VERIFIED', 'BYOD_STARTED',
+  // CONSENT events
+  'CONSENT_GRANTED', 'CONSENT_REVOKED', 'CONSENT_CASE_LINKED',
+  // SYSTEM events
+  'READINESS_COMPUTED', 'CASE_CREATED',
+] as const;
 
 interface LogEventRequest {
   event_type: string;
@@ -54,6 +75,14 @@ export async function POST(request: NextRequest) {
     if (!body.event_type) {
       return NextResponse.json(
         { error: 'event_type is required' },
+        { status: 400 }
+      );
+    }
+
+    // S6.3-N4: Validate event_type against known enum
+    if (!VALID_EVENT_TYPES.includes(body.event_type as typeof VALID_EVENT_TYPES[number])) {
+      return NextResponse.json(
+        { error: `event_type must be one of: ${VALID_EVENT_TYPES.join(', ')}` },
         { status: 400 }
       );
     }

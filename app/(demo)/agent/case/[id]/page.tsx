@@ -12,6 +12,7 @@ import { AuthorityDisclaimer, PermissionWarning } from '@/components/permission-
 import { QuerySignalsPanel } from '@/components/QuerySignalsPanel';
 import { WhatsAppContactCTA, SubmissionKit } from '@/components/agent';
 import { AgentReadinessPanel } from '@/components/agent/AgentReadinessPanel';
+import AgentCaseNotification from '@/components/agent/AgentCaseNotification';
 import { useCaseStore } from '@/lib/store/case-store';
 import { maskPhone } from '@/lib/utils';
 import { useProofLogger } from '@/lib/services/hooks';
@@ -348,6 +349,15 @@ export default function AgentCaseDetail() {
               readinessLabel={caseData.readiness?.label}
               readinessGuidance={caseData.readiness?.guidance}
               locale="bm"
+            />
+
+            {/* A09: WhatsApp Agent Notification */}
+            <AgentCaseNotification
+              caseId={caseData.id}
+              caseRef={caseData.id.slice(0, 8)}
+              buyerName={caseData.buyer.name}
+              propertyName={caseData.property.name}
+              status={caseData.phase}
             />
 
             {/* TAC Card */}

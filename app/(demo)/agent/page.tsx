@@ -9,6 +9,7 @@ import {
   Clock, Phone, MessageSquare, Eye, Shield, ChevronRight,
   Send, User, Building, Filter, X
 } from 'lucide-react';
+import AgentCaseNotification from '@/components/agent/AgentCaseNotification';
 
 // ---------- Types ----------
 interface ApiCase {
@@ -128,7 +129,8 @@ export default function AgentDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/cases');
+      // S6.3: Agent dashboard computes aggregate stats — pass limit=100
+      const res = await fetch('/api/cases?limit=100');
       const json = await res.json();
 
       if (json.success && json.data) {
@@ -371,7 +373,14 @@ export default function AgentDashboard() {
                             )}
                           </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-300 mt-1" />
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <AgentCaseNotification
+                            caseId={c.id}
+                            caseRef={c.case_ref}
+                            compact
+                          />
+                          <ChevronRight className="w-5 h-5 text-gray-300" />
+                        </div>
                       </div>
                     </div>
                   );
@@ -436,10 +445,13 @@ export default function AgentDashboard() {
                     Lihat Penuh
                   </button>
                   <div className="flex gap-2">
-                    <button className="flex-1 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 flex items-center justify-center gap-1.5">
-                      <MessageSquare className="w-4 h-4" />
-                      WhatsApp
-                    </button>
+                    <div className="flex-1">
+                      <AgentCaseNotification
+                        caseId={selectedCase.id}
+                        caseRef={selectedCase.case_ref}
+                        compact
+                      />
+                    </div>
                     <button className="flex-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 flex items-center justify-center gap-1.5">
                       <Phone className="w-4 h-4" />
                       Panggil

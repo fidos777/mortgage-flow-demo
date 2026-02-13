@@ -2,3 +2,4 @@
 export { SubmissionKit } from './submission-kit'
 export { WhatsAppContactCTA } from './WhatsAppContactCTA'
 export type { ContactAttempt, ContactPurpose, BuyerContact, WhatsAppTemplate } from './WhatsAppContactCTA'
+export { default as AgentCaseNotification } from './AgentCaseNotification'

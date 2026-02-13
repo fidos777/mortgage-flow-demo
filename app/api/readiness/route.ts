@@ -1,5 +1,6 @@
 /**
  * S5-B02: Readiness Scoring API
+ * S6.3-N1: Added Zod validation for input sanitisation
  *
  * POST /api/readiness — Compute DSR + readiness band, persist to mortgage_cases
  *
@@ -10,34 +11,52 @@
  *
  * PRD Section 16: Readiness is ADVISORY only. Score is internal,
  * only band + guidance are returned to caller.
+ *
+ * === S6.3 API CONTRACT ===
+ * Request:  Validated by Zod schema (see ReadinessSchema below)
+ * Success:  { success: true, data: { band, label, guidance, dsr_ratio }, persisted, case_id }
+ * Validation error: { error: string, details: ZodIssue[] } (status 400)
+ * Server error:     { error: string } (status 500)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { z } from 'zod';
 
 // ============================================================================
-// Types
+// Zod Schema (S6.3-N1: Runtime validation)
 // ============================================================================
 
-interface ReadinessRequest {
-  // Case linkage (optional — if provided, persists result to DB)
-  case_id?: string;
+const VALID_EMPLOYMENT_TYPES = ['tetap', 'kontrak', ''] as const;
+const VALID_SERVICE_YEARS = ['0-2', '3-4', '5+'] as const;
+const VALID_AGE_RANGES = ['below35', '35-49', '50-55', '56+'] as const;
+const VALID_INCOME_RANGES = ['2000-3000', '3001-4000', '4001-5000', '5001-6000', '6001-8000', '8001+'] as const;
+const VALID_COMMITMENT_RANGES = ['0-30', '31-40', '41-50', '51+'] as const;
+const VALID_EXISTING_LOAN = ['yes', 'no', ''] as const;
 
-  // Employment
-  employment_type: 'tetap' | 'kontrak' | '';
-  employment_scheme?: string;
-  service_years: string; // '0-2', '3-4', '5+'
-  age_range: string;     // 'below35', '35-49', '50-55', '56+'
+const ReadinessSchema = z.object({
+  case_id: z.string().uuid().optional(),
+  employment_type: z.enum(VALID_EMPLOYMENT_TYPES, {
+    message: `employment_type must be one of: ${VALID_EMPLOYMENT_TYPES.join(', ')}`,
+  }),
+  employment_scheme: z.string().optional(),
+  service_years: z.enum(VALID_SERVICE_YEARS, {
+    message: `service_years must be one of: ${VALID_SERVICE_YEARS.join(', ')}`,
+  }).default('0-2'),
+  age_range: z.enum(VALID_AGE_RANGES, {
+    message: `age_range must be one of: ${VALID_AGE_RANGES.join(', ')}`,
+  }).default('below35'),
+  income_range: z.enum(VALID_INCOME_RANGES, {
+    message: `income_range must be one of: ${VALID_INCOME_RANGES.join(', ')}`,
+  }),
+  commitment_range: z.enum(VALID_COMMITMENT_RANGES, {
+    message: `commitment_range must be one of: ${VALID_COMMITMENT_RANGES.join(', ')}`,
+  }),
+  existing_loan: z.enum(VALID_EXISTING_LOAN).default(''),
+  property_price: z.number().positive({ message: 'property_price must be a positive number' }).optional(),
+});
 
-  // Financial
-  income_range: string;       // '2000-3000', '3001-4000', etc.
-  commitment_range: string;   // '0-30', '31-40', '41-50', '51+'
-  existing_loan: 'yes' | 'no' | '';
-
-  // Property
-  property_price?: number;
-}
-
+type ReadinessRequest = z.infer<typeof ReadinessSchema>;
 type ReadinessBand = 'ready' | 'caution' | 'not_ready';
 
 // ============================================================================
@@ -165,15 +184,21 @@ function calculateReadiness(req: ReadinessRequest): {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: ReadinessRequest = await request.json();
+    const rawBody = await request.json();
 
-    // Validate required fields
-    if (!body.employment_type || !body.income_range || !body.commitment_range) {
+    // S6.3-N1: Zod validation — rejects invalid enum values, negative prices, etc.
+    const parsed = ReadinessSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'employment_type, income_range, and commitment_range are required' },
+        {
+          error: 'Validation failed',
+          details: parsed.error.issues,
+        },
         { status: 400 }
       );
     }
+
+    const body = parsed.data;
 
     // Compute readiness
     const result = calculateReadiness(body);

@@ -1,12 +1,51 @@
 /**
  * CR-007: Properties API
+ * S6.3-N5: Added .select() whitelist — no longer returns internal fields
  *
  * GET /api/properties - List all properties (with filters)
  * POST /api/properties - Create a new property
+ *
+ * === S6.3 API CONTRACT (GET) ===
+ * Response data no longer includes internal fields:
+ *   qr_generated, qr_url, qr_token, created_at, updated_at
+ * Only PROPERTIES_PUBLIC_FIELDS are returned.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+
+// S6.3-N5: Public field whitelist for GET responses
+// Excludes: qr_generated, qr_url, qr_token, created_at, updated_at
+const PROPERTIES_PUBLIC_FIELDS = `
+  id,
+  developer_id,
+  name,
+  slug,
+  property_type,
+  address,
+  city,
+  state,
+  postcode,
+  latitude,
+  longitude,
+  price_min,
+  price_max,
+  currency,
+  description,
+  description_bm,
+  total_units,
+  available_units,
+  completion_date,
+  tenure,
+  lease_years,
+  cover_image_url,
+  gallery_urls,
+  brochure_url,
+  video_url,
+  status,
+  published_at,
+  developer:developers(id, company_name, slug)
+`;
 
 // Property types from schema
 type PropertyType = 'apartment' | 'condominium' | 'townhouse' | 'semi-d' | 'bungalow' | 'terrace' | 'commercial' | 'mixed';
@@ -60,14 +99,11 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Build query
+    // S6.3-N5: Build query with field whitelist (no internal IDs/fields)
     let query = supabase
       .from('properties')
-      .select(`
-        *,
-        developer:developers(id, company_name, slug)
-      `)
-      .order('created_at', { ascending: false })
+      .select(PROPERTIES_PUBLIC_FIELDS)
+      .order('published_at', { ascending: false, nullsFirst: false })
       .range(offset, offset + limit - 1);
 
     // Apply filters

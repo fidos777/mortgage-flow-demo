@@ -1,13 +1,29 @@
 /**
  * CR-007: Mortgage Cases API
  * S5: Added buyer_hash for PDPA consent linkage (dual-key)
+ * S6.3-N3: Added max pagination cap (100), total count, page number in response
  *
  * GET /api/cases - List mortgage cases
  * POST /api/cases - Create a new mortgage case + link consent records
+ *
+ * === S6.3 API CONTRACT (GET) ===
+ * Response shape changed from:
+ *   { success, data: Case[], meta: { count, limit, offset } }
+ * To:
+ *   { success, data: Case[], page, limit, total }
+ * Where:
+ *   - data    = array of cases for the current page
+ *   - page    = 1-indexed page number
+ *   - limit   = page size (capped at MAX_LIMIT=100)
+ *   - total   = total matching cases across all pages
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+
+// S6.3-N3: Pagination constants
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
 
 type CaseStatus = 'new' | 'documents_pending' | 'documents_received' | 'under_review' |
   'submitted_bank' | 'bank_processing' | 'approved' | 'rejected' | 'completed' | 'cancelled';
@@ -44,10 +60,16 @@ export async function GET(request: NextRequest) {
 
     const developerId = searchParams.get('developer_id');
     const agentId = searchParams.get('agent_id');
+    const buyerHash = searchParams.get('buyer_hash');
     const status = searchParams.get('status');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
 
+    // S6.3-N3: Page-based pagination with max cap
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const rawLimit = parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT));
+    const limit = Math.min(Math.max(1, rawLimit), MAX_LIMIT);
+    const offset = (page - 1) * limit;
+
+    // S6.3-N3: Use { count: 'exact' } to get total row count
     let query = supabase
       .from('mortgage_cases')
       .select(`
@@ -56,7 +78,7 @@ export async function GET(request: NextRequest) {
         property:properties(id, name, slug),
         unit:property_units(id, unit_no, price),
         agent:mortgage_agents(id, name, phone_display)
-      `)
+      `, { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -66,11 +88,14 @@ export async function GET(request: NextRequest) {
     if (agentId) {
       query = query.eq('assigned_agent_id', agentId);
     }
+    if (buyerHash) {
+      query = query.eq('buyer_hash', buyerHash);
+    }
     if (status) {
       query = query.eq('status', status);
     }
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('Supabase error:', error);
@@ -80,14 +105,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // S6.3-N3: New paginated response shape
     return NextResponse.json({
       success: true,
-      data,
-      meta: {
-        count: data?.length || 0,
-        limit,
-        offset,
-      },
+      data: data || [],
+      page,
+      limit,
+      total: count ?? data?.length ?? 0,
     });
   } catch (error) {
     console.error('Cases GET error:', error);

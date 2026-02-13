@@ -3,8 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Building, BarChart3, FileText, TrendingUp, RefreshCw,
-  AlertTriangle, Clock, CheckCircle, Eye, DollarSign, ChevronRight
+  AlertTriangle, Clock, CheckCircle, Eye, DollarSign, ChevronRight,
+  Link as LinkIcon, ArrowLeft,
 } from 'lucide-react';
+import { InvitationModal } from '@/components/InvitationModal';
+import { PropertyConsole } from '@/components/developer/PropertyConsole';
 
 interface ApiCase {
   id: string;
@@ -49,14 +52,17 @@ export default function DeveloperDashboard() {
   const [properties, setProperties] = useState<ApiProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showInvitation, setShowInvitation] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<ApiProperty | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      // S6.3: Dashboard needs all cases for aggregate stats — pass limit=100
       const [casesRes, propsRes] = await Promise.all([
-        fetch('/api/cases'),
-        fetch('/api/properties'),
+        fetch('/api/cases?limit=100'),
+        fetch('/api/properties?limit=100'),
       ]);
       const casesJson = await casesRes.json();
       const propsJson = await propsRes.json();
@@ -95,9 +101,27 @@ export default function DeveloperDashboard() {
             <h1 className="text-xl font-semibold text-gray-900">Dashboard Pemaju</h1>
             <p className="text-sm text-gray-500">Ringkasan projek dan permohonan LPPSA</p>
           </div>
-          <button onClick={fetchData} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Muat semula">
-            <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (properties.length === 1) {
+                  setSelectedProperty(properties[0]);
+                  setShowInvitation(true);
+                } else if (properties.length > 1) {
+                  // Scroll to property section so user can pick one
+                  document.getElementById('projek-hartanah')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="flex items-center gap-2 px-3 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors"
+              title="Cipta Pautan Jemputan"
+            >
+              <LinkIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Cipta Pautan</span>
+            </button>
+            <button onClick={fetchData} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Muat semula">
+              <RefreshCw className={`w-5 h-5 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -176,7 +200,7 @@ export default function DeveloperDashboard() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border p-5 mb-6">
+            <div id="projek-hartanah" className="bg-white rounded-xl border p-5 mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Projek Hartanah</h2>
                 <span className="text-sm text-gray-500">{properties.length} projek</span>
@@ -191,12 +215,18 @@ export default function DeveloperDashboard() {
                   {properties.map((prop) => {
                     const propCases = cases.filter(c => c.property?.id === prop.id);
                     return (
-                      <div key={prop.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div key={prop.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+                        onClick={() => { setSelectedProperty(prop); setShowInvitation(true); }}
+                      >
                         <div>
                           <p className="font-medium text-gray-900">{prop.name}</p>
                           <p className="text-sm text-gray-500">{prop.city}, {prop.state} · {propCases.length} kes</p>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-300" />
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-teal-600 opacity-0 group-hover:opacity-100 transition-opacity">Cipta Pautan</span>
+                          <LinkIcon className="w-4 h-4 text-teal-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <ChevronRight className="w-5 h-5 text-gray-300" />
+                        </div>
                       </div>
                     );
                   })}
@@ -234,6 +264,13 @@ export default function DeveloperDashboard() {
           <p className="text-sm text-amber-800">⚠ Sistem ini untuk rujukan sahaja. Tiada penghantaran atau kelulusan dilakukan oleh sistem.</p>
         </div>
       </div>
+
+      <InvitationModal
+        isOpen={showInvitation}
+        onClose={() => { setShowInvitation(false); setSelectedProperty(null); }}
+        projectName={selectedProperty?.name || ''}
+        projectLocation={selectedProperty ? `${selectedProperty.city}, ${selectedProperty.state}` : ''}
+      />
     </div>
   );
 }

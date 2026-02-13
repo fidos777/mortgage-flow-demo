@@ -131,9 +131,10 @@ async function fetchPropertyStats(propertyId: string): Promise<PropertyStats | n
 
 async function fetchCases(propertyId?: string): Promise<MortgageCase[]> {
   try {
+    // S6.3: Pass explicit limit — default changed from 50 to 20
     const url = propertyId
-      ? `/api/cases?property_id=${propertyId}`
-      : '/api/cases';
+      ? `/api/cases?property_id=${propertyId}&limit=100`
+      : '/api/cases?limit=100';
 
     const res = await fetch(url);
     if (!res.ok) return [];
