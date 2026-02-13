@@ -16,7 +16,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Shield, ArrowRight, CheckCircle } from 'lucide-react';
 import { PDPAConsentGate } from '@/components/consent';
-import { getConsentService } from '@/lib/services/consent-service';
 import { useFeatureFlags } from '@/lib/services/feature-flags';
 import { ConsentType } from '@/lib/types/consent';
 import { AuthorityDisclaimer } from '@/components/permission-gate';
@@ -79,11 +78,13 @@ function BuyerStartFlow() {
   }, []);
 
   // Check existing consent status
+  // S6.5 FIX: Use API route instead of client-side ConsentService
+  // The client-side ConsentService falls into mock mode (no Supabase service key)
+  // and always returns canProceed=true, causing a redirect loop with useConsentGuard
+  // which correctly checks via the API route → Supabase.
   useEffect(() => {
     const checkConsent = async () => {
       if (!buyerHash) return;
-
-      const consentService = getConsentService();
 
       // If PDPA gate is disabled (demo mode), bypass
       if (!isPdpaGateEnabled) {
@@ -93,18 +94,29 @@ function BuyerStartFlow() {
         return;
       }
 
-      // Check if buyer already has PDPA_BASIC consent
-      const canProceed = await consentService.canProceed(buyerHash);
+      try {
+        // S6.5: Use API route (same path as useConsentGuard) for consistency
+        const res = await fetch(
+          `/api/consent/check?buyer_hash=${encodeURIComponent(buyerHash)}&type=PDPA_BASIC`
+        );
 
-      if (canProceed) {
-        setHasConsent(true);
-        // Auto-redirect if already has consent
-        const params = new URLSearchParams();
-        if (developerName) params.set('dev', developerName);
-        if (projectFromUrl) params.set('project', projectFromUrl);
-        const queryString = params.toString();
-        router.push(`${redirectTo}${queryString ? `?${queryString}` : ''}`);
-      } else {
+        let canProceed = false;
+        if (res.ok) {
+          const json = await res.json();
+          canProceed = json.data?.hasConsent ?? false;
+        }
+
+        if (canProceed) {
+          setHasConsent(true);
+          // Auto-redirect if already has consent — use redirectTo directly
+          // since it already contains the full URL with query params
+          router.push(redirectTo);
+        } else {
+          setShowGate(true);
+        }
+      } catch (error) {
+        console.error('[BuyerStart] Error checking consent:', error);
+        // On error, show the gate to be safe
         setShowGate(true);
       }
 
@@ -112,7 +124,7 @@ function BuyerStartFlow() {
     };
 
     checkConsent();
-  }, [buyerHash, isPdpaGateEnabled, redirectTo, router, developerName, projectFromUrl]);
+  }, [buyerHash, isPdpaGateEnabled, redirectTo, router]);
 
   // Handle consent granted (called by PDPAConsentGate with granted consent types)
   const handleConsentGranted = (grantedConsents: ConsentType[]) => {
@@ -131,20 +143,26 @@ function BuyerStartFlow() {
 
     setHasConsent(true);
 
-    // Redirect to destination
-    const params = new URLSearchParams();
-    if (developerName) params.set('dev', developerName);
-    if (projectFromUrl) params.set('project', projectFromUrl);
-    if (projectId) params.set('pid', projectId);
-    if (developerId) params.set('did', developerId);
-    if (agentId) params.set('aid', agentId);
-    if (entrySource) params.set('entry', entrySource);
-    params.set('logo', 'stored'); // Pass logo flag
-    const queryString = params.toString();
+    // S6.5 FIX: Properly merge params into redirectTo URL
+    // redirectTo may already contain query params (e.g., /buyer/prescan?dev=...&project=...)
+    // so we parse it and merge additional params to avoid malformed double-? URLs
+    const [basePath, existingQuery] = redirectTo.split('?');
+    const mergedParams = new URLSearchParams(existingQuery || '');
+
+    // Only add params not already present in the redirect URL
+    if (developerName && !mergedParams.has('dev')) mergedParams.set('dev', developerName);
+    if (projectFromUrl && !mergedParams.has('project')) mergedParams.set('project', projectFromUrl);
+    if (projectId && !mergedParams.has('pid')) mergedParams.set('pid', projectId);
+    if (developerId && !mergedParams.has('did')) mergedParams.set('did', developerId);
+    if (agentId && !mergedParams.has('aid')) mergedParams.set('aid', agentId);
+    if (entrySource && !mergedParams.has('entry')) mergedParams.set('entry', entrySource);
+    if (!mergedParams.has('logo')) mergedParams.set('logo', 'stored');
+
+    const queryString = mergedParams.toString();
 
     // Small delay for UX feedback
     setTimeout(() => {
-      router.push(`${redirectTo}${queryString ? `?${queryString}` : ''}`);
+      router.push(`${basePath}${queryString ? `?${queryString}` : ''}`);
     }, 500);
   };
 
@@ -194,12 +212,14 @@ function BuyerStartFlow() {
 
             <button
               onClick={() => {
-                const params = new URLSearchParams();
-                if (developerName) params.set('dev', developerName);
-                if (projectFromUrl) params.set('project', projectFromUrl);
-                params.set('logo', 'stored');
-                const queryString = params.toString();
-                router.push(`${redirectTo}${queryString ? `?${queryString}` : ''}`);
+                // S6.5 FIX: Properly merge params into redirectTo to avoid double-?
+                const [basePath, existingQuery] = redirectTo.split('?');
+                const mergedParams = new URLSearchParams(existingQuery || '');
+                if (developerName && !mergedParams.has('dev')) mergedParams.set('dev', developerName);
+                if (projectFromUrl && !mergedParams.has('project')) mergedParams.set('project', projectFromUrl);
+                if (!mergedParams.has('logo')) mergedParams.set('logo', 'stored');
+                const queryString = mergedParams.toString();
+                router.push(`${basePath}${queryString ? `?${queryString}` : ''}`);
               }}
               className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 hover:shadow-xl transition-all"
             >
