@@ -61,14 +61,8 @@ function PreScanFlow() {
   const projectFromUrl = searchParams?.get('project') || '';
 
   // Load developer logo from localStorage if flagged in URL
-  useEffect(() => {
-    if (searchParams?.get('logo') === 'stored') {
-      const storedLogo = localStorage.getItem('developerLogo');
-      if (storedLogo) {
-        setDeveloperLogo(storedLogo);
-      }
-    }
-  }, [searchParams]);
+  // TODO S7: Fetch developer logo from Supabase developers.logo_url
+  // localStorage approach removed — buyer's browser has no access to developer's localStorage
   // Use service hook instead of direct store access
   const { logReadinessComputed, logPhaseTransitioned } = useProofLogger();
   
