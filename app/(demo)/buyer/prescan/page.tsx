@@ -52,7 +52,7 @@ function PreScanFlow() {
     buyerHash,
   } = useConsentGuard({
     redirectOnMissing: true,
-    returnUrl: '/buyer/prescan',
+    returnUrl: searchParams ? `/buyer/prescan?${searchParams.toString()}` : '/buyer/prescan',
   });
 
   // Developer branding from URL params
