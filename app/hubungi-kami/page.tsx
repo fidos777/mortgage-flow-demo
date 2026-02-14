@@ -22,8 +22,8 @@ export default function HubungiKamiPage() {
     {
       icon: <MessageCircle className="w-6 h-6" />,
       title: 'WhatsApp',
-      value: '+60 12-345 6789',
-      href: 'https://wa.me/60123456789',
+      value: '+60 17-887 7788',
+      href: 'https://wa.me/60178877788',
       description: 'Respons pantas dalam waktu kerja',
     },
     {
@@ -87,7 +87,7 @@ export default function HubungiKamiPage() {
               </div>
               <div>
                 <p className="font-medium text-neutral-900">SME Cloud Sdn Bhd</p>
-                <p className="text-sm text-neutral-500">No. Pendaftaran: 202101012345 (1234567-A)</p>
+                <p className="text-sm text-neutral-500">No. Pendaftaran: 201301013530 (1043368-V)</p>
               </div>
             </div>
 
@@ -98,9 +98,9 @@ export default function HubungiKamiPage() {
               <div>
                 <p className="font-medium text-neutral-900">Alamat Berdaftar</p>
                 <p className="text-sm text-neutral-500">
-                  Level 8, Menara XYZ<br />
-                  Jalan Sultan Ismail<br />
-                  50250 Kuala Lumpur, Malaysia
+                  Suite 09-10, Kenwingston Business Centre,<br />
+                  Persiaran Bestari,<br />
+                  63000 Cyberjaya, Selangor
                 </p>
               </div>
             </div>

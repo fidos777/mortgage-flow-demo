@@ -142,7 +142,7 @@ export const CHAOS_ROTATIONS = [-8, 5, -4, 7, -10, 3, -6, 9, -5]
    ═══════════════════════════════════════════ */
 export const COPY: Record<Locale, LocaleCopy> = {
   bm: {
-    pill: 'Kawalan Penukaran LPPSA untuk Pemaju',
+    pill: 'Kawalan Permohonan dan Kelulusan LPPSA untuk Pemaju',
     headline1: 'LPPSA Tak Sepatutnya',
     headline2: 'Perlahankan Jualan Anda.',
     actors: [
