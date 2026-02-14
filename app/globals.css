@@ -369,3 +369,30 @@ html {
   /* Reserve for future dark mode implementation */
   /* Currently snang.my uses light mode only */
 }
+
+/* =============================================================================
+   HERO SECTION: Animation Keyframes + Stage Tokens
+   ============================================================================= */
+
+/* Stage background sweep — GPU-accelerated via background-position */
+@keyframes heroSweep {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-stage {
+  background-size: 300% 300%;
+  animation: heroSweep 14s ease-in-out infinite;
+}
+
+/* SVG line draw animation (used by ConnectionLines) */
+@keyframes heroLineDraw {
+  from { stroke-dasharray: 0 300; }
+  to { stroke-dasharray: 300 0; }
+}
+
+/* Reduced motion: kill all hero animation */
+@media (prefers-reduced-motion: reduce) {
+  .hero-stage { animation: none !important; }
+}

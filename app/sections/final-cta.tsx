@@ -1,108 +1,125 @@
+// app/sections/final-cta.tsx
+// V3 — Single developer-focused CTA block
+// Polished: larger type, more breathing room, animated color sweep, radial center glow
+
 'use client'
 
 import Link from 'next/link'
-import { Building2, User, Briefcase, ArrowRight, Play } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ArrowRight, LayoutGrid } from 'lucide-react'
+import { useLocale } from '@/app/context/locale'
 
-const roles = [
-  {
-    id: 'developer',
-    icon: Building2,
-    title: 'PEMAJU',
-    description: 'Dashboard agregat, QR generation, pipeline tracking',
-    href: '/developer',
-    cta: 'Demo pemaju'
+const COPY = {
+  bm: {
+    headline: 'LPPSA Tak Sepatutnya Jadi Bottleneck.',
+    sub: 'Lihat bagaimana pipeline anda boleh jadi terstruktur — dalam satu dashboard.',
+    cta: 'Lihat Demo Pipeline',
+    trust: ['Tiada pendaftaran', 'Data contoh sahaja', 'PDPA Compliant'],
   },
-  {
-    id: 'buyer',
-    icon: User,
-    title: 'PEMBELI',
-    description: 'Semak DSR dengan data contoh, lihat privacy controls',
-    href: '/buyer',
-    cta: 'Demo pembeli'
+  en: {
+    headline: 'LPPSA Shouldn\u2019t Be a Bottleneck.',
+    sub: 'See how your pipeline can become structured \u2014 in one dashboard.',
+    cta: 'View Pipeline Demo',
+    trust: ['No registration', 'Sample data only', 'PDPA Compliant'],
   },
-  {
-    id: 'agent',
-    icon: Briefcase,
-    title: 'EJEN',
-    description: 'Case management, submission kit, contact tools',
-    href: '/agent',
-    cta: 'Demo ejen'
-  }
-]
+}
 
 export function FinalCTASection() {
+  const { lang } = useLocale()
+  const c = COPY[lang]
+
   return (
-    <section className="py-16 sm:py-20 bg-gradient-to-br from-primary via-primary to-primary-dark relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border border-white rounded-full" />
-        <div className="absolute bottom-10 right-10 w-48 h-48 border border-white rounded-full" />
-        <div className="absolute top-1/2 left-1/3 w-24 h-24 border border-white rounded-full" />
-      </div>
-      
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <span className="text-white/60 text-sm font-medium uppercase tracking-wider">
-            Mula Sekarang
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mt-2 mb-3">
-            Pilih Peranan Anda untuk Demo yang Relevan
-          </h2>
-          <p className="text-white/80 max-w-xl mx-auto">
-            Lihat sendiri bagaimana Snang.my membantu peranan anda dalam proses LPPSA. 
-            Tiada pendaftaran. Tiada komitmen.
-          </p>
-        </div>
+    <section className="py-28 sm:py-36 relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #0d9488, #0f766e, #115e59)' }}
+    >
+      {/* Animated color sweep — extremely subtle */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 30% 50%, rgba(20,184,166,0.15) 0%, transparent 50%)',
+        }}
+        animate={{
+          opacity: [0.4, 0.8, 0.4],
+        }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 70% 40%, rgba(94,234,212,0.08) 0%, transparent 50%)',
+        }}
+        animate={{
+          opacity: [0.6, 1, 0.6],
+        }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
 
-        {/* Role Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          {roles.map((role) => {
-            const Icon = role.icon
-            return (
-              <Link
-                key={role.id}
-                href={role.href}
-                className="group bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all"
-              >
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center mb-4">
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-bold text-white mb-2">{role.title}</h3>
-                <p className="text-white/70 text-sm mb-4">{role.description}</p>
-                <span className="inline-flex items-center gap-1 text-white font-medium text-sm group-hover:gap-2 transition-all">
-                  {role.cta} <ArrowRight className="w-4 h-4" />
-                </span>
-              </Link>
-            )
-          })}
-        </div>
+      {/* Center radial glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.08) 0%, transparent 55%)',
+        }}
+      />
 
-        {/* Walkthrough CTA */}
-        <div className="text-center">
-          <p className="text-white/60 text-sm mb-4">ATAU</p>
+      <div className="max-w-[720px] mx-auto px-6 relative z-10 text-center">
+        <motion.h2
+          className="font-display font-extrabold text-white tracking-tight"
+          style={{ fontSize: 'clamp(30px, 4.5vw, 50px)', letterSpacing: '-0.025em', lineHeight: 1.15 }}
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5 }}
+        >
+          {c.headline}
+        </motion.h2>
+
+        <motion.p
+          className="font-body text-[16px] text-white/70 mt-6 max-w-[480px] mx-auto leading-relaxed"
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          {c.sub}
+        </motion.p>
+
+        <motion.div
+          className="mt-10"
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           <Link
-            href="/walkthrough"
-            className="inline-flex items-center gap-2 bg-white text-primary px-6 py-3 rounded-xl font-medium hover:bg-neutral-100 transition-colors shadow-lg"
+            href="/developer"
+            className="inline-flex items-center gap-2.5 px-10 py-4.5 rounded-xl font-display text-[16px] font-semibold text-teal-700 no-underline transition-all duration-200 hover:brightness-105 hover:scale-[1.02]"
+            style={{
+              background: 'white',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.06)',
+            }}
           >
-            <Play className="w-4 h-4" />
-            Lihat Full Walkthrough (15 minit)
-            <ArrowRight className="w-4 h-4" />
+            <LayoutGrid size={18} strokeWidth={2} />
+            {c.cta}
+            <ArrowRight size={16} strokeWidth={2.5} />
           </Link>
-          <p className="text-white/50 text-xs mt-3">
-            32 screenshots • 3 bahagian • Aliran lengkap Pemaju → Pembeli → Ejen
-          </p>
-        </div>
+        </motion.div>
 
         {/* Trust indicators */}
-        <div className="flex flex-wrap justify-center gap-6 mt-10 pt-8 border-t border-white/10">
-          {['Data contoh sahaja', 'Tiada pendaftaran', 'PDPA Compliant', 'Demo interaktif'].map((item, i) => (
-            <span key={i} className="text-white/60 text-sm flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-white/60 rounded-full" />
+        <motion.div
+          className="flex flex-wrap justify-center gap-6 mt-14"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+        >
+          {c.trust.map((item, i) => (
+            <span key={i} className="flex items-center gap-2 text-white/50 text-[12px] font-body tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
               {item}
             </span>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

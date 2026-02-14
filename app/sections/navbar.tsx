@@ -3,19 +3,20 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, X, ArrowRight, Globe } from 'lucide-react'
+import { useLocale, type Locale } from '@/app/context/locale'
 
 function LanguageToggle() {
-  const [lang, setLang] = useState<'bm' | 'en'>('bm')
+  const { lang, setLang } = useLocale()
   return (
     <div className="inline-flex items-center gap-1 bg-neutral-100 rounded-full p-0.5">
-      <button 
-        onClick={() => setLang('bm')} 
+      <button
+        onClick={() => setLang('bm')}
         className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${lang === 'bm' ? 'bg-white text-primary shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
       >
         BM
       </button>
-      <button 
-        onClick={() => setLang('en')} 
+      <button
+        onClick={() => setLang('en')}
         className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${lang === 'en' ? 'bg-white text-primary shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}
       >
         EN
@@ -37,7 +38,6 @@ export function Navbar() {
   }, [])
 
   const navLinks = [
-    { href: '#personas', label: 'Untuk Siapa' },
     { href: '#how', label: 'Cara Guna' },
     { href: '#trust', label: 'Keselamatan' },
   ]
@@ -61,8 +61,8 @@ export function Navbar() {
             <LanguageToggle />
             
             {/* CTA Button */}
-            <Link href="/buyer" className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
-              Cuba Demo <ArrowRight className="w-4 h-4" />
+            <Link href="/developer" className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+              Lihat Demo <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
           
@@ -82,8 +82,8 @@ export function Navbar() {
               {navLinks.map((link) => (
                 <a key={link.href} href={link.href} onClick={() => setIsMobileMenuOpen(false)} className="text-neutral-600 hover:text-primary transition-colors py-2">{link.label}</a>
               ))}
-              <Link href="/buyer" onClick={() => setIsMobileMenuOpen(false)} className="inline-flex items-center justify-center gap-2 bg-primary text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors">
-                Cuba Demo <ArrowRight className="w-4 h-4" />
+              <Link href="/developer" onClick={() => setIsMobileMenuOpen(false)} className="inline-flex items-center justify-center gap-2 bg-primary text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors">
+                Lihat Demo <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>

@@ -3,7 +3,7 @@
 // Integrates: Poppins font, TrustStrip foundation, Animation provider
 
 import type { Metadata, Viewport } from 'next'
-import { Poppins } from 'next/font/google'
+import { Poppins, Plus_Jakarta_Sans, Inter } from 'next/font/google'
 import './globals.css'
 
 // ==========================================
@@ -14,6 +14,20 @@ const poppins = Poppins({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-poppins',
+  display: 'swap',
+})
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-display',
+  display: 'swap',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-body',
   display: 'swap',
 })
 
@@ -76,7 +90,7 @@ export default function RootLayout({
   return (
     <html 
       lang="ms" 
-      className={`${poppins.variable}`}
+      className={`${poppins.variable} ${jakarta.variable} ${inter.variable}`}
       // Animation tier will be set by client-side hook
       data-animation-tier="full"
     >

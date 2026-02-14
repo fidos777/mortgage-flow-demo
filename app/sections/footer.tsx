@@ -11,7 +11,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <Link href="/" className="inline-block"><span className="text-2xl font-bold text-primary">Snang.my</span></Link>
-            <p className="mt-3 text-neutral-400 text-sm leading-relaxed max-w-sm">Platform kesediaan pinjaman LPPSA untuk pembeli rumah, pemaju, dan ejen hartanah Malaysia.</p>
+            <p className="mt-3 text-neutral-400 text-sm leading-relaxed max-w-sm">Platform kawalan pipeline LPPSA untuk pemaju hartanah Malaysia. Pantau kes, bukan kejar pembeli.</p>
             <div className="flex items-center gap-4 mt-4">
               <div className="flex items-center gap-1.5 text-neutral-500 text-xs"><Shield className="w-4 h-4" /><span>SSL Secured</span></div>
               <div className="flex items-center gap-1.5 text-neutral-500 text-xs"><Globe className="w-4 h-4" /><span>PDPA Compliant</span></div>
@@ -20,9 +20,9 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-sm uppercase tracking-wider mb-4 text-neutral-300">Platform</h4>
             <ul className="space-y-2">
-              <li><Link href="/buyer" className="text-neutral-400 hover:text-white text-sm transition-colors">Cuba Demo</Link></li>
-              <li><Link href="/#personas" className="text-neutral-400 hover:text-white text-sm transition-colors">Untuk Siapa</Link></li>
+              <li><Link href="/developer" className="text-neutral-400 hover:text-white text-sm transition-colors">Lihat Demo</Link></li>
               <li><Link href="/#how" className="text-neutral-400 hover:text-white text-sm transition-colors">Cara Guna</Link></li>
+              <li><Link href="/#trust" className="text-neutral-400 hover:text-white text-sm transition-colors">Keselamatan</Link></li>
             </ul>
           </div>
           <div>
@@ -37,7 +37,7 @@ export function Footer() {
       </div>
       <div className="border-t border-neutral-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-          <p className="text-neutral-500 text-xs text-center">© {currentYear} SME Cloud Sdn Bhd. Hak cipta terpelihara.</p>
+          <p className="text-neutral-500 text-xs text-center">&copy; {currentYear} SME Cloud Sdn Bhd. Hak cipta terpelihara.</p>
         </div>
       </div>
     </footer>

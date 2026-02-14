@@ -1,0 +1,1019 @@
+// app/sections/hero.tsx
+// Hero Section V6 — Developer-Dominant 4-Act | Bilingual BM/EN
+// NarrativeEngine™ | StoryBrand | 4 Scenes: parties → chaos → transition → clarity
+// Fixed actor positions, card-to-actor mapping, developer always dominant
+
+'use client'
+
+import { useState, useEffect, useRef, useCallback, useId } from 'react'
+import Link from 'next/link'
+import { useLocale, type Locale } from '@/app/context/locale'
+
+/* ─── COLOR TOKENS ─── */
+const T: Record<number, string> = { 900:"#042F2E",800:"#134E4A",700:"#115E59",600:"#0D9488",500:"#14B8A6",400:"#2DD4BF",300:"#5EEAD4",200:"#99F6E4",100:"#CCFBF1",50:"#F0FDFA" }
+const S: Record<number, string> = { 900:"#0F172A",800:"#1E293B",700:"#334155",600:"#475569",500:"#64748B",400:"#94A3B8",300:"#CBD5E1",200:"#E2E8F0",100:"#F1F5F9",50:"#F8FAFC" }
+const A: Record<number, string> = { 500:"#D97706",400:"#F59E0B",100:"#FEF3C7",50:"#FFFBEB" }
+const FD = "'Plus Jakarta Sans', sans-serif"
+const FB = "Inter, sans-serif"
+
+/* ═══ BILINGUAL COPY MAP (v2.2 — 4-Act) ═══ */
+type SubtitleCfg = { plain?: string; before?: string; accent: string; after: string }
+type ChaosCard = { icon: string; label: string; sub: string }
+type TransitionCard = { label: string; sub: string; actorIdx: number }
+type ClarityBeat = { icon: string; label: string; sub: string; actorIdx: number }
+type StepLabel = { label: string }
+type ActorCopy = { label: string; desc: string }
+type PipelineCase = { name: string; type: string; progress: number; status: string; dsr: string; docs: string }
+type PipelineLabels = { name: string; type: string; progress: string; dsr: string; docs: string; status: string }
+type PipelineStatuses = { ready: string; review: string; pending: string; submitted: string }
+
+interface LocaleCopy {
+  navLinks: string[]
+  navCta: string
+  pill: string
+  headline1: string
+  headline2: string
+  actors: ActorCopy[]
+  steps: StepLabel[]
+  subtitleParties: SubtitleCfg
+  partiesTitle: string
+  subtitleChaos: SubtitleCfg
+  subtitleTransition: SubtitleCfg
+  subtitleClarity: SubtitleCfg
+  chaosCards: ChaosCard[]
+  transitionCards: TransitionCard[]
+  transitionBadge: string
+  transitionBadgeSub: string
+  clarityBeats: ClarityBeat[]
+  clarityBadge: string
+  dashboardChip: string
+  ctaPrimary: string
+  ctaSecondary: string
+  ctaMicro: string
+  disclaimer: string
+  pipelineTitle: string
+  pipelineSub: string
+  pipelineCases: PipelineCase[]
+  pipelineLabels: PipelineLabels
+  pipelineStatuses: PipelineStatuses
+  pipelineFooter: string
+  pipelineCta: string
+}
+
+const COPY: Record<Locale, LocaleCopy> = {
+  bm: {
+    navLinks: ["Untuk Siapa", "Cara Guna", "Keselamatan"],
+    navCta: "Cuba Demo",
+    pill: "Kawalan Penukaran LPPSA untuk Pemaju",
+    headline1: "LPPSA Tak Sepatutnya",
+    headline2: "Perlahankan Jualan Anda.",
+    actors: [
+      { label: "Pemaju", desc: "Jual unit, pantau pipeline" },
+      { label: "Pembeli", desc: "Penjawat awam, guna LPPSA" },
+      { label: "Ejen Bertauliah", desc: "Uruskan submission" },
+    ],
+    steps: [{ label: "3 Peranan" }, { label: "Realiti" }, { label: "Cara Lain" }, { label: "Terkawal" }],
+    subtitleParties: {
+      before: "Setiap transaksi LPPSA melibatkan ",
+      accent: "tiga peranan utama",
+      after: " — pemaju, pembeli, dan ejen.",
+    },
+    partiesTitle: "Pihak Utama dalam Proses Permohonan LPPSA",
+    subtitleChaos: {
+      plain: "Kes LPPSA tergendala. Dokumen tak lengkap. Status tak jelas. Dan setiap bulan tertangguh, ",
+      accent: "cashflow projek anda terjejas",
+      after: ".",
+    },
+    subtitleTransition: {
+      before: "Anda tak perlu ganti ejen anda. Anda perlu ",
+      accent: "nampak apa yang berlaku",
+      after: " — sebelum kes tergendala.",
+    },
+    subtitleClarity: {
+      plain: "Setiap kes LPPSA — visible. Setiap dokumen — tracked. LPPSA berhenti jadi bottleneck. ",
+      accent: "Mula jadi conversion channel",
+      after: ".",
+    },
+    chaosCards: [
+      { icon: "📦", label: "Kes tertangguh", sub: "4 bulan, belum submit" },
+      { icon: "📊", label: "DSR tak disemak", sub: "Tahu lepas reject" },
+      { icon: "📄", label: "Dokumen tak lengkap", sub: "Pembeli tak tahu apa perlu" },
+      { icon: "❓", label: "Status tak jelas", sub: "\"Ejen kata masih proses\"" },
+      { icon: "📞", label: "Pembeli telefon", sub: "\"Macam mana status saya?\"" },
+      { icon: "💬", label: "WhatsApp berterabur", sub: "Ejen, pembeli, peguam" },
+      { icon: "📈", label: "Forecast tak tepat", sub: "Berapa unit convert?" },
+      { icon: "👥", label: "Pasukan jualan", sub: "Tak boleh guide pembeli" },
+      { icon: "🖨️", label: "Banyak isi borang", sub: "Manual, rawan kesilapan" },
+    ],
+    transitionCards: [
+      { label: "Beri link QR", sub: "Link generation + invitation", actorIdx: 0 },
+      { label: "Pembeli isi sendiri", sub: "PreScan self-service", actorIdx: 1 },
+      { label: "Ejen uruskan", sub: "Agent routing + Portal Kit", actorIdx: 2 },
+    ],
+    transitionBadge: "Pemaju pantau semua",
+    transitionBadgeSub: "Pipeline dashboard",
+    clarityBeats: [
+      { icon: "📄", label: "Dokumen terstruktur", sub: "Senarai semak ikut jenis pinjaman", actorIdx: 0 },
+      { icon: "🛡️", label: "Kesediaan ditapis awal", sub: "Risiko DSR dikesan sebelum submit", actorIdx: 1 },
+      { icon: "✅", label: "Submission berjaya", sub: ">90% kes lengkap pertama kali", actorIdx: 2 },
+    ],
+    clarityBadge: "Real-time Sales Pipeline",
+    dashboardChip: "4/5 kes progressing",
+    ctaPrimary: "Lihat Demo Pipeline",
+    ctaSecondary: "Bagaimana Ia Berfungsi",
+    ctaMicro: "Tiada pendaftaran. Lihat bagaimana 10 kes LPPSA bergerak melalui satu dashboard — dalam masa nyata.",
+    disclaimer: "Sistem ini untuk rujukan sahaja. Tiada penghantaran atau kelulusan dilakukan oleh sistem.",
+    pipelineTitle: "Lihat Bagaimana Pipeline Anda Akan Kelihatan",
+    pipelineSub: "Dashboard yang menunjukkan setiap kes LPPSA — dari dokumen pertama hingga submission akhir.",
+    pipelineCases: [
+      { name: "Ahmad bin Ismail", type: "Jenis 1", progress: 92, status: "ready", dsr: "Rendah", docs: "8/8" },
+      { name: "Siti Nurhaliza", type: "Jenis 4", progress: 75, status: "review", dsr: "Sederhana", docs: "6/8" },
+      { name: "Mohd Razif", type: "Jenis 1", progress: 45, status: "pending", dsr: "Belum semak", docs: "3/8" },
+      { name: "Noraini Hassan", type: "Jenis 2", progress: 100, status: "submitted", dsr: "Rendah", docs: "8/8" },
+      { name: "Kamal Effendi", type: "Jenis 4", progress: 60, status: "review", dsr: "Tinggi", docs: "5/8" },
+    ],
+    pipelineLabels: { name: "Pembeli", type: "Jenis", progress: "Kesediaan", dsr: "Risiko DSR", docs: "Dokumen", status: "Status" },
+    pipelineStatuses: { ready: "Sedia", review: "Semakan", pending: "Menunggu", submitted: "Dihantar" },
+    pipelineFooter: "Pantau, bukan kejar. Setiap kes jelas statusnya.",
+    pipelineCta: "Cuba Demo Dengan Data Contoh",
+  },
+  en: {
+    navLinks: ["Who It\u2019s For", "How It Works", "Security"],
+    navCta: "Try Demo",
+    pill: "LPPSA Conversion Control for Developers",
+    headline1: "LPPSA Shouldn\u2019t Slow",
+    headline2: "Your Sales Pipeline.",
+    actors: [
+      { label: "Developer", desc: "Sell units, track pipeline" },
+      { label: "Buyer", desc: "Public servant, uses LPPSA" },
+      { label: "Qualified Agent", desc: "Handles submission" },
+    ],
+    steps: [{ label: "3 Roles" }, { label: "The Reality" }, { label: "A Better Way" }, { label: "Under Control" }],
+    subtitleParties: {
+      before: "Every LPPSA transaction involves ",
+      accent: "three key roles",
+      after: " \u2014 developer, buyer, and agent.",
+    },
+    partiesTitle: "Key Parties in the LPPSA Application Process",
+    subtitleChaos: {
+      plain: "LPPSA cases stalling. Documents incomplete. Status unknown. And every month of delay quietly impacts ",
+      accent: "your project cashflow",
+      after: ".",
+    },
+    subtitleTransition: {
+      before: "You don\u2019t need to replace your agent. You need to ",
+      accent: "see what\u2019s happening",
+      after: " \u2014 before cases stall.",
+    },
+    subtitleClarity: {
+      plain: "Every LPPSA case \u2014 visible. Every document \u2014 tracked. LPPSA stops being a bottleneck. ",
+      accent: "Starts being a conversion channel",
+      after: ".",
+    },
+    chaosCards: [
+      { icon: "📦", label: "Case stuck", sub: "4 months, not submitted" },
+      { icon: "📊", label: "DSR unchecked", sub: "Found out after rejection" },
+      { icon: "📄", label: "Docs incomplete", sub: "Buyer doesn\u2019t know what\u2019s needed" },
+      { icon: "❓", label: "Status unknown", sub: "\"Agent says still processing\"" },
+      { icon: "📞", label: "Buyer calling", sub: "\"What\u2019s my status?\"" },
+      { icon: "💬", label: "WhatsApp chaos", sub: "Agent, buyer, lawyer \u2014 one thread" },
+      { icon: "📈", label: "Forecast unreliable", sub: "How many units converting?" },
+      { icon: "👥", label: "Sales team", sub: "Can\u2019t guide LPPSA buyers" },
+      { icon: "🖨️", label: "Too many forms", sub: "Manual, error-prone" },
+    ],
+    transitionCards: [
+      { label: "Share QR link", sub: "Link generation + invitation", actorIdx: 0 },
+      { label: "Buyer fills in details", sub: "PreScan self-service", actorIdx: 1 },
+      { label: "Agent handles it", sub: "Agent routing + Portal Kit", actorIdx: 2 },
+    ],
+    transitionBadge: "Developer monitors everything",
+    transitionBadgeSub: "Pipeline dashboard",
+    clarityBeats: [
+      { icon: "📄", label: "Docs structured", sub: "Checklist per loan type", actorIdx: 0 },
+      { icon: "🛡️", label: "Readiness filtered early", sub: "DSR risk caught before submission", actorIdx: 1 },
+      { icon: "✅", label: "Submission success", sub: ">90% cases complete on first try", actorIdx: 2 },
+    ],
+    clarityBadge: "Real-time Sales Pipeline",
+    dashboardChip: "4/5 cases progressing",
+    ctaPrimary: "See the Pipeline Demo",
+    ctaSecondary: "How It Works",
+    ctaMicro: "No signup required. See how 10 LPPSA cases flow through one dashboard \u2014 in real time.",
+    disclaimer: "This system is for reference only. No submission or approval is performed by the system.",
+    pipelineTitle: "See What Your Pipeline Will Look Like",
+    pipelineSub: "A dashboard showing every LPPSA case \u2014 from first document to final submission.",
+    pipelineCases: [
+      { name: "Ahmad bin Ismail", type: "Type 1", progress: 92, status: "ready", dsr: "Low", docs: "8/8" },
+      { name: "Siti Nurhaliza", type: "Type 4", progress: 75, status: "review", dsr: "Medium", docs: "6/8" },
+      { name: "Mohd Razif", type: "Type 1", progress: 45, status: "pending", dsr: "Unchecked", docs: "3/8" },
+      { name: "Noraini Hassan", type: "Type 2", progress: 100, status: "submitted", dsr: "Low", docs: "8/8" },
+      { name: "Kamal Effendi", type: "Type 4", progress: 60, status: "review", dsr: "High", docs: "5/8" },
+    ],
+    pipelineLabels: { name: "Buyer", type: "Type", progress: "Readiness", dsr: "DSR Risk", docs: "Documents", status: "Status" },
+    pipelineStatuses: { ready: "Ready", review: "In Review", pending: "Pending", submitted: "Submitted" },
+    pipelineFooter: "Monitor, don\u2019t chase. Every case shows its status clearly.",
+    pipelineCta: "Try Demo With Sample Data",
+  },
+}
+
+/* ─── SWEEP CONFIG ─── */
+type SweepConfig = { bg: string[]; accent: string; accentMuted: string; accentSoft: string; border: string; lineStops: string[] }
+const SWEEPS: Record<string, SweepConfig> = {
+  parties: { bg: [S[50], "white", S[50]], accent: T[500], accentMuted: T[300], accentSoft: T[300] + "40", border: S[200], lineStops: [T[400], T[500], T[400]] },
+  chaos: { bg: ["#FFF8F8", "white", S[50]], accent: "#EF4444", accentMuted: S[400], accentSoft: "#FCA5A520", border: "#FECACA50", lineStops: [S[300], S[400], S[300]] },
+  transition: { bg: [`${T[50]}60`, "white", `${T[50]}40`], accent: T[500], accentMuted: T[400], accentSoft: T[500] + "15", border: T[200], lineStops: [T[300], T[400], T[300]] },
+  clarity: { bg: [T[50] + "CC", "white", T[50] + "CC"], accent: T[500], accentMuted: T[400], accentSoft: T[500] + "18", border: T[200], lineStops: [T[400], T[500], T[400]] },
+}
+
+type SceneType = "parties" | "chaos" | "transition" | "clarity"
+
+/* ─── CHAOS ROTATIONS (flex grid) ─── */
+const chaosRotations = [-8, 5, -4, 7, -10, 3, -6, 9, -5]
+
+/* ─── FIXED ACTOR POSITIONS (constant across all 4 scenes) ─── */
+const ACTOR_POS = [
+  { x: "15%", y: "64%" },
+  { x: "50%", y: "64%" },
+  { x: "85%", y: "64%" },
+]
+
+/* ─── NODE SIZE per scene (developer always dominant) ─── */
+type NodeSize = { s: number; i: number; f: number }
+const NODE_SIZES: Record<SceneType, NodeSize[]> = {
+  parties:    [{ s:64, i:28, f:14 }, { s:60, i:26, f:14 }, { s:60, i:26, f:14 }],
+  chaos:      [{ s:60, i:26, f:14 }, { s:48, i:20, f:12 }, { s:48, i:20, f:12 }],
+  transition: [{ s:64, i:28, f:14 }, { s:50, i:22, f:12 }, { s:50, i:22, f:12 }],
+  clarity:    [{ s:64, i:28, f:14 }, { s:52, i:22, f:12 }, { s:52, i:22, f:12 }],
+}
+
+const SCENES: SceneType[] = ["parties", "chaos", "transition", "clarity"]
+const DURATIONS: Record<SceneType, number> = { parties: 3500, chaos: 5000, transition: 4000, clarity: 4500 }
+
+/* ─── HOOKS ─── */
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    setReduced(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
+  return reduced
+}
+
+/* ─── ICONS ─── */
+const IconDev = ({ s = 22, c = "currentColor" }: { s?: number; c?: string }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="10" width="18" height="11" rx="1" /><path d="M12 2l9 8H3l9-8z" />
+    <rect x="9" y="15" width="6" height="6" rx=".5" /><rect x="5" y="13" width="3" height="3" rx=".5" /><rect x="16" y="13" width="3" height="3" rx=".5" />
+  </svg>
+)
+const IconBuyer = ({ s = 22, c = "currentColor" }: { s?: number; c?: string }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="4.5" /><path d="M4 21c0-4.418 3.582-8 8-8s8 3.582 8 8" />
+  </svg>
+)
+const IconAgent = ({ s = 22, c = "currentColor" }: { s?: number; c?: string }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="8" cy="8" r="3.5" /><circle cx="16" cy="8" r="3.5" />
+    <path d="M2 21c0-3.5 2.5-6 6-6" /><path d="M22 21c0-3.5-2.5-6-6-6" /><path d="M8 15c2 1.5 6 1.5 8 0" />
+  </svg>
+)
+const ICONS = [IconDev, IconBuyer, IconAgent]
+
+/* ─── ARTIFACT CARD ─── */
+function ArtifactCard({ icon, label, sub, style: outerStyle, chaosActive }: {
+  icon: string; label: string; sub: string; style?: React.CSSProperties; chaosActive?: boolean
+}) {
+  return (
+    <div style={{
+      background: "white", borderRadius: "10px", padding: "8px 12px",
+      border: chaosActive ? "2px solid rgba(245,158,11,0.5)" : `1px solid ${S[200]}`,
+      boxShadow: chaosActive ? "0 2px 8px rgba(245,158,11,0.12)" : "0 1px 3px rgba(0,0,0,0.04)",
+      display: "flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap",
+      transition: "border-color 0.6s ease, box-shadow 0.6s ease",
+      ...outerStyle,
+    }}>
+      <span style={{ fontSize: "17px", flexShrink: 0 }}>{icon}</span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: "11px", fontWeight: 600, color: S[800], fontFamily: FD }}>{label}</div>
+        <div style={{ fontSize: "9.5px", color: S[400], fontFamily: FB, overflow: "hidden", textOverflow: "ellipsis", maxWidth: 150 }}>{sub}</div>
+      </div>
+    </div>
+  )
+}
+
+/* ═══ PARTY NODE — Fixed position, scene-driven appearance ═══ */
+function PartyNode({ icon: Icon, label, desc, scene, pos, idx, reduced, sweep, chipText }: {
+  icon: React.FC<{ s?: number; c?: string }>
+  label: string; desc: string; scene: SceneType
+  pos: { x: string; y: string }; idx: number
+  reduced: boolean; sweep: SweepConfig; chipText?: string | null
+}) {
+  const isParties = scene === "parties"
+  const isChaos = scene === "chaos"
+  const isClarity = scene === "clarity"
+  const isTransition = scene === "transition"
+  const isDev = idx === 0
+  const ns = NODE_SIZES[scene][idx]
+  const nodeColor = T[600]
+  const borderColor = isDev ? T[500] : T[400]
+  const bg = `linear-gradient(145deg, ${T[50]}, white)`
+  const labelColor = isDev ? T[700] : (isParties ? S[800] : T[700])
+  const scale = isDev && isTransition ? 1.05 : 1
+
+  return (
+    <div style={{
+      position: "absolute", left: pos.x, top: pos.y,
+      transform: `translate(-50%, -50%) scale(${scale})`, zIndex: isDev ? 20 : 15,
+      display: "flex", flexDirection: "column", alignItems: "center", gap: isDev ? 7 : 5,
+      transition: reduced ? "none" : "all 0.8s cubic-bezier(0.4,0,0.2,1)",
+    }}>
+      {isClarity && !reduced && (
+        <div style={{
+          position: "absolute", width: ns.s + 14, height: ns.s + 14, borderRadius: "50%",
+          border: `2px solid ${sweep.accent}${isDev ? '60' : '30'}`,
+          animation: `pulseRing 2.5s ease-out ${isDev ? 1 : 1.5 + idx * 0.3}s infinite`, opacity: 0,
+        }} />
+      )}
+      {isDev && (isClarity || isTransition) && !reduced && (
+        <div style={{
+          position: "absolute", width: ns.s + 24, height: ns.s + 24, borderRadius: "50%",
+          background: `radial-gradient(circle, ${T[500]}12 0%, transparent 70%)`,
+        }} />
+      )}
+      <div style={{
+        width: ns.s, height: ns.s, borderRadius: "50%",
+        background: bg, border: `2.5px solid ${borderColor}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        color: nodeColor,
+        boxShadow: isDev ? `0 4px 20px ${T[500]}20`
+          : isClarity ? `0 4px 16px ${sweep.accentSoft}`
+          : "0 2px 8px rgba(0,0,0,0.04)",
+        transition: reduced ? "none" : "all 0.7s cubic-bezier(0.4,0,0.2,1)",
+        animation: isChaos && !isDev && !reduced ? `shake 3s ease-in-out infinite ${idx * 0.4}s` : "none",
+      }}>
+        <Icon s={ns.i} c={nodeColor} />
+      </div>
+      <span style={{
+        fontFamily: FD, fontSize: `${ns.f}px`,
+        fontWeight: isDev ? 800 : (isParties ? 700 : 600),
+        color: labelColor,
+        transition: reduced ? "none" : "color 0.6s ease, font-size 0.6s ease",
+        textAlign: "center", maxWidth: isDev ? 120 : 100,
+      }}>{label}</span>
+      <span style={{
+        fontFamily: FB, fontSize: isDev ? "11px" : "10.5px",
+        color: isParties ? S[600] : S[700],
+        textAlign: "center", maxWidth: 130, lineHeight: 1.4,
+        fontWeight: isParties ? 600 : 500,
+        transition: reduced ? "none" : "opacity 0.5s ease",
+      }}>{desc}</span>
+      {isDev && isClarity && chipText && (
+        <div style={{
+          marginTop: 2,
+          display: "inline-flex", alignItems: "center", gap: 5,
+          background: `linear-gradient(135deg, ${T[50]}, white)`,
+          border: `1.5px solid ${T[300]}`,
+          borderRadius: "16px", padding: "3px 10px",
+          boxShadow: `0 2px 8px ${T[500]}15`,
+          animation: reduced ? "none" : "fadeIn 0.5s ease 1.2s both",
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: T[500], boxShadow: `0 0 0 2px ${T[500]}25` }} />
+          <span style={{ fontFamily: FD, fontSize: "9.5px", fontWeight: 600, color: T[700] }}>{chipText}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── CONNECTION LINES ─── */
+function ConnectionLines({ scene, reduced, ns, sweep }: {
+  scene: SceneType; reduced: boolean; ns: string; sweep: SweepConfig
+}) {
+  const isParties = scene === "parties"
+  const isChaos = scene === "chaos"
+  const isTransition = scene === "transition"
+  const isClarity = scene === "clarity"
+  const ly = "64%"
+
+  return (
+    <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 3, pointerEvents: "none" }}>
+      <defs>
+        <linearGradient id={`${ns}-line`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor={sweep.lineStops[0]} stopOpacity={0.2} />
+          <stop offset="50%" stopColor={sweep.lineStops[1]} stopOpacity={0.7} />
+          <stop offset="100%" stopColor={sweep.lineStops[2]} stopOpacity={0.2} />
+        </linearGradient>
+        <linearGradient id={`${ns}-muted`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor={sweep.accentMuted} stopOpacity={0} />
+          <stop offset="50%" stopColor={sweep.accentMuted} stopOpacity={0.35} />
+          <stop offset="100%" stopColor={sweep.accentMuted} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      {isParties && <>
+        <path d={`M 15% ${ly} Q 32.5% 44%, 50% ${ly}`} fill="none" stroke={`url(#${ns}-line)`} strokeWidth="2" strokeLinecap="round">
+          {!reduced && <>
+            <animate attributeName="stroke-dasharray" from="0 300" to="300 0" dur="0.8s" begin="0.4s" fill="freeze" />
+            <animate attributeName="opacity" values="0.5;0.8;0.5" dur="4s" begin="1.2s" repeatCount="indefinite" />
+          </>}
+        </path>
+        <path d={`M 50% ${ly} Q 67.5% 44%, 85% ${ly}`} fill="none" stroke={`url(#${ns}-line)`} strokeWidth="2" strokeLinecap="round">
+          {!reduced && <>
+            <animate attributeName="stroke-dasharray" from="0 300" to="300 0" dur="0.8s" begin="0.6s" fill="freeze" />
+            <animate attributeName="opacity" values="0.5;0.8;0.5" dur="4s" begin="1.4s" repeatCount="indefinite" />
+          </>}
+        </path>
+      </>}
+      {isChaos && <>
+        <line x1="17%" y1={ly} x2="48%" y2={ly} stroke={`url(#${ns}-muted)`} strokeWidth="1.3" strokeDasharray="6 4" opacity="0.4">
+          {!reduced && <animate attributeName="stroke-dashoffset" from="0" to="20" dur="2s" repeatCount="indefinite" />}
+        </line>
+        <line x1="52%" y1={ly} x2="83%" y2={ly} stroke={`url(#${ns}-muted)`} strokeWidth="1.3" strokeDasharray="6 4" opacity="0.4">
+          {!reduced && <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="1.8s" repeatCount="indefinite" />}
+        </line>
+        <path d={`M 20% 68% Q 34% 36%, 48% 62%`} fill="none" stroke={sweep.accentMuted} strokeWidth="0.8" strokeDasharray="3 5" opacity="0.15">
+          {!reduced && <animate attributeName="stroke-dashoffset" from="0" to="25" dur="3.5s" repeatCount="indefinite" />}
+        </path>
+        <path d={`M 80% 68% Q 66% 36%, 52% 62%`} fill="none" stroke={sweep.accentMuted} strokeWidth="0.8" strokeDasharray="3 5" opacity="0.15">
+          {!reduced && <animate attributeName="stroke-dashoffset" from="0" to="-25" dur="3s" repeatCount="indefinite" />}
+        </path>
+      </>}
+      {isTransition && <>
+        <line x1="19%" y1={ly} x2="46%" y2={ly} stroke={`url(#${ns}-line)`} strokeWidth="2" strokeLinecap="round" strokeDasharray="8 4" opacity="0.7">
+          {!reduced && <animate attributeName="stroke-dashoffset" from="24" to="0" dur="1.5s" repeatCount="indefinite" />}
+        </line>
+        <line x1="54%" y1={ly} x2="81%" y2={ly} stroke={`url(#${ns}-line)`} strokeWidth="2" strokeLinecap="round" strokeDasharray="8 4" opacity="0.7">
+          {!reduced && <animate attributeName="stroke-dashoffset" from="24" to="0" dur="1.5s" repeatCount="indefinite" />}
+        </line>
+      </>}
+      {isClarity && <>
+        <line x1="17%" y1={ly} x2="83%" y2={ly} stroke={`url(#${ns}-line)`} strokeWidth="3" strokeLinecap="round">
+          {!reduced && <animate attributeName="stroke-dasharray" from="0 800" to="800 0" dur="1s" begin="0.2s" fill="freeze" />}
+        </line>
+        {!reduced && [0, 1, 2].map(i => (
+          <circle key={i} r="4.5" fill={sweep.accent} opacity={0}>
+            <animate attributeName="cx" values="17%;83%" dur={`${4.5 + i * 0.6}s`} begin={`${1.2 + i * 0.9}s`} repeatCount="indefinite" />
+            <animate attributeName="cy" values={`${ly};${ly}`} dur={`${4.5 + i * 0.6}s`} begin={`${1.2 + i * 0.9}s`} repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0;0.7;0.7;0" dur={`${4.5 + i * 0.6}s`} begin={`${1.2 + i * 0.9}s`} repeatCount="indefinite" />
+          </circle>
+        ))}
+      </>}
+    </svg>
+  )
+}
+
+/* ─── CHAOS LAYER — Flex grid, upper zone ─── */
+function ChaosLayer({ active, reduced, cards }: {
+  active: boolean; reduced: boolean; cards: ChaosCard[]
+}) {
+  return (
+    <div style={{
+      position: "absolute", top: 0, left: 0, right: 0,
+      height: "44%", zIndex: 10,
+      opacity: active ? 1 : 0,
+      transition: reduced ? "none" : "opacity 0.6s ease",
+      pointerEvents: "none",
+      display: "flex", flexWrap: "wrap",
+      justifyContent: "center", alignContent: "center",
+      gap: "6px 8px", padding: "8px 12px", overflow: "hidden",
+    }}>
+      {cards.map((a, i) => {
+        const rot = chaosRotations[i] || 0
+        return (
+          <div key={i} style={{
+            transform: active ? `rotate(${rot}deg)` : "rotate(0deg) scale(0.5)",
+            opacity: active ? 1 : 0,
+            transition: reduced ? "none" : `all 0.7s cubic-bezier(0.4,0,0.2,1) ${i * 0.06}s`,
+            animation: active && !reduced ? `float-${i % 3} ${3 + (i % 3)}s ease-in-out infinite ${i * 0.2}s` : "none",
+            flexShrink: 0,
+          }}>
+            <ArtifactCard {...a} chaosActive />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ═══ TRANSITION LAYER — Cards mapped to actors ═══ */
+function TransitionLayer({ active, reduced, cards, badgeText, badgeSub }: {
+  active: boolean; reduced: boolean; cards: TransitionCard[]; badgeText: string; badgeSub: string
+}) {
+  const cardX = ["15%", "50%", "85%"]
+  return (
+    <div style={{
+      position: "absolute", inset: 0, zIndex: 10,
+      opacity: active ? 1 : 0,
+      transition: reduced ? "none" : "opacity 0.5s ease",
+      pointerEvents: "none",
+    }}>
+      {cards.map((card, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          left: cardX[card.actorIdx],
+          top: "18%",
+          transform: "translateX(-50%)",
+          opacity: active ? 1 : 0,
+          transition: reduced ? "none" : `all 0.5s cubic-bezier(0.4,0,0.2,1) ${0.2 + i * 0.15}s`,
+        }}>
+          <div style={{
+            background: "white", borderRadius: "10px", padding: "8px 12px",
+            border: `1.5px solid ${T[400]}`,
+            boxShadow: `0 2px 8px ${T[500]}10`,
+            display: "flex", alignItems: "center", gap: 8, width: 200,
+          }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: "50%",
+              background: T[600],
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: "10.5px", fontWeight: 600, color: S[800], fontFamily: FD, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{card.label}</div>
+              <div style={{ fontSize: "9px", color: T[500], fontFamily: FB, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{card.sub}</div>
+            </div>
+          </div>
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "center",
+            height: 36, position: "relative", overflow: "hidden",
+            opacity: active ? 1 : 0,
+            transition: reduced ? "none" : `opacity 0.4s ease ${0.5 + i * 0.15}s`,
+          }}>
+            <div style={{ width: 1, height: "100%", background: `linear-gradient(to bottom, ${T[400]}60, ${T[400]}15)` }} />
+            {!reduced && [0, 1].map(d => (
+              <div key={d} style={{
+                position: "absolute", left: "50%", transform: "translateX(-50%)",
+                width: 4, height: 4, borderRadius: "50%",
+                background: T[500],
+                animation: `dotStream ${1.8 + d * 0.4}s ease-in-out ${0.6 + i * 0.2 + d * 0.7}s infinite`,
+              }} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ─── CLARITY LAYER — 3 cards above actors ─── */
+function ClarityLayer({ active, reduced, sweep, beats, badgeText }: {
+  active: boolean; reduced: boolean; sweep: SweepConfig; beats: ClarityBeat[]; badgeText: string
+}) {
+  const cardX = ["15%", "50%", "85%"]
+  return (
+    <div style={{
+      position: "absolute", inset: 0, zIndex: 10,
+      opacity: active ? 1 : 0,
+      filter: active ? "blur(0px)" : "blur(1px)",
+      transition: reduced ? "none" : "opacity 0.5s ease, filter 0.8s ease",
+      pointerEvents: "none",
+    }}>
+      {/* Snang badge — top */}
+      <div style={{
+        position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)",
+        opacity: active ? 1 : 0,
+        transition: reduced ? "none" : "all 0.5s ease 0.3s", zIndex: 5,
+      }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 10,
+          background: `linear-gradient(135deg, ${T[600]}, ${T[700]})`,
+          padding: "8px 22px", borderRadius: "40px",
+          boxShadow: `0 3px 16px ${sweep.accent}30`,
+        }}>
+          <div style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontFamily: FD, fontSize: "10px", fontWeight: 800, color: "white" }}>S</span>
+          </div>
+          <span style={{ fontFamily: FD, color: "white", fontWeight: 600, fontSize: "12px" }}>Snang.my</span>
+          <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.2)" }} />
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          <span style={{ fontFamily: FD, color: "white", fontWeight: 600, fontSize: "12px" }}>{badgeText}</span>
+        </div>
+      </div>
+
+      {/* 3 outcome cards */}
+      {beats.map((beat, i) => {
+        const isDev = beat.actorIdx === 0
+        return (
+          <div key={i} style={{
+            position: "absolute",
+            left: cardX[beat.actorIdx],
+            top: "18%",
+            transform: "translateX(-50%)",
+            opacity: active ? 1 : 0,
+            transition: reduced ? "none" : `all 0.5s cubic-bezier(0.4,0,0.2,1) ${0.3 + i * 0.15}s`,
+          }}>
+            <div style={{
+              background: isDev ? `linear-gradient(145deg, ${T[50]}, white)` : "white",
+              borderRadius: "10px", padding: "10px 14px",
+              border: `1.5px solid ${isDev ? T[500] : T[300]}`,
+              boxShadow: isDev ? `0 4px 16px ${sweep.accent}25` : `0 2px 8px ${sweep.accent}10`,
+              display: "flex", alignItems: "center", gap: 8,
+              width: isDev ? 220 : 190, height: 52,
+            }}>
+              <div style={{
+                width: isDev ? 24 : 20, height: isDev ? 24 : 20, borderRadius: "50%",
+                background: T[600], flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width={isDev ? 12 : 10} height={isDev ? 12 : 10} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: isDev ? "11px" : "10px", fontWeight: 600, fontFamily: FD, color: T[800] }}>{beat.label}</div>
+                <div style={{ fontSize: isDev ? "9px" : "8.5px", fontFamily: FB, color: T[500] }}>{beat.sub}</div>
+              </div>
+            </div>
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              height: isDev ? 44 : 36, position: "relative", overflow: "hidden",
+              opacity: active ? 1 : 0,
+              transition: reduced ? "none" : `opacity 0.4s ease ${0.6 + i * 0.15}s`,
+            }}>
+              <div style={{ width: 1, height: "100%", background: `linear-gradient(to bottom, ${T[400]}60, ${T[400]}15)` }} />
+              {!reduced && [0, 1].map(d => (
+                <div key={d} style={{
+                  position: "absolute", left: "50%", transform: "translateX(-50%)",
+                  width: 4, height: 4, borderRadius: "50%",
+                  background: sweep.accent,
+                  animation: `dotStream ${1.8 + d * 0.4}s ease-in-out ${0.8 + i * 0.2 + d * 0.7}s infinite`,
+                }} />
+              ))}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ─── STEP INDICATOR (4 steps) ─── */
+function StepIndicator({ scene, steps, onClick }: {
+  scene: SceneType; steps: StepLabel[]; onClick: (s: SceneType) => void
+}) {
+  const activeIdx = SCENES.indexOf(scene)
+  return (
+    <div style={{
+      position: "absolute", bottom: 14, left: "50%", transform: "translateX(-50%)",
+      zIndex: 30, display: "flex", alignItems: "center", gap: 6,
+      background: "white", borderRadius: "40px", padding: "5px 10px",
+      boxShadow: "0 1px 8px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03)",
+    }}>
+      {SCENES.map((s, i) => {
+        const isActive = s === scene
+        const isPast = i < activeIdx
+        return (
+          <button key={s} onClick={() => onClick(s)} style={{
+            display: "flex", alignItems: "center", gap: 5,
+            border: "none", cursor: "pointer", padding: isActive ? "3px 12px 3px 6px" : "3px",
+            borderRadius: "20px",
+            background: isActive ? T[600] : "transparent",
+            transition: "all 0.35s ease",
+          }}>
+            <div style={{
+              width: 8, height: 8, borderRadius: "50%",
+              background: isActive ? "white" : isPast ? T[500] : S[300],
+              transition: "all 0.35s ease",
+              boxShadow: isPast ? `0 0 0 2px ${T[500]}30` : "none",
+            }} />
+            {isActive && <span style={{ fontFamily: FD, fontSize: "10px", fontWeight: 600, color: "white", whiteSpace: "nowrap" }}>{steps[i].label}</span>}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ═══ BELOW-FOLD: Pipeline Preview ═══ */
+function PipelinePreview({ copy }: { copy: LocaleCopy }) {
+  const statusColors: Record<string, { bg: string; border: string; text: string }> = {
+    ready: { bg: T[50], border: T[300], text: T[700] },
+    review: { bg: A[50], border: A[400], text: A[500] },
+    pending: { bg: S[100], border: S[300], text: S[500] },
+    submitted: { bg: "#ECFDF5", border: "#6EE7B7", text: "#059669" },
+  }
+  const dsrColors: Record<string, string> = {
+    Rendah: T[500], Low: T[500], Sederhana: A[500], Medium: A[500],
+    Tinggi: "#EF4444", High: "#EF4444", "Belum semak": S[400], Unchecked: S[400],
+  }
+
+  return (
+    <section style={{ padding: "80px 32px", background: "white", borderTop: `1px solid ${S[200]}` }}>
+      <div style={{ maxWidth: 860, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: T[50], border: `1.5px solid ${T[200]}`, borderRadius: "40px",
+            padding: "5px 14px", marginBottom: 16,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T[600]} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+            <span style={{ fontFamily: FD, fontSize: "12px", fontWeight: 600, color: T[700] }}>Pipeline Dashboard</span>
+          </div>
+          <h2 style={{
+            fontFamily: FD, fontSize: "clamp(24px, 3.5vw, 36px)",
+            fontWeight: 800, color: S[900], letterSpacing: "-0.02em", margin: "0 0 12px",
+          }}>{copy.pipelineTitle}</h2>
+          <p style={{
+            fontFamily: FB, fontSize: "15px", color: S[500],
+            maxWidth: 480, margin: "0 auto", lineHeight: 1.6,
+          }}>{copy.pipelineSub}</p>
+        </div>
+
+        <div style={{
+          background: S[50], borderRadius: "16px", border: `1px solid ${S[200]}`,
+          overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.04)",
+        }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "12px 20px", background: "white", borderBottom: `1px solid ${S[200]}`,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: T[500] }} />
+              <span style={{ fontFamily: FD, fontSize: "13px", fontWeight: 700, color: S[800] }}>LPPSA Pipeline</span>
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <span style={{ fontFamily: FB, fontSize: "11px", color: S[400] }}>5 {copy.pipelineLabels.name.toLowerCase()}</span>
+              <span style={{ fontFamily: FB, fontSize: "11px", color: T[500], fontWeight: 600 }}>3 {copy.pipelineStatuses.ready.toLowerCase()}</span>
+            </div>
+          </div>
+
+          <div style={{
+            display: "grid", gridTemplateColumns: "1.8fr 0.8fr 2fr 0.9fr 0.7fr 1fr",
+            padding: "10px 20px", borderBottom: `1px solid ${S[200]}`, background: S[100],
+          }}>
+            {[copy.pipelineLabels.name, copy.pipelineLabels.type, copy.pipelineLabels.progress, copy.pipelineLabels.dsr, copy.pipelineLabels.docs, copy.pipelineLabels.status].map(h => (
+              <span key={h} style={{ fontFamily: FD, fontSize: "10px", fontWeight: 600, color: S[500], textTransform: "uppercase", letterSpacing: "0.04em" }}>{h}</span>
+            ))}
+          </div>
+
+          {copy.pipelineCases.map((c, i) => {
+            const sc = statusColors[c.status] || statusColors.pending
+            const dc = dsrColors[c.dsr] || S[400]
+            return (
+              <div key={i} style={{
+                display: "grid", gridTemplateColumns: "1.8fr 0.8fr 2fr 0.9fr 0.7fr 1fr",
+                padding: "12px 20px", alignItems: "center",
+                borderBottom: i < copy.pipelineCases.length - 1 ? `1px solid ${S[200]}` : "none",
+                background: i % 2 === 0 ? "white" : S[50],
+              }}>
+                <span style={{ fontFamily: FD, fontSize: "12px", fontWeight: 600, color: S[800] }}>{c.name}</span>
+                <span style={{ fontFamily: FB, fontSize: "11px", color: S[500] }}>{c.type}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ flex: 1, height: 6, borderRadius: 3, background: S[200], overflow: "hidden" }}>
+                    <div style={{
+                      width: `${c.progress}%`, height: "100%", borderRadius: 3,
+                      background: c.progress >= 90 ? T[500] : c.progress >= 60 ? A[400] : S[400],
+                      transition: "width 1s cubic-bezier(0.4,0,0.2,1)",
+                    }} />
+                  </div>
+                  <span style={{ fontFamily: FB, fontSize: "10px", fontWeight: 600, color: S[600], minWidth: 28 }}>{c.progress}%</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: dc }} />
+                  <span style={{ fontFamily: FB, fontSize: "11px", color: dc, fontWeight: 500 }}>{c.dsr}</span>
+                </div>
+                <span style={{ fontFamily: FB, fontSize: "11px", color: S[600] }}>{c.docs}</span>
+                <div style={{
+                  display: "inline-flex", alignItems: "center",
+                  padding: "3px 10px", borderRadius: "12px",
+                  background: sc.bg, border: `1px solid ${sc.border}`,
+                }}>
+                  <span style={{ fontFamily: FD, fontSize: "10px", fontWeight: 600, color: sc.text }}>{(copy.pipelineStatuses as Record<string, string>)[c.status]}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: 32 }}>
+          <p style={{ fontFamily: FB, fontSize: "14px", color: S[500], marginBottom: 20, fontStyle: "italic" }}>{copy.pipelineFooter}</p>
+          <Link href="/demo" style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "13px 28px", borderRadius: "10px",
+            background: T[600], color: "white", border: "none",
+            fontSize: "15px", fontWeight: 600, fontFamily: FD,
+            cursor: "pointer", boxShadow: `0 3px 14px ${T[600]}35`,
+            textDecoration: "none",
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+            {copy.pipelineCta}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN HERO SECTION (v6: 4-act, 17s cycle, bilingual BM/EN)
+   ═══════════════════════════════════════════════════════════ */
+export function HeroSection() {
+  const [scene, setScene] = useState<SceneType>("parties")
+  const [paused, setPaused] = useState(false)
+  const { lang } = useLocale()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const reduced = usePrefersReducedMotion()
+  const ns = useId().replace(/:/g, "")
+
+  const copy = COPY[lang]
+  const sweep = SWEEPS[scene]
+
+  const startCycleFrom = useCallback((startScene: SceneType) => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    let idx = SCENES.indexOf(startScene)
+    const next = () => {
+      idx = (idx + 1) % 4
+      setScene(SCENES[idx])
+      timerRef.current = setTimeout(next, DURATIONS[SCENES[idx]])
+    }
+    timerRef.current = setTimeout(next, DURATIONS[startScene])
+  }, [])
+
+  useEffect(() => {
+    if (!paused) startCycleFrom(scene)
+    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paused])
+
+  const handleStepClick = (s: SceneType) => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    setPaused(true)
+    setScene(s)
+  }
+
+  useEffect(() => {
+    if (!paused) return
+    const t = setTimeout(() => setPaused(false), 8000)
+    return () => clearTimeout(t)
+  }, [paused, scene])
+
+  const renderSubtitle = () => {
+    const cfg: SubtitleCfg = scene === "parties" ? copy.subtitleParties
+      : scene === "chaos" ? copy.subtitleChaos
+      : scene === "transition" ? copy.subtitleTransition
+      : copy.subtitleClarity
+    const accentColor = scene === "chaos" ? "#EF4444" : T[600]
+    const anim = scene === "parties" ? "fadeIn 0.4s ease"
+      : scene === "chaos" ? "fadeIn 0.3s ease"
+      : scene === "transition" ? "slideUp 0.4s ease"
+      : "fadeInSlow 0.6s ease"
+    return (
+      <p key={`${scene}-${lang}`} style={{
+        fontFamily: FB, fontSize: "16px", color: S[500],
+        textAlign: "center", marginTop: 14, maxWidth: 520, lineHeight: 1.6,
+        animation: reduced ? "none" : anim,
+      }}>
+        {cfg.before || cfg.plain}
+        <span style={{ color: accentColor, fontWeight: 600 }}>{cfg.accent}</span>
+        {cfg.after}
+      </p>
+    )
+  }
+
+  return (
+    <div style={{ fontFamily: FB, background: S[50], display: "flex", flexDirection: "column" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+      <style>{`
+        @keyframes float-0 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+        @keyframes float-1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        @keyframes float-2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+        @keyframes shake { 0%,100%{transform:rotate(0)} 20%{transform:rotate(-2deg)} 40%{transform:rotate(2deg)} 60%{transform:rotate(-1.5deg)} 80%{transform:rotate(0.5deg)} }
+        @keyframes pulseRing { 0%{transform:scale(1);opacity:0.35} 100%{transform:scale(1.6);opacity:0} }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes slideUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeInSlow { from{opacity:0} to{opacity:1} }
+        @keyframes dotStream { 0%{top:-4px;opacity:0} 15%{opacity:0.8} 85%{opacity:0.8} 100%{top:100%;opacity:0} }
+        @keyframes colorSweep { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        @media (prefers-reduced-motion: reduce) { .sweep-stage { animation: none !important; } }
+      `}</style>
+
+      {/* ─── HERO ─── */}
+      <main style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        {/* Pill Badge */}
+        <div style={{
+          marginTop: 36, display: "inline-flex", alignItems: "center", gap: 8,
+          background: T[50], border: `1.5px solid ${T[300]}`, borderRadius: "40px", padding: "7px 18px",
+        }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: T[500], boxShadow: `0 0 0 3px ${T[500]}25` }} />
+          <span style={{ fontFamily: FD, fontSize: "13px", fontWeight: 600, color: T[700] }}>{copy.pill}</span>
+        </div>
+
+        {/* Headline */}
+        <h1 key={`h-${lang}`} style={{
+          fontFamily: FD,
+          fontSize: "clamp(32px, 4.5vw, 56px)",
+          fontWeight: 800, textAlign: "center",
+          lineHeight: 1.1, letterSpacing: "-0.03em",
+          margin: "24px 0 0", color: S[900],
+          animation: reduced ? "none" : "fadeIn 0.4s ease",
+        }}>
+          {copy.headline1}<br />
+          <span style={{ color: T[600] }}>{copy.headline2}</span>
+        </h1>
+
+        {/* Subtitle */}
+        {renderSubtitle()}
+
+        {/* ── STAGE ── */}
+        <div className="sweep-stage" style={{
+          position: "relative", width: "100%", maxWidth: 800, height: 420,
+          margin: "28px auto 0", borderRadius: "16px",
+          background: `linear-gradient(270deg, ${sweep.bg[0]}, ${sweep.bg[1]}, ${sweep.bg[2]})`,
+          backgroundSize: "300% 300%",
+          animation: reduced ? "none" : "colorSweep 14s ease-in-out infinite",
+          border: `1px solid ${sweep.border}`,
+          overflow: "hidden",
+          transition: reduced ? "none" : "border-color 0.7s ease, box-shadow 0.7s ease",
+          boxShadow: scene === "transition" ? `0 4px 24px ${T[500]}20`
+            : scene === "clarity" ? `0 4px 24px ${sweep.accentSoft}`
+            : "0 4px 24px rgba(0,0,0,0.04)",
+        }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: `radial-gradient(${S[300]}20 1px, transparent 1px)`,
+            backgroundSize: "20px 20px",
+            opacity: scene === "clarity" ? 0.25 : 0.4,
+            transition: "opacity 0.6s ease",
+          }} />
+
+          <ConnectionLines scene={scene} reduced={reduced} ns={ns} sweep={sweep} />
+          <ChaosLayer active={scene === "chaos"} reduced={reduced} cards={copy.chaosCards} />
+
+          {/* Parties scene title */}
+          {scene === "parties" && (
+            <div style={{
+              position: "absolute", top: "10%", left: 0, right: 0,
+              zIndex: 12, display: "flex", justifyContent: "center",
+              animation: reduced ? "none" : "fadeIn 0.5s ease 0.2s both",
+            }}>
+              <div style={{
+                fontFamily: FD, fontSize: "13px",
+                fontWeight: 700, color: "white",
+                background: T[600], padding: "8px 20px", borderRadius: "10px",
+                boxShadow: `0 2px 10px ${T[600]}30`,
+                textAlign: "center", whiteSpace: "nowrap",
+              }}>{copy.partiesTitle}</div>
+            </div>
+          )}
+
+          <TransitionLayer active={scene === "transition"} reduced={reduced}
+            cards={copy.transitionCards} badgeText={copy.transitionBadge} badgeSub={copy.transitionBadgeSub} />
+          <ClarityLayer active={scene === "clarity"} reduced={reduced} sweep={sweep}
+            beats={copy.clarityBeats} badgeText={copy.clarityBadge} />
+
+          {/* Fixed-position actor nodes */}
+          {ICONS.map((Icon, i) => (
+            <PartyNode key={i} icon={Icon}
+              label={copy.actors[i].label} desc={copy.actors[i].desc}
+              scene={scene} pos={ACTOR_POS[i]} idx={i}
+              reduced={reduced} sweep={sweep}
+              chipText={i === 0 ? copy.dashboardChip : null}
+            />
+          ))}
+
+          <StepIndicator scene={scene} steps={copy.steps} onClick={handleStepClick} />
+        </div>
+
+        {/* CTA */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 28 }}>
+          <Link href="/demo" style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "13px 28px", borderRadius: "10px",
+            background: T[600], color: "white", border: "none",
+            fontSize: "15px", fontWeight: 600, fontFamily: FD,
+            cursor: "pointer", boxShadow: `0 3px 14px ${T[600]}35`,
+            textDecoration: "none",
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+            {copy.ctaPrimary}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+          </Link>
+          <Link href={lang === "bm" ? "#bagaimana" : "#how-it-works"} style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "13px 22px", borderRadius: "10px",
+            background: "transparent", color: S[600], border: "none",
+            fontSize: "14px", fontWeight: 500, fontFamily: FD, cursor: "pointer",
+            textDecoration: "none",
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+            {copy.ctaSecondary}
+          </Link>
+        </div>
+
+        {/* Micro-copy */}
+        <p style={{ fontFamily: FB, fontSize: "12px", color: S[400], marginTop: 14, textAlign: "center", maxWidth: 420 }}>
+          {copy.ctaMicro}
+        </p>
+
+        {/* Disclaimer */}
+        <p style={{ fontFamily: FB, fontSize: "10px", color: S[300], marginTop: 24, marginBottom: 0, textAlign: "center", maxWidth: 400 }}>
+          {copy.disclaimer}
+        </p>
+      </main>
+
+      {/* Below-fold Pipeline Preview */}
+      <PipelinePreview copy={copy} />
+    </div>
+  )
+}

@@ -1,38 +1,32 @@
 import { Metadata } from 'next'
 import { Navbar } from './sections/navbar'
-import { TrustStrip, TrustSection } from '@/components/trust'
 import { HeroSection } from './sections/hero'
-import { StatsSection } from './sections/stats'
-import { ProblemsSection } from './sections/problems'
-import { PersonasSection } from './sections/personas'
+import { WhyMattersSection } from './sections/why-matters'
+import { ContrastSection } from './sections/contrast'
 import { HowItWorksSection } from './sections/how-it-works'
-import { SocialProofSection } from './sections/social-proof'
+import { TrustSection } from '@/components/trust'
 import { FinalCTASection } from './sections/final-cta'
 import { Footer } from './sections/footer'
+import { LocaleProvider } from './context/locale'
 
 export const metadata: Metadata = {
-  title: 'Snang.my — Satu Platform. Tiga Peranan. Sifar Leceh.',
-  description: 'Platform kesediaan pinjaman LPPSA untuk pemaju, pembeli rumah, dan ejen hartanah Malaysia. Semak kelayakan dalam 5 minit.',
+  title: 'Snang.my — LPPSA Pipeline Intelligence untuk Pemaju',
+  description: 'Platform kawalan pipeline LPPSA untuk pemaju hartanah Malaysia. Pantau kes, bukan kejar pembeli.',
 }
 
 export default function HomePage() {
   return (
-    <>
+    <LocaleProvider>
       <Navbar />
-      <div className="pt-16">
-        <TrustStrip />
-      </div>
-      <main className="min-h-screen bg-neutral-50">
+      <main className="min-h-screen bg-neutral-50 pt-16">
         <HeroSection />
-        <StatsSection />
-        <ProblemsSection />
-        <PersonasSection />
+        <WhyMattersSection />
+        <ContrastSection />
         <HowItWorksSection />
         <TrustSection />
-        <SocialProofSection />
         <FinalCTASection />
       </main>
       <Footer />
-    </>
+    </LocaleProvider>
   )
 }
