@@ -1,34 +1,13 @@
 .vercel
 
-# Next.js build output
-.next/
-
-# dependencies
-node_modules/
-
-# next
-.next/
-out/
-
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# env
-.env
-.env.local
-.env.*.local
-
-# dependencies
-node_modules/
-
 # Next.js
 .next/
 out/
 
-# local env files
+# dependencies
+node_modules/
+
+# env
 .env
 .env.local
 .env.*.local
@@ -42,4 +21,16 @@ pnpm-debug.log*
 # misc
 .DS_Store
 supabase/.temp/
-supabase/.temp/
+
+# backup files
+*.bak
+
+# shell scripts (dev-only)
+*.sh
+
+# SQL seeds (keep in supabase/ if needed)
+*.sql
+
+# stray component drafts in root
+/developer-page.tsx
+/route.ts

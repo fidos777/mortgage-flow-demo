@@ -1,1 +1,0 @@
-bash bm4-simple.sh
