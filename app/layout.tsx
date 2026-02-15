@@ -99,11 +99,20 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Favicon */}
+        {/* Favicon + App Icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/icon-167.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png" />
         <link rel="manifest" href="/manifest.json" />
+
+        {/* PWA — standalone mode (no Safari UI on iOS home screen) */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Snang.my" />
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={`
         font-sans antialiased
