@@ -571,8 +571,7 @@ function StepIndicator({ scene, steps, onClick }: {
 /* ═══════════════════════════════════════════
    ANIMATED STAGE — The client-side scene engine
    ═══════════════════════════════════════════ */
-function AnimatedStage({ copy, reduced }: { copy: LocaleCopy; reduced: boolean }) {
-  const [scene, setScene] = useState<SceneType>('parties')
+function AnimatedStage({ copy, reduced, scene, onSceneChange }: { copy: LocaleCopy; reduced: boolean; scene: SceneType; onSceneChange: (s: SceneType) => void }) {
   const [paused, setPaused] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const ns = useId().replace(/:/g, '')
@@ -583,11 +582,11 @@ function AnimatedStage({ copy, reduced }: { copy: LocaleCopy; reduced: boolean }
     let idx = SCENES.indexOf(startScene)
     const next = () => {
       idx = (idx + 1) % 4
-      setScene(SCENES[idx])
+      onSceneChange(SCENES[idx])
       timerRef.current = setTimeout(next, DURATIONS[SCENES[idx]])
     }
     timerRef.current = setTimeout(next, DURATIONS[startScene])
-  }, [])
+  }, [onSceneChange])
 
   useEffect(() => {
     if (!paused) startCycleFrom(scene)
@@ -598,7 +597,7 @@ function AnimatedStage({ copy, reduced }: { copy: LocaleCopy; reduced: boolean }
   const handleStepClick = (s: SceneType) => {
     if (timerRef.current) clearTimeout(timerRef.current)
     setPaused(true)
-    setScene(s)
+    onSceneChange(s)
   }
 
   useEffect(() => {
@@ -857,6 +856,7 @@ export function HeroSection() {
   const { lang } = useLocale()
   const reduced = usePrefersReducedMotion()
   const copy = COPY[lang]
+  const [scene, setScene] = useState<SceneType>('parties')
 
   return (
     <div className="font-body bg-slate-50 flex flex-col">
@@ -887,14 +887,14 @@ export function HeroSection() {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           {copy.headline1}<br />
-          <span className="text-teal-600">{copy.headline2}</span>
+          <span style={{ color: A[500] }}>{copy.headline2}</span>
         </motion.h1>
 
         {/* Subtitle — driven by AnimatedStage scene via shared state */}
-        <SubtitleRenderer copy={copy} reduced={reduced} />
+        <SubtitleRenderer copy={copy} reduced={reduced} scene={scene} />
 
         {/* ANIMATED STAGE */}
-        <AnimatedStage copy={copy} reduced={reduced} />
+        <AnimatedStage copy={copy} reduced={reduced} scene={scene} onSceneChange={setScene} />
 
         {/* CTA row */}
         <motion.div
@@ -941,23 +941,47 @@ export function HeroSection() {
   )
 }
 
-/* ─── SUBTITLE (renders based on internal stage scene) ─── */
-function SubtitleRenderer({ copy, reduced }: { copy: LocaleCopy; reduced: boolean }) {
-  // The subtitle is now static in the shell — shows parties subtitle by default
-  // When AnimatedStage is more decoupled, subtitle can sync via shared state
-  // For V7, we show the parties subtitle as the hero default
-  const cfg = copy.subtitleParties
-  const accentColor = T[600]
+/* ─── SUBTITLE (syncs with stage scene via lifted state) ─── */
+const SUBTITLE_MAP: Record<SceneType, keyof Pick<LocaleCopy, 'subtitleParties' | 'subtitleChaos' | 'subtitleTransition' | 'subtitleClarity'>> = {
+  parties: 'subtitleParties',
+  chaos: 'subtitleChaos',
+  transition: 'subtitleTransition',
+  clarity: 'subtitleClarity',
+}
+
+const SUBTITLE_ACCENT: Record<SceneType, string> = {
+  parties: T[600],
+  chaos: A[500],       // amber/orange for chaos emphasis
+  transition: T[600],
+  clarity: T[600],
+}
+
+function SubtitleRenderer({ copy, reduced, scene }: { copy: LocaleCopy; reduced: boolean; scene: SceneType }) {
   return (
-    <motion.p
-      className="font-body text-base text-slate-500 text-center mt-3.5 max-w-[520px] leading-relaxed"
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2, duration: 0.4 }}
-    >
-      {cfg.before || cfg.plain}
-      <span className="font-semibold" style={{ color: accentColor }}>{cfg.accent}</span>
-      {cfg.after}
-    </motion.p>
+    <div className="mt-3.5 max-w-[520px] px-4" style={{ display: 'grid' }}>
+      {/* All 4 subtitles occupy the same grid cell — container sizes to the tallest */}
+      {SCENES.map(s => {
+        const cfg = copy[SUBTITLE_MAP[s]]
+        const isActive = s === scene
+        return (
+          <motion.p
+            key={s}
+            className="font-body text-[14px] sm:text-base text-slate-500 text-center leading-relaxed"
+            style={{ gridRow: 1, gridColumn: 1 }}
+            initial={false}
+            animate={{
+              opacity: isActive ? 1 : 0,
+              y: isActive ? 0 : 4,
+            }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            aria-hidden={!isActive}
+          >
+            {cfg.before || cfg.plain}
+            <span className="font-semibold" style={{ color: SUBTITLE_ACCENT[s] }}>{cfg.accent}</span>
+            {cfg.after}
+          </motion.p>
+        )
+      })}
+    </div>
   )
 }
