@@ -13,7 +13,7 @@ interface Badge { icon: LucideIcon; title: string; desc: string }
 
 const COPY: Record<'bm' | 'en', { title: string; sub: string; badges: Badge[] }> = {
   bm: {
-    title: 'Kawalan & Pematuhan Gred Perusahaan',
+    title: 'Kawalan & Pematuhan Data',
     sub: 'Dibina untuk pemaju yang menguruskan data sensitif pembeli.',
     badges: [
       { icon: Shield, title: 'PDPA 2010', desc: 'Mematuhi Akta Perlindungan Data Peribadi Malaysia' },
@@ -22,7 +22,7 @@ const COPY: Record<'bm' | 'en', { title: string; sub: string; badges: Badge[] }>
     ],
   },
   en: {
-    title: 'Enterprise-Grade Control & Compliance',
+    title: 'Data Control & Compliance',
     sub: 'Built for developers handling sensitive buyer data.',
     badges: [
       { icon: Shield, title: 'PDPA 2010', desc: 'Compliant with Malaysia\u2019s Personal Data Protection Act' },
