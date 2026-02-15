@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, X, ArrowRight, Globe } from 'lucide-react'
 import { useLocale, type Locale } from '@/app/context/locale'
+import { SnangLogo } from '@/components/snang-logo'
 
 function LanguageToggle() {
   const { lang, setLang } = useLocale()
@@ -47,8 +48,12 @@ export function Navbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold text-primary">Snang.my</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <SnangLogo size={28} animation="none" />
+            <span className="font-display text-[18px] font-extrabold tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+              <span className="text-primary">Snang</span>
+              <span className="text-slate-400">.my</span>
+            </span>
           </Link>
           
           {/* Desktop Navigation */}

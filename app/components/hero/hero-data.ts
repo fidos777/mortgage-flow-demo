@@ -139,7 +139,7 @@ export const CHAOS_ROTATIONS = [-8, 5, -4, 7, -10, 3, -6, 9, -5]
    ═══════════════════════════════════════════ */
 export const COPY: Record<Locale, LocaleCopy> = {
   bm: {
-    pill: 'Kawalan Permohonan dan Kelulusan LPPSA untuk Pemaju',
+    pill: 'Kawalan Permohonan dan Kesediaan LPPSA untuk Pemaju',
     headline1: 'LPPSA Tak Sepatutnya',
     headline2: 'Perlahankan Jualan Anda.',
     actors: [
@@ -197,7 +197,7 @@ export const COPY: Record<Locale, LocaleCopy> = {
       { icon: 'Shield', label: 'Kesediaan ditapis awal', sub: 'Risiko DSR dikesan sebelum submit', actorIdx: 1 },
       { icon: 'CheckCircle2', label: 'Submission berjaya', sub: '>90% kes lengkap pertama kali', actorIdx: 2 },
     ],
-    clarityBadge: 'Real-time Sales Pipeline',
+    clarityBadge: 'Sales Pipeline Visibility',
     dashboardChip: '4/5 kes progressing',
     ctaPrimary: 'Lihat Demo Pipeline',
     ctaSecondary: 'Bagaimana Ia Berfungsi',
@@ -293,7 +293,7 @@ export const COPY: Record<Locale, LocaleCopy> = {
       { icon: 'Shield', label: 'Readiness filtered early', sub: 'DSR risk caught before submission', actorIdx: 1 },
       { icon: 'CheckCircle2', label: 'Submission success', sub: '>90% cases complete on first try', actorIdx: 2 },
     ],
-    clarityBadge: 'Real-time Sales Pipeline',
+    clarityBadge: 'Sales Pipeline Visibility',
     dashboardChip: '4/5 cases progressing',
     ctaPrimary: 'See the Pipeline Demo',
     ctaSecondary: 'How It Works',

@@ -37,11 +37,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Snang.my — Semak Kelayakan Rumah, Tanpa Leceh',
+    default: 'Snang.my — LPPSA Pipeline Intelligence untuk Pemaju',
     template: '%s | Snang.my',
   },
-  description: 'Platform kesediaan pinjaman LPPSA untuk pembeli rumah, pemaju, dan ejen hartanah Malaysia.',
-  keywords: ['LPPSA', 'pinjaman rumah', 'kelayakan', 'pembiayaan', 'hartanah', 'Malaysia'],
+  description: 'Platform kawalan pipeline LPPSA untuk pemaju hartanah Malaysia. Pantau kes, bukan kejar pembeli.',
+  keywords: ['LPPSA', 'pipeline', 'pemaju', 'hartanah', 'Malaysia', 'mortgage', 'developer'],
   authors: [{ name: 'SME Cloud Sdn Bhd' }],
   creator: 'SME Cloud Sdn Bhd',
   publisher: 'SME Cloud Sdn Bhd',
@@ -56,13 +56,13 @@ export const metadata: Metadata = {
     locale: 'ms_MY',
     url: 'https://snang.my',
     siteName: 'Snang.my',
-    title: 'Snang.my — Semak Kelayakan Rumah, Tanpa Leceh',
-    description: 'Platform kesediaan pinjaman LPPSA untuk pembeli rumah, pemaju, dan ejen hartanah Malaysia.',
+    title: 'Snang.my — LPPSA Pipeline Intelligence untuk Pemaju',
+    description: 'Platform kawalan pipeline LPPSA untuk pemaju hartanah Malaysia. Pantau kes, bukan kejar pembeli.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Snang.my — Semak Kelayakan Rumah, Tanpa Leceh',
-    description: 'Platform kesediaan pinjaman LPPSA untuk pembeli rumah, pemaju, dan ejen hartanah Malaysia.',
+    title: 'Snang.my — LPPSA Pipeline Intelligence untuk Pemaju',
+    description: 'Platform kawalan pipeline LPPSA untuk pemaju hartanah Malaysia. Pantau kes, bukan kejar pembeli.',
   },
   robots: {
     index: true,
@@ -75,7 +75,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#1e40af',
+  themeColor: '#0D9488',
 }
 
 // ==========================================

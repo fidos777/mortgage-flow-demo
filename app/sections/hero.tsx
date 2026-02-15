@@ -998,7 +998,12 @@ function SubtitleRenderer({ copy, reduced, scene }: { copy: LocaleCopy; reduced:
           <motion.p
             key={s}
             className="font-body text-[14px] sm:text-base text-slate-500 text-center leading-relaxed"
-            style={{ gridRow: 1, gridColumn: 1 }}
+            style={{
+              gridRow: 1,
+              gridColumn: 1,
+              visibility: isActive ? 'visible' : 'hidden',
+              pointerEvents: isActive ? 'auto' : 'none',
+            }}
             initial={false}
             animate={{
               opacity: isActive ? 1 : 0,
