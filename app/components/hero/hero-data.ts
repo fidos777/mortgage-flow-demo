@@ -25,17 +25,11 @@ export type ClarityBeat = { icon: IconName; label: string; sub: string; actorIdx
 export type StepLabel = { label: string }
 export type ActorCopy = { label: string; desc: string }
 
-export type PipelineCase = {
-  name: string; type: string; progress: number
-  status: string; dsr: string; docs: string
-}
-export type PipelineLabels = {
-  name: string; type: string; progress: string
-  dsr: string; docs: string; status: string
-}
-export type PipelineStatuses = {
-  ready: string; review: string; pending: string; submitted: string
-}
+export type PipelineProject = { name: string; location: string; units: number }
+export type PipelineSummaryItem = { label: string; value: string; color: string }
+export type PipelineMetricCard = { icon: string; label: string; value: string; sub: string }
+export type PipelineStatusItem = { label: string; count: number; color: string }
+export type PipelinePerformanceItem = { label: string; value: number; max: number; unit: string; color: string }
 
 export interface LocaleCopy {
   pill: string
@@ -61,9 +55,12 @@ export interface LocaleCopy {
   disclaimer: string
   pipelineTitle: string
   pipelineSub: string
-  pipelineCases: PipelineCase[]
-  pipelineLabels: PipelineLabels
-  pipelineStatuses: PipelineStatuses
+  pipelineProject: PipelineProject
+  pipelineSummary: PipelineSummaryItem[]
+  pipelineMetrics: PipelineMetricCard[]
+  pipelineStatusDist: PipelineStatusItem[]
+  pipelinePerformance: PipelinePerformanceItem[]
+  pipelinePrivacy: string
   pipelineFooter: string
   pipelineCta: string
 }
@@ -207,17 +204,34 @@ export const COPY: Record<Locale, LocaleCopy> = {
     ctaMicro: 'Tiada pendaftaran. Lihat bagaimana 10 kes LPPSA bergerak melalui satu dashboard — dalam masa nyata.',
     disclaimer: 'Sistem ini untuk rujukan sahaja. Tiada penghantaran atau kelulusan dilakukan oleh sistem.',
     pipelineTitle: 'Lihat Bagaimana Pipeline Anda Akan Kelihatan',
-    pipelineSub: 'Dashboard yang menunjukkan setiap kes LPPSA — dari dokumen pertama hingga submission akhir.',
-    pipelineCases: [
-      { name: 'Ahmad bin Ismail', type: 'Jenis 1', progress: 92, status: 'ready', dsr: 'Rendah', docs: '8/8' },
-      { name: 'Siti Nurhaliza', type: 'Jenis 4', progress: 75, status: 'review', dsr: 'Sederhana', docs: '6/8' },
-      { name: 'Mohd Razif', type: 'Jenis 1', progress: 45, status: 'pending', dsr: 'Belum semak', docs: '3/8' },
-      { name: 'Noraini Hassan', type: 'Jenis 2', progress: 100, status: 'submitted', dsr: 'Rendah', docs: '8/8' },
-      { name: 'Kamal Effendi', type: 'Jenis 4', progress: 60, status: 'review', dsr: 'Tinggi', docs: '5/8' },
+    pipelineSub: 'Dashboard agregat yang menunjukkan prestasi keseluruhan projek LPPSA anda — tanpa mendedahkan data individu pembeli.',
+    pipelineProject: { name: 'Residensi Harmoni', location: 'Kajang, Selangor', units: 250 },
+    pipelineSummary: [
+      { label: 'Dijual', value: '180', color: T[600] },
+      { label: 'Pinjaman Dalam Proses', value: '45', color: A[500] },
+      { label: 'Kadar Penukaran', value: '25%', color: T[500] },
     ],
-    pipelineLabels: { name: 'Pembeli', type: 'Jenis', progress: 'Kesediaan', dsr: 'Risiko DSR', docs: 'Dokumen', status: 'Status' },
-    pipelineStatuses: { ready: 'Sedia', review: 'Semakan', pending: 'Menunggu', submitted: 'Dihantar' },
-    pipelineFooter: 'Pantau, bukan kejar. Setiap kes jelas statusnya.',
+    pipelineMetrics: [
+      { icon: 'Users', label: 'Permohonan Aktif', value: '5', sub: 'Jumlah' },
+      { icon: 'CheckCircle2', label: 'Selesai', value: '0', sub: 'Selesai' },
+      { icon: 'Clock', label: 'Dalam Proses', value: '5', sub: 'Aktif' },
+      { icon: 'BarChart3', label: 'Penukaran', value: '0%', sub: 'Kadar' },
+    ],
+    pipelineStatusDist: [
+      { label: 'Imbasan', count: 0, color: S[300] },
+      { label: 'Dokumen', count: 1, color: A[400] },
+      { label: 'TAC', count: 1, color: '#60A5FA' },
+      { label: 'LO/KJ', count: 2, color: '#A78BFA' },
+      { label: 'Dihantar', count: 1, color: '#F472B6' },
+      { label: 'Selesai', count: 0, color: T[500] },
+    ],
+    pipelinePerformance: [
+      { label: 'Purata Masa Proses', value: 45, max: 60, unit: 'hari', color: '#60A5FA' },
+      { label: 'Kadar Kejayaan TAC', value: 92, max: 100, unit: '%', color: T[500] },
+      { label: 'Dokumen Lengkap', value: 78, max: 100, unit: '%', color: '#EF4444' },
+    ],
+    pipelinePrivacy: 'Pemaju hanya melihat data agregat projek. Butiran kes individu diuruskan oleh ejen bertauliah.',
+    pipelineFooter: 'Pantau, bukan kejar. Visibility tanpa melanggar privasi.',
     pipelineCta: 'Cuba Demo Dengan Data Contoh',
   },
   en: {
@@ -286,17 +300,34 @@ export const COPY: Record<Locale, LocaleCopy> = {
     ctaMicro: 'No signup required. See how 10 LPPSA cases flow through one dashboard \u2014 in real time.',
     disclaimer: 'This system is for reference only. No submission or approval is performed by the system.',
     pipelineTitle: 'See What Your Pipeline Will Look Like',
-    pipelineSub: 'A dashboard showing every LPPSA case \u2014 from first document to final submission.',
-    pipelineCases: [
-      { name: 'Ahmad bin Ismail', type: 'Type 1', progress: 92, status: 'ready', dsr: 'Low', docs: '8/8' },
-      { name: 'Siti Nurhaliza', type: 'Type 4', progress: 75, status: 'review', dsr: 'Medium', docs: '6/8' },
-      { name: 'Mohd Razif', type: 'Type 1', progress: 45, status: 'pending', dsr: 'Unchecked', docs: '3/8' },
-      { name: 'Noraini Hassan', type: 'Type 2', progress: 100, status: 'submitted', dsr: 'Low', docs: '8/8' },
-      { name: 'Kamal Effendi', type: 'Type 4', progress: 60, status: 'review', dsr: 'High', docs: '5/8' },
+    pipelineSub: 'An aggregate dashboard showing your LPPSA project performance — without exposing individual buyer data.',
+    pipelineProject: { name: 'Residensi Harmoni', location: 'Kajang, Selangor', units: 250 },
+    pipelineSummary: [
+      { label: 'Sold', value: '180', color: T[600] },
+      { label: 'Loans In Progress', value: '45', color: A[500] },
+      { label: 'Conversion Rate', value: '25%', color: T[500] },
     ],
-    pipelineLabels: { name: 'Buyer', type: 'Type', progress: 'Readiness', dsr: 'DSR Risk', docs: 'Documents', status: 'Status' },
-    pipelineStatuses: { ready: 'Ready', review: 'In Review', pending: 'Pending', submitted: 'Submitted' },
-    pipelineFooter: 'Monitor, don\u2019t chase. Every case shows its status clearly.',
+    pipelineMetrics: [
+      { icon: 'Users', label: 'Active Applications', value: '5', sub: 'Total' },
+      { icon: 'CheckCircle2', label: 'Completed', value: '0', sub: 'Done' },
+      { icon: 'Clock', label: 'In Progress', value: '5', sub: 'Active' },
+      { icon: 'BarChart3', label: 'Conversion', value: '0%', sub: 'Rate' },
+    ],
+    pipelineStatusDist: [
+      { label: 'Scan', count: 0, color: S[300] },
+      { label: 'Docs', count: 1, color: A[400] },
+      { label: 'TAC', count: 1, color: '#60A5FA' },
+      { label: 'LO/KJ', count: 2, color: '#A78BFA' },
+      { label: 'Submitted', count: 1, color: '#F472B6' },
+      { label: 'Complete', count: 0, color: T[500] },
+    ],
+    pipelinePerformance: [
+      { label: 'Avg Processing Time', value: 45, max: 60, unit: 'days', color: '#60A5FA' },
+      { label: 'TAC Success Rate', value: 92, max: 100, unit: '%', color: T[500] },
+      { label: 'Documents Complete', value: 78, max: 100, unit: '%', color: '#EF4444' },
+    ],
+    pipelinePrivacy: 'Developers see aggregate project data only. Individual case details are managed by qualified agents.',
+    pipelineFooter: 'Monitor, don\u2019t chase. Visibility without violating privacy.',
     pipelineCta: 'Try Demo With Sample Data',
   },
 }

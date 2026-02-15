@@ -12,6 +12,7 @@ import {
   Building2, User, Users, Package, BarChart3, FileText,
   HelpCircle, Phone, MessageSquare, TrendingUp, Printer,
   Shield, CheckCircle2, LayoutGrid, ArrowRight, Info, Check,
+  Lock, Clock,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useLocale } from '@/app/context/locale'
@@ -696,21 +697,17 @@ function AnimatedStage({ copy, reduced, scene, onSceneChange }: { copy: LocaleCo
 /* ═══════════════════════════════════════════
    PIPELINE PREVIEW — Below-fold data table
    ═══════════════════════════════════════════ */
+/* ─── METRIC ICON RESOLVER ─── */
+const METRIC_ICONS: Record<string, LucideIcon> = {
+  Users, CheckCircle2, Clock, BarChart3,
+}
+
 function PipelinePreview({ copy }: { copy: LocaleCopy }) {
-  const statusColors: Record<string, { bg: string; border: string; text: string }> = {
-    ready: { bg: T[50], border: T[300], text: T[700] },
-    review: { bg: A[50], border: A[400], text: A[500] },
-    pending: { bg: S[100], border: S[300], text: S[500] },
-    submitted: { bg: '#ECFDF5', border: '#6EE7B7', text: '#059669' },
-  }
-  const dsrColors: Record<string, string> = {
-    Rendah: T[500], Low: T[500], Sederhana: A[500], Medium: A[500],
-    Tinggi: '#EF4444', High: '#EF4444', 'Belum semak': S[400], Unchecked: S[400],
-  }
+  const totalCases = copy.pipelineStatusDist.reduce((s, d) => s + d.count, 0)
 
   return (
-    <section className="py-20 px-8 bg-white" style={{ borderTop: `1px solid ${S[200]}` }}>
-      <div className="max-w-[860px] mx-auto">
+    <section className="py-20 px-6 sm:px-8 bg-white" style={{ borderTop: `1px solid ${S[200]}` }}>
+      <div className="max-w-[760px] mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <div
@@ -726,106 +723,140 @@ function PipelinePreview({ copy }: { copy: LocaleCopy }) {
           >
             {copy.pipelineTitle}
           </h2>
-          <p className="font-body text-[15px] text-slate-500 max-w-[480px] mx-auto leading-relaxed">
+          <p className="font-body text-[15px] text-slate-500 max-w-[520px] mx-auto leading-relaxed">
             {copy.pipelineSub}
           </p>
         </div>
 
-        {/* Table container — glass elevation */}
+        {/* Dashboard card */}
         <motion.div
           className="rounded-2xl overflow-hidden"
           style={{
-            background: 'rgba(255,255,255,0.85)',
-            backdropFilter: 'blur(8px)',
+            background: S[50],
             border: `1px solid ${S[200]}`,
-            boxShadow: '0 16px 48px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.03)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
           }}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-40px' }}
           transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
         >
-          {/* Table header bar */}
-          <div className="flex items-center justify-between px-5 py-3 bg-white" style={{ borderBottom: `1px solid ${S[200]}` }}>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-teal-500" />
-              <span className="font-display text-[13px] font-bold text-slate-800">LPPSA Pipeline</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="font-body text-[11px] text-slate-400">5 {copy.pipelineLabels.name.toLowerCase()}</span>
-              <span className="font-body text-[11px] text-teal-500 font-semibold">3 {copy.pipelineStatuses.ready.toLowerCase()}</span>
-            </div>
-          </div>
-
-          {/* Column headers */}
+          {/* Project header — dark card */}
           <div
-            className="grid px-5 py-2.5"
-            style={{
-              gridTemplateColumns: '1.8fr 0.8fr 2fr 0.9fr 0.7fr 1fr',
-              borderBottom: `1px solid ${S[200]}`,
-              background: S[100],
-            }}
+            className="p-5 sm:p-6 text-white"
+            style={{ background: 'linear-gradient(135deg, #1E293B, #334155)' }}
           >
-            {[copy.pipelineLabels.name, copy.pipelineLabels.type, copy.pipelineLabels.progress, copy.pipelineLabels.dsr, copy.pipelineLabels.docs, copy.pipelineLabels.status].map(h => (
-              <span key={h} className="font-display text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{h}</span>
-            ))}
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="font-body text-[10px] uppercase tracking-widest mb-1" style={{ color: S[400] }}>Projek</div>
+                <div className="font-display text-lg font-bold">{copy.pipelineProject.name}</div>
+                <div className="font-body text-xs mt-0.5" style={{ color: S[400] }}>{copy.pipelineProject.location}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-body text-[10px] uppercase tracking-widest" style={{ color: S[400] }}>Jumlah Unit</div>
+                <div className="font-display text-[28px] font-extrabold">{copy.pipelineProject.units}</div>
+              </div>
+            </div>
+            {/* Summary row */}
+            <div className="flex gap-8 mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              {copy.pipelineSummary.map((s, i) => (
+                <div key={i}>
+                  <div className="font-body text-[10px]" style={{ color: S[400] }}>{s.label}</div>
+                  <div className="font-display text-[22px] font-extrabold" style={{ color: s.color }}>{s.value}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Rows */}
-          {copy.pipelineCases.map((c, i) => {
-            const sc = statusColors[c.status] || statusColors.pending
-            const dc = dsrColors[c.dsr] || S[400]
-            return (
-              <motion.div
-                key={i}
-                className="grid items-center px-5 py-3"
-                initial={{ opacity: 0, y: 8 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: 0.06 * i, ease: [0.4, 0, 0.2, 1] }}
-                style={{
-                  gridTemplateColumns: '1.8fr 0.8fr 2fr 0.9fr 0.7fr 1fr',
-                  borderBottom: i < copy.pipelineCases.length - 1 ? `1px solid ${S[200]}` : 'none',
-                  background: i % 2 === 0 ? 'white' : S[50],
-                }}
-              >
-                <span className="font-display text-xs font-semibold text-slate-800">{c.name}</span>
-                <span className="font-body text-[11px] text-slate-500">{c.type}</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: S[200] }}>
-                    <motion.div
-                      className="h-full rounded-full"
-                      style={{
-                        background: c.progress >= 90 ? T[500] : c.progress >= 60 ? A[400] : S[400],
-                      }}
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${c.progress}%` }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.8, delay: i * 0.1, ease: [0.4, 0, 0.2, 1] }}
-                    />
+          {/* Metric cards row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4" style={{ gap: 1, background: S[200] }}>
+            {copy.pipelineMetrics.map((m, i) => {
+              const Icon = METRIC_ICONS[m.icon] || LayoutGrid
+              return (
+                <div key={i} className="bg-white p-4 text-center">
+                  <div className="flex justify-between items-center mb-2">
+                    <Icon size={16} strokeWidth={1.8} className="text-slate-400" />
+                    <span className="font-body text-[10px]" style={{ color: S[400] }}>{m.sub}</span>
                   </div>
-                  <span className="font-body text-[10px] font-semibold text-slate-600 min-w-[28px]">{c.progress}%</span>
+                  <div className="font-display text-2xl font-extrabold" style={{ color: S[900] }}>{m.value}</div>
+                  <div className="font-body text-[11px] mt-0.5" style={{ color: S[500] }}>{m.label}</div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: dc }} />
-                  <span className="font-body text-[11px] font-medium" style={{ color: dc }}>{c.dsr}</span>
-                </div>
-                <span className="font-body text-[11px] text-slate-600">{c.docs}</span>
-                <div
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-xl"
-                  style={{
-                    background: sc.bg,
-                    border: `1px solid ${sc.border}`,
-                    boxShadow: c.status === 'ready' ? `0 0 8px ${T[500]}18` : 'none',
-                  }}
-                >
-                  <span className="font-display text-[10px] font-semibold" style={{ color: sc.text }}>
-                    {(copy.pipelineStatuses as Record<string, string>)[c.status]}
-                  </span>
-                </div>
-              </motion.div>
-            )
-          })}
+              )
+            })}
+          </div>
+
+          {/* Status distribution + Performance metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 1, background: S[200] }}>
+            {/* Status distribution */}
+            <div className="bg-white p-5">
+              <div className="font-display text-[13px] font-bold mb-3.5" style={{ color: S[800] }}>
+                Taburan Status
+              </div>
+              {/* Stacked bar */}
+              <div className="flex h-[18px] rounded-md overflow-hidden mb-3">
+                {copy.pipelineStatusDist.filter(d => d.count > 0).map((d, i) => (
+                  <motion.div
+                    key={i}
+                    style={{ flex: d.count, background: d.color, minWidth: d.count > 0 ? 20 : 0 }}
+                    initial={{ flex: 0 }}
+                    whileInView={{ flex: d.count }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.1 * i }}
+                  />
+                ))}
+              </div>
+              {/* Legend */}
+              <div className="flex flex-wrap gap-x-3.5 gap-y-1.5">
+                {copy.pipelineStatusDist.map((d, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-sm" style={{ background: d.color }} />
+                    <span className="font-body text-[10px]" style={{ color: S[500] }}>{d.label}</span>
+                    <span className="font-display text-[10px] font-bold" style={{ color: S[700] }}>{d.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Performance metrics */}
+            <div className="bg-white p-5">
+              <div className="font-display text-[13px] font-bold mb-3.5" style={{ color: S[800] }}>
+                Metrik Prestasi
+              </div>
+              <div className="flex flex-col gap-3">
+                {copy.pipelinePerformance.map((p, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between mb-1">
+                      <span className="font-body text-[11px]" style={{ color: S[600] }}>{p.label}</span>
+                      <span className="font-display text-[11px] font-bold" style={{ color: S[800] }}>
+                        {p.value}{p.unit === '%' ? '%' : ` ${p.unit}`}
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: S[200] }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: p.color }}
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${(p.value / p.max) * 100}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.1 * i }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Privacy notice — matches real dashboard PRD 9.2 banner */}
+          <div
+            className="flex items-center gap-2.5 px-5 py-3"
+            style={{ background: A[50], borderTop: `1px solid ${A[100]}` }}
+          >
+            <Lock size={14} strokeWidth={2} style={{ color: A[500], flexShrink: 0 }} />
+            <span className="font-body text-[11px] font-medium leading-snug" style={{ color: A[500] }}>
+              {copy.pipelinePrivacy}
+            </span>
+          </div>
         </motion.div>
 
         {/* Footer CTA */}
