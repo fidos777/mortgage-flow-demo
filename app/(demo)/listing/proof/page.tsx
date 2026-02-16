@@ -1,4 +1,4 @@
-// app/developer/proof/page.tsx
+// app/listing/proof/page.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ export default function DeveloperProofLog() {
       <div className="bg-white border-b border-slate-200 px-4 py-3">
         <div className="max-w-4xl mx-auto">
           <button 
-            onClick={() => router.push('/developer')}
+            onClick={() => router.push('/listing')}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-800 mb-3"
           >
             <ChevronLeft className="w-4 h-4" />

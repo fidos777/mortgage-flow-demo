@@ -863,7 +863,7 @@ function PipelinePreview({ copy }: { copy: LocaleCopy }) {
         <div className="text-center mt-8">
           <p className="font-body text-sm text-slate-500 italic mb-5">{copy.pipelineFooter}</p>
           <Link
-            href="/developer"
+            href="/listing"
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-display text-[15px] font-semibold text-white no-underline transition-all duration-200 hover:brightness-110"
             style={{
               background: T[600],
@@ -935,7 +935,7 @@ export function HeroSection() {
           transition={{ delay: 0.4, duration: 0.5 }}
         >
           <Link
-            href="/developer"
+            href="/listing"
             className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-display text-[15px] font-semibold text-white no-underline transition-all duration-200 hover:brightness-110 hover:shadow-lg"
             style={{
               background: T[600],

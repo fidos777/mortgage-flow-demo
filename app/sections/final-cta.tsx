@@ -92,7 +92,7 @@ export function FinalCTASection() {
           transition={{ duration: 0.4, delay: 0.2 }}
         >
           <Link
-            href="/developer"
+            href="/listing"
             className="inline-flex items-center gap-2.5 px-10 py-4.5 rounded-xl font-display text-[16px] font-semibold text-teal-700 no-underline transition-all duration-200 hover:brightness-105 hover:scale-[1.02]"
             style={{
               background: 'white',

@@ -63,6 +63,15 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const startTime = Date.now();
 
+  // ── Step 0: Developer → Listing 301 redirect (CR-KP-001.3 §10) ──
+  // Maintained for 6 months minimum to avoid breaking bookmarks
+  if (pathname.startsWith('/developer')) {
+    const newPath = pathname.replace(/^\/developer/, '/listing');
+    const url = request.nextUrl.clone();
+    url.pathname = newPath;
+    return NextResponse.redirect(url, 301);
+  }
+
   // ── Step 1: Password wall check ──────────────────────────────────
   // Skip if no password configured (password wall disabled)
   if (BASIC_PASSWORD && !isPublicPath(pathname)) {

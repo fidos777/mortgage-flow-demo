@@ -66,7 +66,7 @@ export function Navbar() {
             <LanguageToggle />
             
             {/* CTA Button */}
-            <Link href="/developer" className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+            <Link href="/listing" className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
               Lihat Demo <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -87,7 +87,7 @@ export function Navbar() {
               {navLinks.map((link) => (
                 <a key={link.href} href={link.href} onClick={() => setIsMobileMenuOpen(false)} className="text-neutral-600 hover:text-primary transition-colors py-2">{link.label}</a>
               ))}
-              <Link href="/developer" onClick={() => setIsMobileMenuOpen(false)} className="inline-flex items-center justify-center gap-2 bg-primary text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors">
+              <Link href="/listing" onClick={() => setIsMobileMenuOpen(false)} className="inline-flex items-center justify-center gap-2 bg-primary text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors">
                 Lihat Demo <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

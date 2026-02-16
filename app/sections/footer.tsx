@@ -20,7 +20,7 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-sm uppercase tracking-wider mb-4 text-neutral-300">Platform</h4>
             <ul className="space-y-2">
-              <li><Link href="/developer" className="text-neutral-400 hover:text-white text-sm transition-colors">Lihat Demo</Link></li>
+              <li><Link href="/listing" className="text-neutral-400 hover:text-white text-sm transition-colors">Lihat Demo</Link></li>
               <li><Link href="/#how" className="text-neutral-400 hover:text-white text-sm transition-colors">Cara Guna</Link></li>
               <li><Link href="/#trust" className="text-neutral-400 hover:text-white text-sm transition-colors">Keselamatan</Link></li>
             </ul>
