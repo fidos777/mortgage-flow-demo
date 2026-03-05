@@ -140,6 +140,61 @@ function transformForAgent(caseData: Case): Partial<Case> {
   } as Partial<Case>;
 }
 
+// =============================================================================
+// CR-003: Step-Level Role Enforcement for SPA Workflow
+// Steps 1-2: developer/buyer action, agent can view
+// Steps 3-6: buyer = read-only, agent = action + attest
+// =============================================================================
+
+export type StepAction = 'view' | 'action' | 'attest';
+
+/**
+ * CR-003: Determine what a role can do on a given SPA workflow step.
+ * Steps 3–6 are agent-owned: buyer becomes read-only, agent can action+attest.
+ * All proof events logged with authorityClaimed: false (constitutional constraint).
+ */
+export function getStepPermissions(
+  stepNumber: number,
+  role: Role
+): { allowed: StepAction[]; readOnly: boolean } {
+  // Developer can only view all steps (Level 1 visibility)
+  if (role === 'developer') {
+    return { allowed: ['view'], readOnly: true };
+  }
+
+  // Steps 1-2: original actor flow — buyer can action, agent can view
+  if (stepNumber <= 2) {
+    if (role === 'buyer') {
+      return { allowed: ['view', 'action'], readOnly: false };
+    }
+    if (role === 'agent') {
+      return { allowed: ['view'], readOnly: true };
+    }
+  }
+
+  // Steps 3-6: agent ownership — buyer = read-only, agent = action + attest
+  if (stepNumber >= 3 && stepNumber <= 6) {
+    if (role === 'buyer') {
+      return { allowed: ['view'], readOnly: true };
+    }
+    if (role === 'agent') {
+      return { allowed: ['view', 'action', 'attest'], readOnly: false };
+    }
+  }
+
+  // Default: read-only
+  return { allowed: ['view'], readOnly: true };
+}
+
+/**
+ * CR-003: Check if a role can toggle a specific SPA workflow step.
+ * Only returns true if the role has 'action' permission on that step.
+ */
+export function canToggleStep(stepNumber: number, role: Role): boolean {
+  const { allowed } = getStepPermissions(stepNumber, role);
+  return allowed.includes('action');
+}
+
 /**
  * Aggregate case data for Developer view
  * PRD Section 9.2: Developer sees aggregate counts only

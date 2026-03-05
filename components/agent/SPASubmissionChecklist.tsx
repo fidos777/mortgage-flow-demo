@@ -38,7 +38,9 @@ import {
   XCircle,
   ArrowDown,
   CircleDot,
+  Lock,
 } from 'lucide-react';
+import { getStepPermissions, canToggleStep } from '@/lib/orchestrator/permissions';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -121,6 +123,9 @@ export interface SPASubmissionChecklistProps {
   };
   /** Locale */
   locale?: 'bm' | 'en';
+  /** CR-003: Viewer role — controls step-level read-only enforcement.
+   *  Steps 3-6: buyer=read-only, agent=action+attest */
+  viewerRole?: 'buyer' | 'agent' | 'developer';
 }
 
 // ─── Workflow Steps (PRD 002-G) ─────────────────────────────────────────────
@@ -498,6 +503,7 @@ export function SPASubmissionChecklist({
   onToggleItem,
   deadlineEvents = {},
   locale = 'bm',
+  viewerRole = 'agent',
 }: SPASubmissionChecklistProps) {
   const [showDeadlines, setShowDeadlines] = useState(true);
   const [showWorkflow, setShowWorkflow] = useState(true);
@@ -723,6 +729,11 @@ export function SPASubmissionChecklist({
           <div className="px-4 pb-4">
             {SPA_WORKFLOW_STEPS.map((step, idx) => {
               const isDone = completedWorkflowIds.has(step.id);
+              // CR-003: Step-level role enforcement
+              const canToggle = canToggleStep(step.step, viewerRole);
+              const stepPerms = getStepPermissions(step.step, viewerRole);
+              const isReadOnly = stepPerms.readOnly;
+
               const actorColors: Record<string, string> = {
                 developer: 'bg-teal-50 text-teal-700 border-teal-200',
                 buyer: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -737,19 +748,24 @@ export function SPASubmissionChecklist({
               return (
                 <div key={step.id}>
                   <div
-                    className={`flex items-start gap-3 py-2.5 cursor-pointer rounded-lg px-2 hover:bg-slate-50 transition-colors ${
+                    className={`flex items-start gap-3 py-2.5 rounded-lg px-2 transition-colors ${
                       isDone ? 'opacity-70' : ''
+                    } ${canToggle ? 'cursor-pointer hover:bg-slate-50' : 'cursor-default'} ${
+                      isReadOnly && !isDone ? 'bg-slate-50/50' : ''
                     }`}
-                    onClick={() => handleWorkflowToggle(step)}
+                    onClick={() => canToggle && handleWorkflowToggle(step)}
                     role="checkbox"
                     aria-checked={isDone}
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleWorkflowToggle(step); } }}
+                    aria-disabled={!canToggle}
+                    tabIndex={canToggle ? 0 : -1}
+                    onKeyDown={(e) => { if (canToggle && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleWorkflowToggle(step); } }}
                   >
                     {/* Step indicator */}
                     <div className="flex-shrink-0 mt-0.5">
                       {isDone ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      ) : isReadOnly ? (
+                        <Lock className="w-5 h-5 text-slate-300" />
                       ) : (
                         <div className="w-5 h-5 rounded-full border-2 border-teal-300 flex items-center justify-center">
                           <span className="text-[10px] font-bold text-teal-600">{step.step}</span>
@@ -759,12 +775,20 @@ export function SPASubmissionChecklist({
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`text-sm ${isDone ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
+                        <p className={`text-sm ${isDone ? 'text-slate-400 line-through' : isReadOnly ? 'text-slate-400' : 'text-slate-700'}`}>
                           {locale === 'bm' ? step.labelBm : step.labelEn}
                         </p>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium flex-shrink-0 ${actorColors[step.actor]}`}>
-                          {actorLabels[step.actor][locale]}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${actorColors[step.actor]}`}>
+                            {actorLabels[step.actor][locale]}
+                          </span>
+                          {/* CR-003: Show read-only badge for locked steps */}
+                          {isReadOnly && !isDone && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded border bg-slate-100 text-slate-400 border-slate-200 font-medium">
+                              {locale === 'bm' ? 'Baca sahaja' : 'Read-only'}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
                         {step.proofEvent} • authorityClaimed: false

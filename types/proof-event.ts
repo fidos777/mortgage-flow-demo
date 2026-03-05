@@ -36,7 +36,17 @@ export type ProofEventType =
   | 'QR_LINK_VALIDATED'
   | 'QR_LINK_EXPIRED'
   | 'QR_LINK_INVALID'
-  | 'QR_ENTRY_COMPLETED';
+  | 'QR_ENTRY_COMPLETED'
+  // CR-003: Agent ownership — KJ signature & LO events
+  | 'KJ_SIGNATURE_REQUESTED'
+  | 'KJ_SIGNATURE_RECEIVED'
+  | 'LO_RECEIVED'
+  // CR-009C: Spillover consent & match events
+  | 'SPILLOVER_CONSENT_REQUESTED'
+  | 'SPILLOVER_CONSENT_GIVEN'
+  | 'SPILLOVER_CONSENT_DECLINED'
+  | 'SPILLOVER_MATCH_CREATED'
+  | 'SPILLOVER_MATCH_ACCEPTED';
 
 export interface ProofEvent {
   id: string;
@@ -88,6 +98,16 @@ export const EVENT_CATEGORIES: Record<ProofEventType, ProofEventCategory> = {
   QR_LINK_EXPIRED: 'DERIVED',
   QR_LINK_INVALID: 'DERIVED',
   QR_ENTRY_COMPLETED: 'FACT',
+  // CR-003: Agent ownership — KJ signature & LO events
+  KJ_SIGNATURE_REQUESTED: 'DECLARE',
+  KJ_SIGNATURE_RECEIVED: 'FACT',
+  LO_RECEIVED: 'FACT',
+  // CR-009C: Spillover consent & match events
+  SPILLOVER_CONSENT_REQUESTED: 'FACT',
+  SPILLOVER_CONSENT_GIVEN: 'DECLARE',
+  SPILLOVER_CONSENT_DECLINED: 'DECLARE',
+  SPILLOVER_MATCH_CREATED: 'DERIVED',
+  SPILLOVER_MATCH_ACCEPTED: 'DECLARE',
 };
 
 // Human-readable event descriptions
@@ -119,4 +139,14 @@ export const EVENT_DESCRIPTIONS: Record<ProofEventType, string> = {
   QR_LINK_EXPIRED: 'Pautan QR tamat tempoh',
   QR_LINK_INVALID: 'Pautan QR tidak sah',
   QR_ENTRY_COMPLETED: 'Kemasukan QR selesai',
+  // CR-003: Agent ownership — KJ signature & LO events
+  KJ_SIGNATURE_REQUESTED: 'Tandatangan KJ diminta oleh ejen',
+  KJ_SIGNATURE_RECEIVED: 'Tandatangan KJ diterima',
+  LO_RECEIVED: 'Surat Tawaran (LO) diterima',
+  // CR-009C: Spillover consent & match events
+  SPILLOVER_CONSENT_REQUESTED: 'Permohonan persetujuan spillover dihantar',
+  SPILLOVER_CONSENT_GIVEN: 'Pembeli bersetuju dengan spillover',
+  SPILLOVER_CONSENT_DECLINED: 'Pembeli menolak spillover',
+  SPILLOVER_MATCH_CREATED: 'Padanan spillover dijana',
+  SPILLOVER_MATCH_ACCEPTED: 'Padanan spillover diterima oleh ejen',
 };

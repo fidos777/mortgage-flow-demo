@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useCallback } from "react";
 import { PipelineFunnel, DEFAULT_STAGES } from '@/components/listing/PipelineFunnel';
+import { generateQRLink, logQRProofEvent } from '@/lib/services/qr-link-service';
+import Link from 'next/link';
 
 // ─── Types ───
 interface Brand {
@@ -80,6 +82,125 @@ const EmptyState = ({ icon, title, description, action, onAction }: { icon: stri
   </div>
 );
 
+// ─── Link Generation Modal (CR-002A) ───
+const LinkModal = ({ project, lister, onClose }: { project: Project; lister: Brand; onClose: () => void }) => {
+  const [copied, setCopied] = useState(false);
+  const [expiryDays, setExpiryDays] = useState(30);
+
+  const { token, url, payload } = generateQRLink({
+    projectId: `PROJ-${project.slug}`,
+    developerId: `DEV-${lister.slug}`,
+    projectName: project.nama,
+    developerName: lister.name,
+    expiresInDays: expiryDays,
+    source: 'listing_portal',
+  });
+
+  const fullUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${url}`;
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fullUrl)}`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(fullUrl);
+    setCopied(true);
+    logQRProofEvent('QR_LINK_GENERATED', {
+      token: token.slice(0, 8) + '...',
+      projectId: payload.projectId,
+      developerId: payload.developerId,
+      source: 'listing_portal',
+    });
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-teal-700 to-teal-600 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-white font-bold text-lg">Secure Link Generated</h3>
+              <p className="text-teal-200 text-sm">{project.nama}</p>
+            </div>
+            <button onClick={onClose} className="text-teal-200 hover:text-white text-xl font-bold">✕</button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-5">
+          {/* QR Code */}
+          <div className="flex justify-center">
+            <div className="bg-white border-2 border-slate-100 rounded-xl p-3 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrImageUrl} alt="QR Code" width={180} height={180} className="rounded" />
+            </div>
+          </div>
+
+          {/* Link + Copy */}
+          <div>
+            <label className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1 block">Shareable Link</label>
+            <div className="flex gap-2">
+              <input type="text" readOnly value={fullUrl}
+                className="flex-1 text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 font-mono truncate" />
+              <button onClick={handleCopy}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex-shrink-0 ${
+                  copied ? "bg-emerald-500 text-white" : "bg-teal-600 text-white hover:bg-teal-700"
+                }`}>
+                {copied ? "✓ Copied!" : "📋 Copy"}
+              </button>
+            </div>
+          </div>
+
+          {/* Expiry selector */}
+          <div>
+            <label className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1 block">Link Expiry</label>
+            <div className="flex gap-2">
+              {[7, 30, 90].map(d => (
+                <button key={d} onClick={() => setExpiryDays(d)}
+                  className={`flex-1 py-2 text-sm rounded-lg border transition ${
+                    expiryDays === d
+                      ? "border-teal-500 bg-teal-50 text-teal-700 font-medium"
+                      : "border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}>
+                  {d} days
+                </button>
+              ))}
+            </div>
+            {payload.expiresAt && (
+              <p className="text-xs text-slate-400 mt-1">
+                Expires: {new Date(payload.expiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </p>
+            )}
+          </div>
+
+          {/* Flow info */}
+          <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Buyer Flow</p>
+            <div className="flex items-center gap-2 text-xs text-slate-600">
+              <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">Scan/Click</span>
+              <span className="text-slate-300">→</span>
+              <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">PDPA Consent</span>
+              <span className="text-slate-300">→</span>
+              <span className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">Self-Check</span>
+            </div>
+            <p className="text-xs text-slate-400">Buyer identity is never exposed to developer. Three-tier visibility applies.</p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <button onClick={handleCopy}
+              className="flex-1 py-2.5 text-sm font-medium rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition">
+              {copied ? "✓ Link Copied" : "📋 Copy Link"}
+            </button>
+            <button onClick={onClose}
+              className="px-6 py-2.5 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── Lister Context Bar (developer or REA) ───
 const ListerContextBar = ({ lister, projectCount, onBack }: { lister: Brand; projectCount: number; onBack: () => void }) => (
   <div className="flex items-center gap-3 mb-1">
@@ -94,7 +215,7 @@ const ListerContextBar = ({ lister, projectCount, onBack }: { lister: Brand; pro
 );
 
 // ─── Project Row (Level 1) ───
-const ProjectRow = ({ project: p, onSelect, onKit }: { project: Project; onSelect: (p: Project) => void; onKit: (p: Project) => void }) => (
+const ProjectRow = ({ project: p, onSelect, onKit, onGenLink }: { project: Project; onSelect: (p: Project) => void; onKit: (p: Project) => void; onGenLink: (p: Project) => void }) => (
   <div className="group flex items-center gap-4 py-3.5 px-4 rounded-xl hover:bg-teal-50/40 transition-all cursor-pointer border border-transparent hover:border-teal-100"
     onClick={() => onSelect(p)}>
     <div className="flex-1 min-w-0">
@@ -123,7 +244,7 @@ const ProjectRow = ({ project: p, onSelect, onKit }: { project: Project; onSelec
           }`}>
           {p.score < 40 ? "🔒 Kit" : "📦 Kit"}
         </button>
-        <button className="px-3 py-1.5 text-xs font-medium rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition">
+        <button onClick={() => onGenLink(p)} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition">
           🔗 Generate Link
         </button>
       </div>
@@ -132,7 +253,7 @@ const ProjectRow = ({ project: p, onSelect, onKit }: { project: Project; onSelec
 );
 
 // ─── Level 2: Project Hero (brand teal gradient) ───
-const ProjectHero = ({ project: p, lister, onBack, onSwitchTab }: { project: Project; lister: Brand; onBack: () => void; onSwitchTab: (tab: string) => void }) => (
+const ProjectHero = ({ project: p, lister, onBack, onSwitchTab, onGenLink }: { project: Project; lister: Brand; onBack: () => void; onSwitchTab: (tab: string) => void; onGenLink: () => void }) => (
   <div>
     <ListerContextBar lister={lister} projectCount={2} onBack={onBack} />
     <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-teal-900 rounded-2xl p-6 text-white relative overflow-hidden mt-2">
@@ -186,7 +307,7 @@ const ProjectHero = ({ project: p, lister, onBack, onSwitchTab }: { project: Pro
               disabled={p.score < 40}>
               {p.score < 40 ? "🔒 Marketing Kit" : "📦 Marketing Kit"}
             </button>
-            <button className="px-4 py-2 text-sm font-medium rounded-lg bg-teal-600 hover:bg-teal-500 border border-teal-500/50 transition">🔗 Generate Link</button>
+            <button onClick={onGenLink} className="px-4 py-2 text-sm font-medium rounded-lg bg-teal-600 hover:bg-teal-500 border border-teal-500/50 transition">🔗 Generate Link</button>
           </div>
         </div>
       </div>
@@ -635,6 +756,7 @@ export default function ListingPage() {
   const [level, setLevel] = useState("overview");
   const [selected, setSelected] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState("pipeline");
+  const [linkProject, setLinkProject] = useState<Project | null>(null);
 
   const projects = [
     { nama: "Residensi Harmoni", bandar: "Shah Alam", negeri: "Selangor", harga: "350000", unit: "250", kes: 5, aktif: 5, slug: "residensi-harmoni", score: 82, dijual: 180, selesai: 0, source: "url", listerKey: "ecoworld", totalCopies: 15, isNew: false },
@@ -695,7 +817,7 @@ export default function ListingPage() {
               </div>
               <div className="divide-y divide-slate-50">
                 {projects.map((p, i) => (
-                  <ProjectRow key={i} project={p} onSelect={open} onKit={(p) => { open(p); setTimeout(() => setActiveTab("marketing"), 50); }} />
+                  <ProjectRow key={i} project={p} onSelect={open} onKit={(p) => { open(p); setTimeout(() => setActiveTab("marketing"), 50); }} onGenLink={setLinkProject} />
                 ))}
               </div>
             </div>
@@ -726,7 +848,7 @@ export default function ListingPage() {
         {/* ═══ LEVEL 2 ═══ */}
         {level === "detail" && selected && (
           <div className="space-y-5">
-            <ProjectHero project={selected} lister={lister} onBack={back} onSwitchTab={setActiveTab} />
+            <ProjectHero project={selected} lister={lister} onBack={back} onSwitchTab={setActiveTab} onGenLink={() => setLinkProject(selected)} />
             <TabBar
               tabs={[
                 { id: "pipeline", icon: "📊", label: "Pipeline", count: selected.kes },
@@ -746,6 +868,25 @@ export default function ListingPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* CR-002A: Link Generation Modal */}
+      {linkProject && (
+        <LinkModal
+          project={linkProject}
+          lister={BRANDS[linkProject.listerKey] || BRANDS.ecoworld}
+          onClose={() => setLinkProject(null)}
+        />
+      )}
+
+      {/* Navigation wiring: quick-access links to Sprint 1 routes */}
+      <div className="border-t border-slate-200 bg-white">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-4 text-sm">
+          <span className="text-slate-400 text-xs uppercase tracking-wide font-medium">Quick Access:</span>
+          <Link href="/listing/bookings" className="text-teal-600 hover:text-teal-800 font-medium transition">📋 Bookings</Link>
+          <Link href="/listing/settings" className="text-teal-600 hover:text-teal-800 font-medium transition">⚙ Settings</Link>
+          <Link href="/listing/proof" className="text-teal-600 hover:text-teal-800 font-medium transition">🔍 Proof Events</Link>
+        </div>
       </div>
     </div>
   );

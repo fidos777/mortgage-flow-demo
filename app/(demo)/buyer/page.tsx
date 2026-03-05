@@ -28,6 +28,8 @@ import {
   ArrowRight,
   RefreshCw,
   AlertTriangle,
+  Calculator,
+  ClipboardList,
 } from 'lucide-react';
 
 // ---------- Types (matching API response shapes) ----------
@@ -329,7 +331,7 @@ export default function BuyerPortalPage() {
         {/* Journey Options */}
         <h3 className="text-lg font-semibold text-neutral-800 mb-4">Pilihan Perjalanan</h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {/* Upload Documents */}
           <Link
             href="/buyer/upload"
@@ -387,6 +389,36 @@ export default function BuyerPortalPage() {
             <p className="text-sm text-neutral-500 mb-3">Pengesahan identiti oleh KJ</p>
             <span className="text-sm text-violet-600 font-medium flex items-center gap-1">
               Sahkan <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
+
+          {/* Self-Check (Sprint 1 — CR-KP-002) */}
+          <Link
+            href="/buyer/self-check"
+            className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 hover:shadow-md hover:border-primary/30 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-cyan-50 flex items-center justify-center mb-4 group-hover:bg-cyan-100 transition-colors">
+              <Calculator className="w-6 h-6 text-cyan-600" />
+            </div>
+            <h4 className="font-semibold text-neutral-800 mb-1">Semakan Sendiri</h4>
+            <p className="text-sm text-neutral-500 mb-3">DSR calculator & isyarat kesediaan</p>
+            <span className="text-sm text-cyan-600 font-medium flex items-center gap-1">
+              Semak <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
+
+          {/* Apply (Sprint 1 — CR-KP-002) */}
+          <Link
+            href="/buyer/apply"
+            className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 hover:shadow-md hover:border-primary/30 transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center mb-4 group-hover:bg-rose-100 transition-colors">
+              <ClipboardList className="w-6 h-6 text-rose-600" />
+            </div>
+            <h4 className="font-semibold text-neutral-800 mb-1">Borang Permohonan</h4>
+            <p className="text-sm text-neutral-500 mb-3">Borang LPPSA lengkap (5 bahagian)</p>
+            <span className="text-sm text-rose-600 font-medium flex items-center gap-1">
+              Isi Borang <ArrowRight className="w-4 h-4" />
             </span>
           </Link>
         </div>

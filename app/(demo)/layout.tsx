@@ -10,6 +10,7 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { FooterDisclaimer } from '@/components/FooterDisclaimer';
 import { DemoBuildWatermark } from '@/components/DemoBuildWatermark';
 import { WalkthroughButton } from '@/components/WalkthroughButton';
+import { DemoFlowBar } from '@/components/DemoFlowBar';
 import Link from 'next/link';
 
 export default function DemoLayout({
@@ -54,6 +55,9 @@ export default function DemoLayout({
           </div>
         </div>
       </header>
+
+      {/* v3.7.2: Demo Flow Navigation Bar */}
+      <DemoFlowBar />
 
       {/* Main Content */}
       <main className="pb-20 bg-slate-100 min-h-screen">

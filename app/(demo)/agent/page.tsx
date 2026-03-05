@@ -2,14 +2,16 @@
 // FIXED: Case list rendering + status mapping + null unit handling
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Search, RefreshCw, Bell, FileText, Calendar, AlertTriangle,
   Clock, Phone, MessageSquare, Eye, Shield, ChevronRight,
-  Send, User, Building, Filter, X
+  Send, User, Building, Filter, X, BarChart3, TrendingUp
 } from 'lucide-react';
 import AgentCaseNotification from '@/components/agent/AgentCaseNotification';
+import { SpilloverMatchesPanel } from '@/components/agent/SpilloverMatchesPanel';
+import type { PipelineSummary, BookingStatus } from '@/types/cr-kp-002';
 
 // ---------- Types ----------
 interface ApiCase {
@@ -199,6 +201,51 @@ export default function AgentDashboard() {
     lo: cases.filter((c) => c.status?.toLowerCase() === 'lo_issued').length,
   };
 
+  // CR-004: Pipeline summary derived from case data (CR-KP-002 PipelineSummary shape)
+  const pipelineSummary = useMemo((): PipelineSummary => {
+    const byStatus: Record<string, number> = {};
+    const byLoanType: Record<number, number> = {};
+    let totalDays = 0;
+    let completedThisMonth = 0;
+    let staleCount = 0;
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+
+    cases.forEach((c) => {
+      // byStatus
+      const s = c.status?.toUpperCase() || 'NEW';
+      byStatus[s] = (byStatus[s] || 0) + 1;
+
+      // Days in pipeline
+      const created = new Date(c.created_at);
+      const daysIn = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+      totalDays += daysIn;
+
+      // Stale: >14 days since last update
+      const lastUpdate = new Date(c.updated_at);
+      const daysSinceUpdate = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSinceUpdate > 14) staleCount++;
+
+      // Completed this month
+      if (c.completed_at) {
+        const comp = new Date(c.completed_at);
+        if (comp.getMonth() === thisMonth && comp.getFullYear() === thisYear) {
+          completedThisMonth++;
+        }
+      }
+    });
+
+    return {
+      totalBookings: cases.length,
+      byStatus: byStatus as Record<BookingStatus, number>,
+      byLoanType,
+      staleCount,
+      avgDaysInPipeline: cases.length > 0 ? Math.round(totalDays / cases.length) : 0,
+      completedThisMonth,
+    };
+  }, [cases]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -241,6 +288,54 @@ export default function AgentDashboard() {
               <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
             </div>
           ))}
+        </div>
+
+        {/* CR-004: Pipeline Summary Panel */}
+        <div className="bg-white rounded-xl border p-5 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart3 className="w-5 h-5 text-teal-600" />
+            <h2 className="font-semibold text-gray-900 text-sm">Ringkasan Pipeline</h2>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-teal-50 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-teal-700">{pipelineSummary.avgDaysInPipeline}</p>
+              <p className="text-xs text-teal-600">Purata Hari</p>
+            </div>
+            <div className="bg-amber-50 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-amber-700">{pipelineSummary.staleCount}</p>
+              <p className="text-xs text-amber-600">Kes Basi (&gt;14h)</p>
+            </div>
+            <div className="bg-emerald-50 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-emerald-700">{pipelineSummary.completedThisMonth}</p>
+              <p className="text-xs text-emerald-600">Selesai Bulan Ini</p>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-blue-700">{pipelineSummary.totalBookings}</p>
+              <p className="text-xs text-blue-600">Jumlah Pipeline</p>
+            </div>
+          </div>
+          {/* Phase distribution bar */}
+          {pipelineSummary.totalBookings > 0 && (
+            <div className="mt-3 flex rounded-full overflow-hidden h-2">
+              {Object.entries(pipelineSummary.byStatus).map(([status, count]) => {
+                const pct = (count / pipelineSummary.totalBookings) * 100;
+                const colors: Record<string, string> = {
+                  NEW: 'bg-blue-400', PRESCAN: 'bg-purple-400', DSR_CHECK: 'bg-indigo-400',
+                  DOCS_PENDING: 'bg-yellow-400', TAC_SCHEDULED: 'bg-cyan-400', TAC_CONFIRMED: 'bg-teal-400',
+                  SUBMITTED: 'bg-green-400', KJ_PENDING: 'bg-orange-400', LO_ISSUED: 'bg-emerald-400',
+                  COMPLETED: 'bg-green-600', REJECTED: 'bg-red-400', EXPIRED: 'bg-gray-400',
+                };
+                return (
+                  <div
+                    key={status}
+                    className={colors[status] || 'bg-gray-300'}
+                    style={{ width: `${pct}%` }}
+                    title={`${status}: ${count}`}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* PRD Compliance Notice */}
@@ -468,6 +563,77 @@ export default function AgentDashboard() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* CR-005: Agent-side Readiness View — read-only pipeline status */}
+        <div className="mt-6 bg-white rounded-xl border p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-5 h-5 text-teal-600" />
+            <h2 className="font-semibold text-gray-900 text-sm">Kedudukan Pipeline Kes Ditugaskan</h2>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 font-medium ml-auto">
+              Baca Sahaja
+            </span>
+          </div>
+          {cases.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wide">
+                    <th className="text-left py-2 pr-4">Pembeli</th>
+                    <th className="text-left py-2 pr-4">Hartanah</th>
+                    <th className="text-left py-2 pr-4">Fasa</th>
+                    <th className="text-right py-2 pr-4">Hari</th>
+                    <th className="text-left py-2">Tindakan Seterusnya</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {cases.slice(0, 10).map((c) => {
+                    const statusInfo = getStatusDisplay(c.status);
+                    const daysSince = Math.floor(
+                      (Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24)
+                    );
+                    const isStale = Math.floor(
+                      (Date.now() - new Date(c.updated_at).getTime()) / (1000 * 60 * 60 * 24)
+                    ) > 14;
+                    return (
+                      <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-2.5 pr-4 font-medium text-gray-800">{c.buyer_name}</td>
+                        <td className="py-2.5 pr-4 text-gray-600">{c.property?.name || '—'}</td>
+                        <td className="py-2.5 pr-4">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                            {statusInfo.label}
+                          </span>
+                        </td>
+                        <td className={`py-2.5 pr-4 text-right font-mono ${isStale ? 'text-amber-600 font-semibold' : 'text-gray-500'}`}>
+                          {daysSince}d
+                          {isStale && <AlertTriangle className="w-3 h-3 inline ml-1 text-amber-500" />}
+                        </td>
+                        <td className="py-2.5 text-xs text-gray-500">
+                          {c.status === 'docs_pending' ? 'Kumpul dokumen' :
+                           c.status === 'tac_scheduled' ? 'Sahkan jadual TAC' :
+                           c.status === 'kj_pending' ? 'Tunggu KJ' :
+                           c.status === 'submitted' ? 'Pantau status LPPSA' :
+                           c.status === 'lo_issued' ? 'Semak LO' :
+                           c.status === 'new' ? 'Mulakan prescan' :
+                           '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 text-center py-4">Tiada kes ditugaskan</p>
+          )}
+          <p className="text-[10px] text-slate-400 mt-3 text-center">
+            Level 2 Visibility — PII tidak ditunjukkan. Ejen tidak boleh mengubah status secara langsung.
+          </p>
+        </div>
+
+        {/* CR-009C: Spillover Matches Panel */}
+        <div className="mt-6">
+          <SpilloverMatchesPanel locale="bm" />
         </div>
 
         {/* Footer Disclaimer */}
