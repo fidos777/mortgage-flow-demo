@@ -1135,7 +1135,7 @@ export const ALL_FIELDS: FieldDefinition[] = [
     required: true,
     format: 'Dropdown',
     dropdownValues: ['INDUK', 'TAMBAHAN'],
-    classification: 'DERIVED',
+    classification: 'SYSTEM_DERIVED',
     affectsReadiness: true,
     readinessComponent: 'MEDAN',
     copyNextGroup: 6,
