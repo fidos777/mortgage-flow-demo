@@ -54,7 +54,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2">
               <span className="text-amber-600">ℹ️</span>
               <p className="text-sm text-amber-700">
-                Pengesahan APDL diperlukan untuk menguruskan projek Jenis 3 (Tanah + Bina).
+                Pengesahan APDL diperlukan untuk menguruskan projek Jenis 3 (Dalam Pembinaan).
                 Untuk jenis pinjaman lain, APDL tidak diperlukan.
               </p>
             </div>

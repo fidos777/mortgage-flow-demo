@@ -209,7 +209,7 @@ export default function AgentCaseDetail() {
                   <p className="text-sm text-slate-500">Jenis</p>
                   <p className="font-medium text-slate-800">
                     {caseData.property.type === 'subsale' ? 'Subsale' :
-                     caseData.property.type === 'land_build' ? 'Tanah + Bina' : 'Projek Baru'}
+                     caseData.property.type === 'land_build' ? 'Dalam Pembinaan' : 'Projek Baru'}
                   </p>
                 </div>
                 <div className="col-span-2">

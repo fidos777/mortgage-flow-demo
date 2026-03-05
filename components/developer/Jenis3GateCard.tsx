@@ -1,6 +1,6 @@
 // components/developer/Jenis3GateCard.tsx
 // CR-KP-002 Sprint 1 (A2): Jenis 3 Gate Card
-// Shows Jenis 3 (Tanah + Bina) requirements and APDL gate status
+// Shows Jenis 3 (Dalam Pembinaan) requirements and APDL gate status
 
 'use client';
 

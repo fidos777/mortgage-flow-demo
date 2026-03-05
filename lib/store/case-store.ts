@@ -74,7 +74,7 @@ const DEMO_CASES: Case[] = [
     },
     phase: 'DOCS_PENDING',
     priority: 'P3',
-    loanType: 'Jenis 3 - Tanah + Bina Rumah',
+    loanType: 'Jenis 3 - Dalam Pembinaan',
     documents: [
       { id: 'd7', type: 'IC', name: 'IC (Depan & Belakang)', status: 'verified', confidence: 0.97 },
       { id: 'd8', type: 'SLIP_GAJI', name: 'Slip Gaji Terkini', status: 'verified', confidence: 0.89 },
@@ -143,7 +143,7 @@ const DEMO_CASES: Case[] = [
     },
     phase: 'SUBMITTED',
     priority: 'P4',
-    loanType: 'Jenis 3 - Tanah + Bina Rumah',
+    loanType: 'Jenis 3 - Dalam Pembinaan',
     readiness: {
       band: 'ready',
       label: 'READY TO CONTINUE',

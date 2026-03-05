@@ -1,6 +1,6 @@
 // components/developer/ApdlCredentialForm.tsx
 // CR-KP-002 Sprint 1 (A2): APDL Credential Verification Form
-// Gate for Jenis 3 (Tanah + Bina) features
+// Gate for Jenis 3 (Dalam Pembinaan) features
 
 'use client';
 
@@ -85,7 +85,7 @@ export function ApdlCredentialForm({
         <div>
           <h3 className="font-semibold text-slate-800">Pengesahan APDL</h3>
           <p className="text-sm text-slate-500">
-            Diperlukan untuk Jenis 3 (Tanah + Bina Rumah)
+            Diperlukan untuk Jenis 3 (Dalam Pembinaan)
           </p>
         </div>
       </div>

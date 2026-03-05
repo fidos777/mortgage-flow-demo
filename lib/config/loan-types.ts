@@ -1,6 +1,6 @@
 // lib/config/loan-types.ts
 // L-1: LPPSA 7 Loan Types Configuration
-// Demo Focus: Type 1 (Subsale) & Type 3 (Tanah + Bina)
+// Demo Focus: Type 1 (Subsale) & Type 3 (Dalam Pembinaan)
 
 /**
  * LPPSA Loan Type Codes
@@ -77,9 +77,9 @@ export const LOAN_TYPES: Record<LoanTypeCode, LoanTypeConfig> = {
   },
   3: {
     code: 3,
-    nameMy: 'Tanah + Bina Rumah',
+    nameMy: 'Membeli Rumah Dalam Pembinaan',
     nameEn: 'Land + Build House',
-    shortName: 'Tanah + Bina',
+    shortName: 'Dalam Pembinaan',
     description: 'Pembelian tanah dan pembinaan rumah serentak',
     propertyType: 'Tanah + pembinaan',
     demoSupport: 'full',
