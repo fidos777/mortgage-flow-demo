@@ -206,4 +206,5 @@ export type FieldClassification =
   | 'USER_INPUT'      // Entered by buyer/agent
   | 'AI_EXTRACTED'    // Extracted by system
   | 'SYSTEM_DERIVED'  // Calculated by system
-  | 'LPPSA_GENERATED'; // Created by LPPSA
+  | 'LPPSA_GENERATED'
+  | 'DEVELOPER_SOURCED';  // Entered by developer (APDL/Section M) // Created by LPPSA
