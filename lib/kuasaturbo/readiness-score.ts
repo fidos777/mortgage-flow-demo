@@ -1,9 +1,10 @@
 // lib/kuasaturbo/readiness-score.ts
-// Readiness scoring aligned with PRD v3.6.1 Section 16 & Appendix A
+// Readiness scoring aligned with PRD v3.7.1 Section 16 & Appendix A
+// P0-F: Added kategoriPinjaman (DSR threshold), umurPersaraan, tarikhLantikanPertama
 // NOTE: This generates ADVISORY SIGNALS only, not eligibility decisions
 // P3-5: Deterministic - Same input ALWAYS produces same output
 
-import { ReadinessResult, ReadinessBand } from '@/types/case';
+import { ReadinessResult, ReadinessBand, KategoriPinjaman } from '@/types/case';
 
 export interface ReadinessInputs {
   employmentType: 'tetap' | 'kontrak' | '';
@@ -15,6 +16,12 @@ export interface ReadinessInputs {
   commitmentRange: string;
   hasUpload: boolean;
   propertyPrice?: number;
+
+  // P0-F: New fields from Pemetaan Medan v2.0
+  kategoriPinjaman?: KategoriPinjaman;    // FIN_001B: HARTA PERTAMA (DSR≤60%) / HARTA KEDUA (DSR≤50%)
+  umurPersaraan?: number;                 // EMP_015: Mandatory retirement age (e.g. 60)
+  tarikhPersaraan?: string;               // EMP_016: Mandatory retirement date (DD-MM-YYYY)
+  tarikhLantikanPertama?: string;         // EMP_003B: First appointment date — derives service years
 }
 
 /**
@@ -53,35 +60,86 @@ export function calculateReadiness(inputs: ReadinessInputs): ReadinessResult {
 
 /**
  * A. Rule Coverage (0-30 pts)
+ * P0-F: Enhanced with derived service years from tarikhLantikanPertama
+ * and retirement-based age factor from umurPersaraan/tarikhPersaraan
  */
 function calculateRuleCoverage(inputs: ReadinessInputs): number {
   let score = 0;
-  
+
   // Employment Type (max 20)
   if (inputs.employmentType === 'tetap') {
     score += 20;
   } else if (inputs.employmentType === 'kontrak') {
     score += 8;
   }
-  
+
   // Service Years (max 10)
-  if (inputs.serviceYears === '5+') {
+  // P0-F: Prefer derived value from tarikhLantikanPertama when available
+  const serviceYears = inputs.tarikhLantikanPertama
+    ? deriveServiceYearsBucket(inputs.tarikhLantikanPertama)
+    : inputs.serviceYears;
+
+  if (serviceYears === '5+') {
     score += 10;
-  } else if (inputs.serviceYears === '3-4') {
+  } else if (serviceYears === '3-4') {
     score += 6;
-  } else if (inputs.serviceYears === '0-2') {
+  } else if (serviceYears === '0-2') {
     score += 2;
   }
-  
+
   // Age Factor (adjustment, can be negative)
-  if (inputs.ageRange === '50-55') {
+  // P0-F: When tarikhPersaraan available, derive remaining years for more precision
+  const ageRange = inputs.tarikhPersaraan
+    ? deriveAgeRangeFromRetirement(inputs.tarikhPersaraan)
+    : inputs.ageRange;
+
+  if (ageRange === '50-55') {
     score -= 2;
-  } else if (inputs.ageRange === '56+') {
+  } else if (ageRange === '56+') {
     score -= 5;
   }
   // below35 and 35-49 get no penalty (full tenure potential)
-  
+
   return Math.max(0, Math.min(30, score));
+}
+
+/**
+ * P0-F: Derive service years bucket from EMP_003B (tarikhLantikanPertama)
+ */
+function deriveServiceYearsBucket(tarikhLantikan: string): string {
+  const parts = tarikhLantikan.split('-');
+  if (parts.length !== 3) return '0-2';
+  const day = parseInt(parts[0]);
+  const month = parseInt(parts[1]) - 1;
+  const year = parseInt(parts[2]);
+  const appointmentDate = new Date(year, month, day);
+  const now = new Date();
+  const diffYears = (now.getTime() - appointmentDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+  if (diffYears >= 5) return '5+';
+  if (diffYears >= 3) return '3-4';
+  return '0-2';
+}
+
+/**
+ * P0-F: Derive age range from EMP_016 (tarikhPersaraan)
+ * Maps remaining years to retirement into age range buckets
+ */
+function deriveAgeRangeFromRetirement(tarikhPersaraan: string): string {
+  const parts = tarikhPersaraan.split('-');
+  if (parts.length !== 3) return 'below35';
+  const day = parseInt(parts[0]);
+  const month = parseInt(parts[1]) - 1;
+  const year = parseInt(parts[2]);
+  const retirementDate = new Date(year, month, day);
+  const now = new Date();
+  const remainingYears = (retirementDate.getTime() - now.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+  // Less than 4 years to retirement ≈ age 56+
+  if (remainingYears < 4) return '56+';
+  // 4-10 years to retirement ≈ age 50-55
+  if (remainingYears < 10) return '50-55';
+  // 10-25 years ≈ 35-49
+  if (remainingYears < 25) return '35-49';
+  return 'below35';
 }
 
 /**
@@ -114,15 +172,32 @@ function calculateIncomePattern(inputs: ReadinessInputs): number {
 /**
  * C. Commitment Signal (0-25 pts)
  * Based on declared DSR (Debt Service Ratio)
+ * P0-F: kategoriPinjaman affects scoring threshold
+ *   HARTA PERTAMA: DSR ≤ 60% allowed (standard scoring)
+ *   HARTA KEDUA: DSR ≤ 50% — stricter, penalizes 41-50% range more
  */
 function calculateCommitmentSignal(inputs: ReadinessInputs): number {
+  const isSecondProperty = inputs.kategoriPinjaman === 'HARTA KEDUA';
+
+  if (isSecondProperty) {
+    // Stricter DSR thresholds for second property
+    const commitmentScores: Record<string, number> = {
+      '0-30': 25,   // Excellent
+      '31-40': 15,  // Moderate (reduced from 18)
+      '41-50': 4,   // Warning — exceeds 50% DSR limit for HARTA KEDUA
+      '51+': 0,     // Rejected range
+    };
+    return commitmentScores[inputs.commitmentRange] || 0;
+  }
+
+  // Standard DSR thresholds for first property (DSR ≤ 60%)
   const commitmentScores: Record<string, number> = {
     '0-30': 25,   // Excellent - low existing commitments
     '31-40': 18,  // Good - moderate commitments
     '41-50': 10,  // Caution - high commitments
     '51+': 4,     // Warning - very high commitments
   };
-  
+
   return commitmentScores[inputs.commitmentRange] || 0;
 }
 
@@ -225,6 +300,9 @@ export function shouldInvalidateReadiness(
     'commitmentRange',
     'existingLoan',
     'propertyPrice',
+    'kategoriPinjaman',      // P0-F: DSR threshold change
+    'tarikhPersaraan',       // P0-F: Retirement date change
+    'tarikhLantikanPertama', // P0-F: Service years change
   ];
   
   return invalidationFields.some(
@@ -296,9 +374,29 @@ export function getComponentFeedback(inputs: ReadinessInputs): string[] {
     feedback.push('Komitmen sedia ada agak tinggi - pertimbangkan untuk mengurangkan.');
   }
 
+  // P0-F: Second property DSR warning
+  if (inputs.kategoriPinjaman === 'HARTA KEDUA') {
+    feedback.push('Pembiayaan kedua — had DSR lebih ketat (50% berbanding 60% untuk harta pertama).');
+    if (['41-50', '51+'].includes(inputs.commitmentRange)) {
+      feedback.push('DSR melebihi had 50% untuk harta kedua — permohonan berkemungkinan tidak layak.');
+    }
+  }
+
   // Property Context feedback
   if (inputs.existingLoan === 'yes') {
     feedback.push('Pinjaman LPPSA sedia ada akan diambil kira dalam penilaian.');
+  }
+
+  // P0-F: Retirement proximity warning
+  if (inputs.tarikhPersaraan) {
+    const parts = inputs.tarikhPersaraan.split('-');
+    if (parts.length === 3) {
+      const retDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      const remainYrs = (retDate.getTime() - Date.now()) / (365.25 * 24 * 60 * 60 * 1000);
+      if (remainYrs < 10) {
+        feedback.push(`Baki ${Math.floor(remainYrs)} tahun sebelum persaraan — tempoh pinjaman maksimum terhad.`);
+      }
+    }
   }
 
   return feedback;
@@ -323,6 +421,11 @@ export function hashInputs(inputs: ReadinessInputs): string {
     commitmentRange: inputs.commitmentRange || '',
     hasUpload: Boolean(inputs.hasUpload),
     propertyPrice: inputs.propertyPrice || 0,
+    // P0-F fields
+    kategoriPinjaman: inputs.kategoriPinjaman || '',
+    umurPersaraan: inputs.umurPersaraan || 0,
+    tarikhPersaraan: inputs.tarikhPersaraan || '',
+    tarikhLantikanPertama: inputs.tarikhLantikanPertama || '',
   };
 
   // Simple deterministic hash (for verification, not security)
@@ -352,7 +455,7 @@ export function calculateReadinessWithVerification(inputs: ReadinessInputs): {
   return {
     result,
     inputHash,
-    version: 'v3.6.1', // PRD version
+    version: 'v3.7.1', // PRD version (P0-F: added kategoriPinjaman, retirement fields)
     calculatedAt: new Date().toISOString(),
   };
 }

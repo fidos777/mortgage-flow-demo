@@ -39,6 +39,8 @@ export function salaryToRange(salary: number): string {
 /**
  * PRD Section 16.3: Convert confidence percentage to label
  * "Readiness score MUST NEVER be displayed... as approval probability"
+ * DEC-001: This is a CONCEPT-LEVEL prohibition — no approval prediction engine
+ * may exist in any form. See docs/DECISIONS-LOG.md for full rationale.
  */
 export function confidenceToLabel(confidence: number): ConfidenceLevel {
   if (confidence >= 0.90) return 'HIGH_CONFIDENCE';
