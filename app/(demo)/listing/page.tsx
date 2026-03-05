@@ -11,7 +11,7 @@ interface Brand {
 interface Project {
   nama: string; bandar: string; negeri: string; harga: string; unit: string;
   kes: number; aktif: number; slug: string; score: number; dijual: number;
-  conversion: string; source: string; listerKey: string; totalCopies: number; isNew: boolean;
+  selesai: number; source: string; listerKey: string; totalCopies: number; isNew: boolean;
 }
 
 // ─── Lister brand registry (developers + REAs) ───
@@ -163,8 +163,8 @@ const ProjectHero = ({ project: p, lister, onBack, onSwitchTab }: { project: Pro
             <p className="text-xl font-bold text-teal-300">{p.kes}</p>
           </div>
           <div>
-            <p className="text-xs text-teal-400/60">Conversion</p>
-            <p className="text-xl font-bold text-emerald-300">{p.conversion || "—"}</p>
+            <p className="text-xs text-teal-400/60">Kes Selesai</p>
+            <p className="text-xl font-bold text-emerald-300">{p.selesai || 0}</p>
           </div>
           {p.score < 80 && (
             <div className="ml-4 flex-1">
@@ -203,7 +203,7 @@ const PipelineTab = ({ project: p }: { project: Project }) => {
           <MetricCard icon="👥" label="Applications" value="0" />
           <MetricCard icon="✅" label="Completed" value="0" />
           <MetricCard icon="⏳" label="In Progress" value="0" />
-          <MetricCard icon="📊" label="Conversion" value="—" />
+          <MetricCard icon="✅" label="Kes Selesai" value="0" />
         </div>
         <EmptyState icon="📋" title="No applications yet"
           description="This project hasn't received any LPPSA applications. Use the Marketing Kit to generate and share tracked links with buyers."
@@ -225,7 +225,7 @@ const PipelineTab = ({ project: p }: { project: Project }) => {
         <MetricCard icon="👥" label="Active Applications" value={p.kes} accent />
         <MetricCard icon="✅" label="Completed" value="0" />
         <MetricCard icon="⏳" label="In Progress" value={p.aktif} accent />
-        <MetricCard icon="📊" label="Conversion" value={p.conversion || "0%"} />
+        <MetricCard icon="✅" label="Kes Selesai" value={p.selesai || 0} />
       </div>
       <div className="grid grid-cols-1 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-4">
@@ -637,8 +637,8 @@ export default function ListingPage() {
   const [activeTab, setActiveTab] = useState("pipeline");
 
   const projects = [
-    { nama: "Residensi Harmoni", bandar: "Shah Alam", negeri: "Selangor", harga: "350000", unit: "250", kes: 5, aktif: 5, slug: "residensi-harmoni", score: 82, dijual: 180, conversion: "0%", source: "url", listerKey: "ecoworld", totalCopies: 15, isNew: false },
-    { nama: "Meridian Heights", bandar: "Shah Alam", negeri: "Selangor", harga: "380000", unit: "180", kes: 0, aktif: 0, slug: "meridian-heights", score: 42, dijual: 0, conversion: "—", source: "pdf", listerKey: "meridian", totalCopies: 0, isNew: true },
+    { nama: "Residensi Harmoni", bandar: "Shah Alam", negeri: "Selangor", harga: "350000", unit: "250", kes: 5, aktif: 5, slug: "residensi-harmoni", score: 82, dijual: 180, selesai: 0, source: "url", listerKey: "ecoworld", totalCopies: 15, isNew: false },
+    { nama: "Meridian Heights", bandar: "Shah Alam", negeri: "Selangor", harga: "380000", unit: "180", kes: 0, aktif: 0, slug: "meridian-heights", score: 42, dijual: 0, selesai: 0, source: "pdf", listerKey: "meridian", totalCopies: 0, isNew: true },
   ];
 
   const totals = { kes: projects.reduce((s, p) => s + p.kes, 0), aktif: projects.reduce((s, p) => s + p.aktif, 0), pipeline: projects.reduce((s, p) => s + p.kes * Number(p.harga), 0) };
@@ -654,7 +654,6 @@ export default function ListingPage() {
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-teal-600 font-bold text-lg tracking-tight">Snang.my</span>
-            <Badge color="teal">LPPSA</Badge>
           </div>
           <div className="flex items-center gap-2">
             {/* Portal roles stay in BM per Section 7.4 */}
@@ -684,7 +683,7 @@ export default function ListingPage() {
               <MetricCard icon="📄" label="Total Cases" value={totals.kes} />
               <MetricCard icon="⏳" label="Active Cases" value={totals.aktif} accent />
               <MetricCard icon="💰" label="Pipeline Value" value={`RM ${totals.pipeline.toLocaleString()}`} />
-              <MetricCard icon="📊" label="Conversion Rate" value="0%" />
+              <MetricCard icon="✅" label="Kes Selesai" value={0} />
             </div>
             <div className="bg-white rounded-xl border border-slate-200">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between">

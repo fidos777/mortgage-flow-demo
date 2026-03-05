@@ -38,7 +38,7 @@ export const LOAN_TYPES: Record<LoanTypeCode, LoanTypeConfig> = {
     demoSupport: 'full',
     requiredDocs: [
       'IC',
-      'SLIP_GAJI',
+      'SLIP_GAJI_ASAL',
       'PENYATA_BANK',
       'SURAT_PENGESAHAN_MAJIKAN',
       'SPA',
@@ -61,7 +61,7 @@ export const LOAN_TYPES: Record<LoanTypeCode, LoanTypeConfig> = {
     demoSupport: 'planned',
     requiredDocs: [
       'IC',
-      'SLIP_GAJI',
+      'SLIP_GAJI_ASAL',
       'PENYATA_BANK',
       'SURAT_PENGESAHAN_MAJIKAN',
       'GERAN_TANAH',
@@ -85,7 +85,7 @@ export const LOAN_TYPES: Record<LoanTypeCode, LoanTypeConfig> = {
     demoSupport: 'full',
     requiredDocs: [
       'IC',
-      'SLIP_GAJI',
+      'SLIP_GAJI_ASAL',
       'PENYATA_BANK',
       'SURAT_PENGESAHAN_MAJIKAN',
       'SPA_TANAH',
@@ -109,7 +109,7 @@ export const LOAN_TYPES: Record<LoanTypeCode, LoanTypeConfig> = {
     demoSupport: 'planned',
     requiredDocs: [
       'IC',
-      'SLIP_GAJI',
+      'SLIP_GAJI_ASAL',
       'PENYATA_BANK',
       'SURAT_PENGESAHAN_MAJIKAN',
       'SPA',
@@ -132,7 +132,7 @@ export const LOAN_TYPES: Record<LoanTypeCode, LoanTypeConfig> = {
     demoSupport: 'planned',
     requiredDocs: [
       'IC',
-      'SLIP_GAJI',
+      'SLIP_GAJI_ASAL',
       'PENYATA_BANK',
       'SURAT_PENGESAHAN_MAJIKAN',
       'PENYATA_PINJAMAN_SEMASA',
@@ -155,7 +155,7 @@ export const LOAN_TYPES: Record<LoanTypeCode, LoanTypeConfig> = {
     demoSupport: 'planned',
     requiredDocs: [
       'IC',
-      'SLIP_GAJI',
+      'SLIP_GAJI_ASAL',
       'PENYATA_BANK',
       'SURAT_PENGESAHAN_MAJIKAN',
       'GERAN_HAKMILIK',
@@ -179,7 +179,7 @@ export const LOAN_TYPES: Record<LoanTypeCode, LoanTypeConfig> = {
     demoSupport: 'planned',
     requiredDocs: [
       'IC',
-      'SLIP_GAJI',
+      'SLIP_GAJI_ASAL',
       'PENYATA_BANK',
       'SURAT_PENGESAHAN_MAJIKAN',
       'SPA_TANAH',
