@@ -131,7 +131,7 @@ export function LoanTypeSelector({
       </div>
       {demoOnly && (
         <p className="text-xs text-gray-500 mt-2">
-          * Demo menyokong Jenis 1 (Subsale) dan Jenis 3 (Tanah + Bina) sahaja
+          * Demo menyokong Jenis 1 (Subsale) dan Jenis 3 (Dalam Pembinaan) sahaja
         </p>
       )}
     </div>

@@ -305,7 +305,7 @@ export const COPY: Record<Locale, LocaleCopy> = {
     pipelineSummary: [
       { label: 'Sold', value: '180', color: T[600] },
       { label: 'Loans In Progress', value: '45', color: A[500] },
-      { label: 'Conversion Rate', value: '25%', color: T[500] },
+      { label: 'Kadar Penyiapan', value: '25%', color: T[500] },
     ],
     pipelineMetrics: [
       { icon: 'Users', label: 'Active Applications', value: '5', sub: 'Total' },

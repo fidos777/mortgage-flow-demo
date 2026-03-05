@@ -37,9 +37,6 @@ export default function DemoLayout({
               <span className="text-teal-400 font-bold text-xl" style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 my
               </span>
-              <span className="text-teal-500 text-xs font-mono ml-2 bg-teal-500/20 px-2 py-0.5 rounded">
-                LPPSA
-              </span>
             </Link>
           </div>
 

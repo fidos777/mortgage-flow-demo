@@ -44,7 +44,20 @@ export function getTerm(key: GlossaryKey, lang: 'bm' | 'en'): string {
 }
 
 // Export banned words for reference (also in check-i18n.ts)
+// DEC-001: This is a CONCEPT-LEVEL prohibition, not just terminology.
+// The system must never compute, store, or display approval probability in any form.
+// See docs/DECISIONS-LOG.md DEC-001 for full rationale.
 export const BANNED_WORDS = {
-  bm: ['lulus', 'kelulusan', 'layak', 'ditolak'],
-  en: ['approved', 'approval', 'eligible', 'rejected', 'guaranteed', 'guarantee', 'approve', 'reject'],
+  bm: ['lulus', 'kelulusan', 'layak', 'ditolak', 'kebarangkalian kelulusan'],
+  en: ['approved', 'approval', 'eligible', 'rejected', 'guaranteed', 'guarantee', 'approve', 'reject', 'approval probability', 'approval rate', 'success rate'],
 } as const;
+
+// DEC-001: Banned concept identifiers (for code review, not just UI strings)
+export const BANNED_CONCEPTS = [
+  'approval_probability',
+  'approval_score',
+  'approval_likelihood',
+  'approval_engine',
+  'prediction_model',
+  'approval_rate',
+] as const;
