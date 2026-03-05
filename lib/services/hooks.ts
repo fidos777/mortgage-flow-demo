@@ -273,7 +273,7 @@ export function useProjectAggregates() {
   const [aggregates, setAggregates] = useState({
     totalCases: 0,
     byStatus: {} as Record<string, number>,
-    conversionRate: 0,
+    completionRate: 0,
   });
   const [projectInfo, setProjectInfo] = useState(store.projectInfo);
   const [loading, setLoading] = useState(true);

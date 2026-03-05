@@ -47,7 +47,7 @@ export interface IProjectService {
   getAggregates(): Promise<{
     totalCases: number;
     byPhase: Record<string, number>;
-    conversionRate: number;
+    completionRate: number;
   }>;
   getProjectInfo(): Promise<{
     name: string;

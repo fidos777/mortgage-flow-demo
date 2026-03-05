@@ -90,7 +90,7 @@ export default function DeveloperPage() {
   const submittedCases = cases.filter(c => c.status === 'submitted' || c.status === 'kj_pending').length;
   const completedCases = cases.filter(c => c.status === 'completed' || c.status === 'approved').length;
   const pipelineValue = cases.reduce((sum, c) => sum + (c.property_price || 0), 0);
-  const conversionRate = totalCases > 0 ? Math.round((completedCases / totalCases) * 100) : 0;
+  const completionRate = totalCases > 0 ? Math.round((completedCases / totalCases) * 100) : 0;
 
   // Cases per property
   const getCasesForProperty = (propId: string) => cases.filter(c => c.property_id === propId);
@@ -274,7 +274,7 @@ export default function DeveloperPage() {
             <BarChart3 className="w-5 h-5 text-slate-400" />
             <span className="text-sm text-slate-500">Kadar Penukaran</span>
           </div>
-          <p className="text-2xl font-bold text-slate-800">{conversionRate}%</p>
+          <p className="text-2xl font-bold text-slate-800">{completionRate}%</p>
         </div>
       </div>
 

@@ -141,7 +141,7 @@ const roles: RoleData[] = [
       {
         icon: <CheckCircle2 className="w-5 h-5" />,
         title: 'Kes Pre-Qualified',
-        description: 'Terima kes dengan DSR sudah dikira — potensi kelulusan clear',
+        description: 'Terima kes dengan DSR sudah dikira — kesediaan jelas',
       },
       {
         icon: <Clipboard className="w-5 h-5" />,

@@ -6,7 +6,7 @@ const stats = [
   {
     icon: TrendingUp,
     value: '80.5%',
-    label: 'Kadar Kelulusan',
+    label: 'Kes Selesai',
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50'
   },

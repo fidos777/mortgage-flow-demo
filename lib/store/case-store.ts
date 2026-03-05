@@ -268,7 +268,7 @@ interface CaseStore {
   getAggregatesForDeveloper: () => {
     totalCases: number;
     byStatus: Record<string, number>;
-    conversionRate: number;
+    completionRate: number;
   };
 }
 
@@ -371,7 +371,7 @@ export const useCaseStore = create<CaseStore>()(
         return {
           totalCases: cases.length,
           byStatus,
-          conversionRate: cases.length > 0 ? Math.round((completed / cases.length) * 100) : 0,
+          completionRate: cases.length > 0 ? Math.round((completed / cases.length) * 100) : 0,
         };
       },
     }),

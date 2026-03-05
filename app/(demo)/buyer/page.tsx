@@ -384,7 +384,7 @@ export default function BuyerPortalPage() {
               <CheckCircle2 className="w-6 h-6 text-violet-600" />
             </div>
             <h4 className="font-semibold text-neutral-800 mb-1">Pengesahan KJ</h4>
-            <p className="text-sm text-neutral-500 mb-3">Kelulusan Jenis verification</p>
+            <p className="text-sm text-neutral-500 mb-3">Pengesahan identiti oleh KJ</p>
             <span className="text-sm text-violet-600 font-medium flex items-center gap-1">
               Sahkan <ArrowRight className="w-4 h-4" />
             </span>

@@ -8,7 +8,7 @@ export class MockProjectService implements IProjectService {
   async getAggregates(): Promise<{
     totalCases: number;
     byPhase: Record<string, number>;
-    conversionRate: number;
+    completionRate: number;
   }> {
     const store = useCaseStore.getState();
     const cases = store.cases;
@@ -19,14 +19,14 @@ export class MockProjectService implements IProjectService {
     }, {} as Record<string, number>);
     
     const completed = cases.filter(c => c.phase === 'COMPLETED').length;
-    const conversionRate = cases.length > 0 
+    const completionRate = cases.length > 0 
       ? Math.round((completed / cases.length) * 100)
       : 0;
     
     return {
       totalCases: cases.length,
       byPhase,
-      conversionRate,
+      completionRate,
     };
   }
   

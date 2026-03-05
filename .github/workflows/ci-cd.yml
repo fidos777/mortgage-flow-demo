@@ -63,6 +63,10 @@ jobs:
           fi
           echo "✅ Safe language check passed"
 
+      # CR-003: i18n compliance - BANNED_WORDS enforcement on translation values
+      - name: i18n Compliance Check
+        run: pnpm i18n:check
+
   # ---------------------------------------------------------------------------
   # UNIT TESTS
   # ---------------------------------------------------------------------------

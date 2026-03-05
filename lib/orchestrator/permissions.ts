@@ -147,7 +147,7 @@ function transformForAgent(caseData: Case): Partial<Case> {
 export interface DeveloperAggregates {
   totalCases: number;
   byStatus: Record<string, number>;
-  conversionRate: number;
+  completionRate: number;
   avgProcessingDays: number;
 }
 
@@ -160,14 +160,14 @@ export function aggregateCasesForDeveloper(cases: Case[]): DeveloperAggregates {
   });
   
   const completed = cases.filter(c => c.phase === 'COMPLETED').length;
-  const conversionRate = cases.length > 0 
+  const completionRate = cases.length > 0 
     ? Math.round((completed / cases.length) * 100) 
     : 0;
   
   return {
     totalCases: cases.length,
     byStatus,
-    conversionRate,
+    completionRate,
     avgProcessingDays: 45, // Mock for demo
   };
 }

@@ -11,6 +11,7 @@
  */
 
 import { translations } from '../lib/i18n/translations';
+import { BANNED_WORDS } from '../lib/i18n/glossary';
 
 type AnyObj = Record<string, unknown>;
 
@@ -54,11 +55,8 @@ function scanBannedValues(lang: 'bm' | 'en', values: string[]): string[] {
   const joined = values.join(' \n ').toLowerCase();
   const violations: string[] = [];
 
-  // Banned word patterns (word boundaries to avoid false positives)
-  const bannedBM = ['lulus', 'kelulusan', 'layak', 'ditolak'];
-  const bannedEN = ['approved', 'approval', 'eligible', 'rejected', 'guarantee', 'guaranteed', 'approve', 'reject'];
-
-  const bannedList = lang === 'bm' ? bannedBM : bannedEN;
+  // Single source of truth: import from glossary.ts BANNED_WORDS (CR-003)
+  const bannedList = [...BANNED_WORDS[lang]];
 
   for (const word of bannedList) {
     const regex = new RegExp(`\\b${word}\\b`, 'i');
@@ -130,14 +128,14 @@ function main() {
     console.log(`   ❌ BM contains banned words: ${bmViolations.join(', ')}`);
     hasErrors = true;
   } else {
-    console.log('   ✅ BM values pass (no: lulus, kelulusan, layak, ditolak)');
+    console.log(`   ✅ BM values pass (banned: ${BANNED_WORDS.bm.join(', ')})`);
   }
 
   if (enViolations.length) {
     console.log(`   ❌ EN contains banned words: ${enViolations.join(', ')}`);
     hasErrors = true;
   } else {
-    console.log('   ✅ EN values pass (no: approved, approval, eligible, rejected, guarantee)');
+    console.log(`   ✅ EN values pass (banned: ${BANNED_WORDS.en.join(', ')})`);
   }
 
   // === Summary ===

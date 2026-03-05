@@ -209,13 +209,13 @@ export const COPY: Record<Locale, LocaleCopy> = {
     pipelineSummary: [
       { label: 'Dijual', value: '180', color: T[600] },
       { label: 'Pinjaman Dalam Proses', value: '45', color: A[500] },
-      { label: 'Kadar Penukaran', value: '25%', color: T[500] },
+      { label: 'Kadar Penyiapan', value: '25%', color: T[500] },
     ],
     pipelineMetrics: [
       { icon: 'Users', label: 'Permohonan Aktif', value: '5', sub: 'Jumlah' },
       { icon: 'CheckCircle2', label: 'Selesai', value: '0', sub: 'Selesai' },
       { icon: 'Clock', label: 'Dalam Proses', value: '5', sub: 'Aktif' },
-      { icon: 'BarChart3', label: 'Penukaran', value: '0%', sub: 'Kadar' },
+      { icon: 'BarChart3', label: 'Penyiapan', value: '0%', sub: 'Kadar' },
     ],
     pipelineStatusDist: [
       { label: 'Imbasan', count: 0, color: S[300] },
@@ -305,13 +305,13 @@ export const COPY: Record<Locale, LocaleCopy> = {
     pipelineSummary: [
       { label: 'Sold', value: '180', color: T[600] },
       { label: 'Loans In Progress', value: '45', color: A[500] },
-      { label: 'Kadar Penyiapan', value: '25%', color: T[500] },
+      { label: 'Completion Rate', value: '25%', color: T[500] },
     ],
     pipelineMetrics: [
       { icon: 'Users', label: 'Active Applications', value: '5', sub: 'Total' },
       { icon: 'CheckCircle2', label: 'Completed', value: '0', sub: 'Done' },
       { icon: 'Clock', label: 'In Progress', value: '5', sub: 'Active' },
-      { icon: 'BarChart3', label: 'Conversion', value: '0%', sub: 'Rate' },
+      { icon: 'BarChart3', label: 'Completion', value: '0%', sub: 'Rate' },
     ],
     pipelineStatusDist: [
       { label: 'Scan', count: 0, color: S[300] },

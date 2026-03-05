@@ -237,7 +237,7 @@ describe('Permissions - PRD Section 7-13 Compliance', () => {
       const aggregates = aggregateCasesForDeveloper(mockCases);
       
       // 2 completed out of 5 = 40%
-      expect(aggregates.conversionRate).toBe(40);
+      expect(aggregates.completionRate).toBe(40);
     });
 
     it('should NOT include any individual identifiers', () => {
